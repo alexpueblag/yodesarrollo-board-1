@@ -46,3 +46,11 @@ Mi día prioriza por fecha registrada: vencidos, hoy, casos por organizar y pró
 Dirección dispone de gestión de una cartera seleccionada mediante `masterbroker=<id>&mode=manage`: conserva su actor, autoría y capacidades de servidor, y vuelve a acotar cada snapshot tras guardar. Sin `mode=manage` continúa la previsualización sin escrituras. Un broker real nunca adquiere rol de Dirección por el parámetro. La gestión de contactos compartidos preserva los demás brokers vinculados. Activación de identidad individual pendiente de correo verificado; no se suplanta al Masterbroker.
 
 Verificación: 27 pruebas de contrato/dominio. DOM con casos sintéticos: broker, preview y gestión; agenda, formularios, reintento con mismo request_id tras fallo, ACK, historial, conservación de vínculos compartidos, alcance tras guardado y limpieza al cambiar sesión. Sin escrituras de prueba en producción.
+
+## Preevaluación desde cartera
+
+El botón Preevaluar terreno abre el evaluador existente mediante un acceso de un solo uso. El backend contrasta identidad y cartera con el snapshot canónico del CRM; el navegador no concede permisos. Se conserva el acceso público aislado del evaluador.
+
+Guardar mantiene la evaluación en Drive. Usar en Masterbrokers vuelve con su ID y recupera datos con la sesión vigente: nombre, ubicación, carpeta y referencia de revisión. El formulario requiere confirmar el siguiente paso y guardar mediante brokers_save; no crea ni aprueba planes automáticamente. Una referencia ya vinculada reabre el registro existente. La vista previa de Dirección no lanza ni importa evaluaciones. Los perfiles sin correo verificado siguen sujetos a vinculación canónica.
+
+Datos, configuración y expedientes viven en Drive/Sheets. Git contiene la lógica y ejemplos sintéticos. Pruebas con dobles y navegador, sin escrituras de prueba en CRM. La publicación no acredita que todos los perfiles individuales estén activados.

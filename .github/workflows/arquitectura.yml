@@ -45,7 +45,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: yodesarrollomx/yod-portal
-          ref: 7236308c280529ea17e335fca4adbf85d5d4da90
+          ref: af36013849da30ab7206bfb2fcdbce5acedb8f67
           path: .yod-atlas
           persist-credentials: false
           sparse-checkout-cone-mode: false
@@ -57,6 +57,16 @@ jobs:
           node-version: '22'
       - name: Contratos de Brokers
         run: node --test tests/brokers*.test.cjs
+      - name: Sintaxis del flujo de preevaluación
+        run: |
+          node --check brokers.js
+          node --check brokers-evaluator.js
+          git diff --check HEAD^ HEAD
+      - name: Navegador con servicios sintéticos
+        run: |
+          npm install --no-save --ignore-scripts --no-audit --no-fund playwright@1.58.2
+          npx playwright install --with-deps chromium
+          node tests/brokers-evaluator-browser.cjs
       - name: Resolver comparación
         id: refs
         env:
