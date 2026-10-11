@@ -8,6 +8,8 @@
   const manageRequested = new URLSearchParams(window.location.search).get('mode') === 'manage';
   let preview = false, managing = false, caseState = '', detailTab = 'history';
   const token = () => { try { return localStorage.getItem('pyod_clave_v1') || ''; } catch (_) { return ''; } };
+  const evaluator = window.BrokerEvaluator.create(config,token,window.fetch.bind(window));
+  let evaluationReturnHandled=false;
   const client = C.createClient({ url: config.url, token, fetch: window.fetch.bind(window) });
   let snapshot = null, tab = 'opportunities', broker = '', query = '', stage = '', selected = '', busy = false, edit = null, loadedToken = '';
   const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
@@ -35,7 +37,7 @@
   async function load() {
     if (busy) return;
     busy = true; clear(); $('notice').textContent = 'Validando tu acceso y leyendo la cartera…';
-    try { const live = await client.load(); applySnapshot(live); loadedToken = token(); accessNotice(); render(); }
+    try { const live = await client.load(); applySnapshot(live); loadedToken = token(); accessNotice(); render(); await receiveEvaluation(); }
     catch (e) { clear(); $('notice').textContent = e.message; const b = document.createElement('button'); b.textContent = 'Volver a intentar'; b.onclick = load; $('notice').append(' ', b); }
     finally { busy = false; }
   }
@@ -54,7 +56,7 @@
     const direction = snapshot.actor.role === 'direccion' && !managing;
     const navigation = [['opportunities','Cartera'],['contacts','Contactos'],['offer','Material'],['participations','Acuerdos'],...(direction?[['brokers','Equipo']]:[])];
     const isList = !selected && tab !== 'offer';
-    $('workspace').innerHTML = `<nav class="module-tabs" aria-label="Masterbrokers">${navigation.map(([id,label])=>`<button data-tab="${id}" aria-current="${tab===id?'page':'false'}">${label}</button>`).join('')}<button class="refresh" data-action="refresh" aria-label="Actualizar cartera">↻</button></nav>${isList?`<div class="toolbar"><input id="search" type="search" aria-label="Buscar en esta sección" placeholder="Buscar expediente o contacto" value="${esc(query)}">${direction?`<select id="broker-filter" aria-label="Masterbroker"><option value="">Todo el equipo</option>${options(snapshot.brokers,broker)}</select>`:''}${tab==='opportunities'?`<select id="state-filter" aria-label="Estado"><option value="">Todos</option><option value="open" ${caseState==='open'?'selected':''}>Abiertos</option><option value="closed" ${caseState==='closed'?'selected':''}>Cerrados</option></select><select id="stage-filter" aria-label="Etapa"><option value="">Todas las etapas</option>${options(C.stages,stage)}</select>`:''}${canEdit()&&['opportunities','contacts'].includes(tab)?`<button class="primary" data-new="${tab==='contacts'?'contact':'opportunity'}">+ ${tab==='contacts'?'Contacto':'Oportunidad'}</button>`:''}</div>`:''}<div id="content"></div>`;
+    $('workspace').innerHTML = `<nav class="module-tabs" aria-label="Masterbrokers">${navigation.map(([id,label])=>`<button data-tab="${id}" aria-current="${tab===id?'page':'false'}">${label}</button>`).join('')}<button class="refresh" data-action="refresh" aria-label="Actualizar cartera">↻</button></nav>${isList?`<div class="toolbar"><input id="search" type="search" aria-label="Buscar en esta sección" placeholder="Buscar expediente o contacto" value="${esc(query)}">${direction?`<select id="broker-filter" aria-label="Masterbroker"><option value="">Todo el equipo</option>${options(snapshot.brokers,broker)}</select>`:''}${tab==='opportunities'?`<select id="state-filter" aria-label="Estado"><option value="">Todos</option><option value="open" ${caseState==='open'?'selected':''}>Abiertos</option><option value="closed" ${caseState==='closed'?'selected':''}>Cerrados</option></select><select id="stage-filter" aria-label="Etapa"><option value="">Todas las etapas</option>${options(C.stages,stage)}</select>`:''}${canEdit()&&!preview&&tab==='opportunities'?'<button class="primary" data-preevaluate="new">Preevaluar terreno</button>':''}${canEdit()&&['opportunities','contacts'].includes(tab)?`<button class="primary" data-new="${tab==='contacts'?'contact':'opportunity'}">+ ${tab==='contacts'?'Contacto':'Oportunidad'}</button>`:''}</div>`:''}<div id="content"></div>`;
     const content = $('content');
     if (tab === 'opportunities') content.innerHTML = selected ? detail(snapshot.opportunities.find(o=>o.id===selected)) : portfolio();
     if (tab === 'contacts') content.innerHTML = contactsView();
@@ -120,13 +122,54 @@
     if(detailTab==='records')body=table(['Gestión','Contacto','Estado',''],g.records.map(r=>`<tr><td><strong>${esc(r.title)}</strong><span class="secondary">${esc(r.kind)}</span></td><td>${esc((snapshot.contacts.find(c=>c.id===r.contact_id)||{}).name)}</td><td>${esc(r.stage)}</td><td><button data-select-record="${esc(r.id)}" ${r.id===selected?'disabled':''}>${r.id===selected?'Seleccionado':'Seleccionar'}</button></td></tr>`).join(''),'Gestiones relacionadas')+`<section class="record-info">${o.source_status?`<p>${esc(o.source_status)}</p>`:''}${o.notes?`<p class="pre-wrap">${esc(o.notes)}</p>`:''}${contact?`<p>${esc([contact.name,contact.company,contact.email,contact.phone].filter(Boolean).join(' · '))}</p>`:''}${canEdit()?`<button data-edit-opportunity="${esc(o.id)}">Editar registro</button>`:''}</section>`;
     if(detailTab==='material')body=`<div class="material-links">${groupLinks(g)||'<p class="empty-cell">No hay material vinculado.</p>'}</div>`;
     if(detailTab==='agreements')body=`${parts.map(p=>`<section class="agreement-item"><div class="row"><strong>${esc(names([p.broker_id]))}</strong><span class="status">${esc(p.status)}</span></div>${p.terms?`<p class="pre-wrap">${esc(p.terms)}</p>`:''}${link(p.agreement_url,'Ver acuerdo')}${canAgree()?`<button data-edit-participation="${esc(p.id)}">Editar acuerdo</button>`:''}</section>`).join('')}${canAgree()?'<button data-new="participation">+ Acuerdo</button>':''}`;
-    return `<article class="detail"><button class="text-button" data-action="back">← Cartera</button><div class="detail-heading"><div><h2>${esc(g.records[0].title)}</h2>${g.contacts.length?`<p class="muted">${esc(g.contacts.map(c=>c.name).join(' · '))}</p>`:''}</div><div class="detail-actions">${canEdit()?'<button class="primary" data-followup="true">+ Seguimiento</button>'+(o.terrain_id||o.ppp_id?'<button data-related="true">+ Gestión</button>':'')+'':''}</div></div>${g.records.length>1?`<label class="record-picker"><span>Registro activo</span><select id="record-select">${options(g.records.map(r=>({id:r.id,name:r.title+' · '+r.kind})),o.id)}</select></label>`:''}<div class="record-status"><span class="status">${esc(o.stage)}</span>${step.text?`<span>${esc(step.text)}</span>`:''}${o.next_date?`<time>${esc(dateLabel(o.next_date))}</time>`:''}${step.owner?`<span class="muted">${esc(step.owner)}</span>`:''}</div><nav class="detail-tabs" aria-label="Expediente">${[['history','Historial'],['records',`Gestiones (${g.records.length})`],['material','Material'],['agreements','Acuerdos']].map(([id,label])=>`<button data-detail-tab="${id}" aria-current="${detailTab===id?'page':'false'}">${label}</button>`).join('')}</nav><div class="detail-body">${body}</div></article>`;
+    return `<article class="detail"><button class="text-button" data-action="back">← Cartera</button><div class="detail-heading"><div><h2>${esc(g.records[0].title)}</h2>${g.contacts.length?`<p class="muted">${esc(g.contacts.map(c=>c.name).join(' · '))}</p>`:''}</div><div class="detail-actions">${canEdit()&&!preview?'<button data-preevaluate="current">'+(window.BrokerEvaluator.caseId(o.notes)?'Abrir preevaluación':'Preevaluar terreno')+'</button>':''}${canEdit()?'<button class="primary" data-followup="true">+ Seguimiento</button>'+(o.terrain_id||o.ppp_id?'<button data-related="true">+ Gestión</button>':'')+'':''}</div></div>${g.records.length>1?`<label class="record-picker"><span>Registro activo</span><select id="record-select">${options(g.records.map(r=>({id:r.id,name:r.title+' · '+r.kind})),o.id)}</select></label>`:''}<div class="record-status"><span class="status">${esc(o.stage)}</span>${step.text?`<span>${esc(step.text)}</span>`:''}${o.next_date?`<time>${esc(dateLabel(o.next_date))}</time>`:''}${step.owner?`<span class="muted">${esc(step.owner)}</span>`:''}</div><nav class="detail-tabs" aria-label="Expediente">${[['history','Historial'],['records',`Gestiones (${g.records.length})`],['material','Material'],['agreements','Acuerdos']].map(([id,label])=>`<button data-detail-tab="${id}" aria-current="${detailTab===id?'page':'false'}">${label}</button>`).join('')}</nav><div class="detail-body">${body}</div></article>`;
+  }
+
+
+  async function receiveEvaluation(){
+    const params=new URLSearchParams(location.search),id=params.get('preevaluacion');
+    if(!id||evaluationReturnHandled||preview||!canEdit())return;
+    evaluationReturnHandled=true;
+    try{
+      const ev=await evaluator.summary(id);
+      if(!snapshot.brokers.some(b=>b.id===ev.broker_id))throw Error('La evaluación no corresponde a esta cartera.');
+      const target=params.get('opportunity'),linked=snapshot.opportunities.filter(o=>window.BrokerEvaluator.caseId(o.notes)===ev.id);
+      if(linked.length>1)throw Error('Hay más de un registro vinculado. Abre el expediente que deseas actualizar.');
+      const existing=target?snapshot.opportunities.find(o=>o.id===target):linked[0];
+      if(target&&!existing)throw Error('El expediente de regreso no está en tu cartera.');
+      editor('opportunity',window.BrokerEvaluator.recordFromEvaluation(ev,existing));
+      $('form-title').textContent=existing?'Vincular preevaluación al terreno':'Registrar terreno preevaluado';
+      $('form-error').textContent='La preevaluación ya está en Drive. Revisa el siguiente paso y guarda para incorporarla a tu cartera.';
+      const u=new URL(location.href);u.searchParams.delete('preevaluacion');u.searchParams.delete('opportunity');history.replaceState({},'',u.href);
+    }catch(e){$('notice').textContent=e.message;}
+  }
+  function chooseEvaluation(kind){
+    if(!canEdit()||preview)return;
+    const o=kind==='current'?snapshot.opportunities.find(o=>o.id===selected):null;
+    const available=snapshot.brokers.filter(b=>!o||(o.broker_ids||[]).includes(b.id));
+    const id=snapshot.actor.role==='broker'?snapshot.actor.id:managing?requestedBroker:broker;
+    if(id&&available.some(b=>b.id===id)){launchEvaluation(id,o);return;}
+    if(available.length===1){launchEvaluation(available[0].id,o);return;}
+    edit=null;$('form-title').textContent='Cartera para la preevaluación';
+    $('fields').innerHTML='<p>Selecciona la cartera donde se guardará este terreno.</p><label>Masterbroker<select id="evaluation-broker">'+options(available,'')+'</select></label><button type="button" id="launch-evaluation" class="primary">Abrir mapa →</button>';
+    $('form-error').textContent='';$('save-record').hidden=true;$('editor').showModal();
+    $('launch-evaluation').onclick=()=>{const chosen=$('evaluation-broker').value;$('editor').close();$('save-record').hidden=false;launchEvaluation(chosen,o);};
+  }
+  async function launchEvaluation(brokerId,o){
+    const win=window.open('about:blank','_blank');
+    if(!win){$('notice').textContent='Permite abrir la pestaña de preevaluación y vuelve a pulsar el botón.';return;}
+    win.opener=null;win.document.body.textContent='Abriendo tu preevaluación…';
+    busy=true;$('notice').textContent='Validando tu cartera para abrir el mapa…';
+    try{win.location.replace(await evaluator.launch({broker_id:brokerId,opportunity_id:o?.id||'',case_id:window.BrokerEvaluator.caseId(o?.notes)}));accessNotice('Preevaluación abierta. Al guardar podrás regresar para registrar el terreno.');}
+    catch(e){win.close();$('notice').textContent=e.message;}
+    finally{busy=false;}
   }
 
   function field(name, label, value, type = 'text', choices, required = false) {
     return `<label><span>${esc(label)}</span>${choices ? `<select name="${name}" ${required ? 'required' : ''}>${options(choices,value || '')}</select>` : type === 'textarea' ? `<textarea name="${name}" maxlength="4000" ${required ? 'required' : ''}>${esc(value)}</textarea>` : `<input name="${name}" type="${type}" value="${esc(value)}" maxlength="1000" ${required ? 'required' : ''}>`}</label>`;
   }
   function editor(kind, record) {
+    $('save-record').hidden=false;
     if (!canEdit() || (kind === 'participation' && !canAgree())) return;
     if (['activity','participation'].includes(kind) && !snapshot.opportunities.some(o => o.id === selected)) return;
     const r = record || (kind === 'activity' ? snapshot.opportunities.find(o=>o.id===selected) || {} : {}); edit = { kind, id: kind === 'activity' ? undefined : r.id, revision: snapshot.revision, requestId: crypto.randomUUID(), submitted: null };
@@ -154,6 +197,7 @@
   }
   $('workspace').onclick = e => {
     const b = e.target.closest('button'); if (!b || busy) return;
+    if (b.dataset.preevaluate) { chooseEvaluation(b.dataset.preevaluate); return; }
     if (b.dataset.tab) { caseState = ''; detailTab = 'history'; tab = b.dataset.tab; selected = ''; query = ''; stage = ''; render(); }
     if (b.dataset.open) { selected = b.dataset.open; tab = 'opportunities'; detailTab = 'history'; render(); }
     if (b.dataset.quickFollowup) { selected = b.dataset.quickFollowup; const o = snapshot.opportunities.find(x=>x.id===selected); editor('activity',{next_action:o.next_action,next_date:o.next_date}); }

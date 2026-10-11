@@ -1,23 +1,20 @@
 {
-  "model_revision": "2026-10-10.133-masterbroker-rows",
-  "proposal_id": "CHG-MASTERBROKERS-133",
-  "summary": "Control Masterbrokers dentro de YOD OS con tabla de expedientes y registros relacionados en un solo renglón.",
+  "model_revision": "2026-10-11.masterbroker-preevaluation",
+  "proposal_id": "CHG-MASTERBROKER-PREEVALUATION",
+  "summary": "Preevaluación desde cartera y regreso autenticado al formulario de terreno, conservando identidad canónica y guardado CRM existente.",
   "components": [
     "SYS-INVERSION",
-    "GAS-INVERSION",
-    "SHEET-INVERSION",
+    "SYS-POTENCIALES",
+    "GAS-PORTERO",
     "GAS-CRM",
     "SHEET-CRM",
-    "SYS-YOD-OS",
-    "GAS-PORTERO",
-    "SYS-POTENCIALES"
+    "EXT-DRIVE"
   ],
   "tests": [
-    "29 pruebas Node de contrato, autorización, guardado, agrupación y alcance aprobadas",
-    "DOM con dobles: una fila por referencia, múltiples gestiones/contactos, búsqueda por contacto, historial, selección de registro, guardado y filtros",
-    "Dirección, broker, vista previa sin guardado y gestión con actor real comprobados; alcance reaplicado después del ACK",
-    "Escritorio 1440px y móvil 390px inspeccionados; sintaxis y diff sin errores",
-    "Publicación y lectura autenticada pendientes de verificación separada"
+    "node --test tests/brokers*.test.cjs",
+    "node --check brokers.js y brokers-evaluator.js; git diff --check",
+    "Navegador sintético: retorno, alta explícita, reapertura, vista previa denegada y móvil",
+    "Publicación pública y backend verificadas por separado; sin escrituras de prueba CRM"
   ],
-  "rollback": "Revertir PR de interfaz; no migrar, borrar ni modificar datos del CRM."
+  "rollback": "Revertir interfaz; conservar expedientes Drive y referencias guardadas en CRM."
 }
