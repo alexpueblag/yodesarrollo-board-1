@@ -55,7 +55,7 @@ async function share(){
 }
 
 function showClosing(){if(content.chapters.length!==7)return;stop();const ch=content.chapters[6];$('closingTitle').textContent=ch.dialog_title;$('closingBody').textContent=ch.dialog_body;$('closingLabel').textContent=ch.message_label;$('closingCopy').textContent=ch.copy_label;$('closingClose').setAttribute('aria-label',ch.close_dialog_label);$('closingChoices').replaceChildren();
- [1,2,3].forEach(n=>{const b=document.createElement('button');b.textContent=ch['choice'+n];b.dataset.choice=String(n);b.onclick=()=>chooseClosing(n);$('closingChoices').append(b);});chooseClosing(1);$('closingDialog').showModal();}
+ [1,2,3].forEach(n=>{const b=document.createElement('button');b.type='button';b.textContent=ch['choice'+n];b.dataset.choice=String(n);b.onclick=()=>chooseClosing(n);$('closingChoices').append(b);});chooseClosing(1);$('closingDialog').showModal();}
 function chooseClosing(choice){closingChoice=choice;$('closingMessage').value=C.closingMessage(content,choice,location.href);$('closingStatus').textContent='';document.querySelectorAll('[data-choice]').forEach(b=>b.setAttribute('aria-pressed',Number(b.dataset.choice)===choice?'true':'false'));}
 async function copyClosing(){const ch=content.chapters[6];try{await navigator.clipboard.writeText($('closingMessage').value);$('closingStatus').textContent=ch.copied_label;}catch(_){$('closingMessage').focus();$('closingMessage').select();$('closingStatus').textContent=ch.manual_label;}}
 
