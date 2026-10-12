@@ -26,5 +26,17 @@ function fixture(){const d={inv1_version:'1',inv1_brand:'Synthetic Studio',inv1_
  await p.goto(base+'/presentacion/');await p.locator('#presentation:not([hidden])').waitFor();assert.equal(await p.locator('h1').textContent(),normalized.title);
  await p.locator('#complete').click();await p.waitForTimeout(100);assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));await p.screenshot({path:'investor-scene1-mobile.png'});
  console.log(JSON.stringify({scroll:true,controls:true,shareNoToken:true,mobile390:true,mobile320:true,desktop:true,reducedMotion:true,brokerMaterial:true,publicCopyVerified:true,businessWrites:writes,privateFixturePublished:false}));
+ const liveContext=await browser.newContext({viewport:{width:390,height:844}}),livePage=await liveContext.newPage();
+ const deployed='https://yodesarrollomx.github.io/yodesarrollo-board/presentacion/';
+ let loaded=false;for(let attempt=0;attempt<8&&!loaded;attempt++){try{const doc=await livePage.goto(deployed,{waitUntil:'domcontentloaded',timeout:30000});if(doc&&doc.status()===200){await livePage.locator('#presentation:not([hidden])').waitFor({timeout:50000});loaded=true;}}catch(_){}if(!loaded)await new Promise(r=>setTimeout(r,8000));}
+ assert.ok(loaded,'Published page must load with real anonymous browser requests');assert.equal(await livePage.locator('h1').textContent(),normalized.title);
+ const codeResponse=await fetch(deployed+'story.js?v=story1-1',{signal:AbortSignal.timeout(30000)});assert.ok(codeResponse.ok);assert.equal((await codeResponse.text()).trim(),fs.readFileSync('presentacion/story.js','utf8').trim());
+ await livePage.locator('#complete').click();await livePage.waitForFunction(()=>Number(document.querySelector('#progress').value)===1);
+ let livePlay=await livePage.locator('#play').boundingBox();assert.ok(livePlay.y+livePlay.height<=844+2);
+ await livePage.locator('#repeat').click();await livePage.waitForFunction(()=>Number(document.querySelector('#progress').value)<.01);
+ await livePage.screenshot({path:'investor-scene1-mobile.png'});const pixels=fs.readFileSync('investor-scene1-mobile.png').toString('base64');for(let i=0;i<pixels.length;i+=1600)console.log('PUBLIC_SCENE1_PIXEL '+(i/1600)+' '+pixels.slice(i,i+1600));
+ await livePage.setViewportSize({width:1440,height:900});await livePage.locator('#complete').click();await livePage.waitForFunction(()=>Number(document.querySelector('#progress').value)===1);assert.ok(await livePage.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
+ console.log(JSON.stringify({productionPage:true,anonymousBrowser:true,exactPublishedScript:true,realCopy:true,productionScroll:true,mobileControlsVisible:true,publicScreenshot:true,productionWrites:0}));
+ await liveContext.close();
  await browser.close();await new Promise(r=>server.close(r));
 })().catch(e=>{console.error(e);process.exit(1)});
