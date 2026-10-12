@@ -16,7 +16,7 @@ function render(v){
   chapter=at.index;phase=-1;root.dataset.chapter=String(ch.number);
   $('chapterKicker').textContent=ch.kicker;$('chapterTitle').textContent=ch.title;$('chapterLead').textContent=ch.lead;$('schemaNote').textContent=ch.schema_note;
   document.querySelector('.chapter-label').textContent=ch.kicker;
-  document.querySelectorAll('[data-chapter]').forEach(b=>b.setAttribute('aria-current',Number(b.dataset.chapter)===chapter?'step':'false'));
+  document.querySelectorAll('button[data-chapter]').forEach(b=>b.setAttribute('aria-current',Number(b.dataset.chapter)===chapter?'step':'false'));
   const nav=document.querySelector('.phase-nav');nav.replaceChildren();
   ch.phases.forEach((s,i)=>{const b=document.createElement('button'),num=document.createElement('span'),label=document.createElement('b');b.dataset.phase=String(i);num.textContent=String(i+1).padStart(2,'0');label.textContent=s.nav;b.append(num,label);b.onclick=()=>goPhase(i);nav.append(b);});nav.style.gridTemplateColumns='repeat('+ch.phases.length+',minmax(0,1fr))';
   $('nextChapter').hidden=content.chapters.length<2;
@@ -54,7 +54,7 @@ async function share(){
 function bind(){
  if(bound)return;bound=true;$('play').onclick=play;$('repeat').onclick=repeat;$('complete').onclick=()=>{stop();moveTo(1);};$('replayEnd').onclick=repeat;$('share').onclick=share;$('copyShare').onclick=async()=>{try{await navigator.clipboard.writeText($('shareUrl').value);$('shareStatus').textContent='Enlace copiado.';}catch(_){$('shareUrl').focus();$('shareUrl').select();$('shareStatus').textContent='Selecciona y copia el enlace.';}};
  $('nextChapter').onclick=()=>{if(chapter<content.chapters.length-1)goChapter(chapter+1);else{stop();$('bridge').scrollIntoView();}};
- $('chapterNav').addEventListener('click',e=>{const b=e.target.closest('[data-chapter]');if(b)goChapter(Number(b.dataset.chapter));});
+ $('chapterNav').addEventListener('click',e=>{const b=e.target.closest('button[data-chapter]');if(b)goChapter(Number(b.dataset.chapter));});
  window.addEventListener('scroll',onScroll,{passive:true});window.addEventListener('resize',()=>{stop();resize();});
  for(const type of ['wheel','touchstart','pointerdown'])window.addEventListener(type,e=>{if(playing&&!e.target.closest('.playback'))stop();},{passive:true});
  window.addEventListener('keydown',e=>{if(['ArrowDown','ArrowUp','PageDown','PageUp','Home','End',' '].includes(e.key)&&!e.target.closest('button,input,dialog'))stop();});

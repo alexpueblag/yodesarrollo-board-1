@@ -28,39 +28,39 @@ function fixture(){const d={inv1_version:'1',inv1_brand:'Synthetic Studio',inv1_
  console.log(JSON.stringify({scroll:true,controls:true,shareNoToken:true,mobile390:true,mobile320:true,desktop:true,reducedMotion:true,brokerMaterial:true,publicCopyVerified:true,businessWrites:writes,privateFixturePublished:false}));
 
  // All chapters with real public marketing copy, no CRM identity or writes.
- assert.equal(normalized.chapters.length,3);assert.equal(await p.locator('[data-chapter]').count(),3);
+ assert.equal(normalized.chapters.length,3);assert.equal(await p.locator('button[data-chapter]').count(),3);
  const diagramHandle=await p.locator('#capitalRoute').elementHandle();
  for(const v of [{width:390,height:844},{width:320,height:640},{width:1440,height:900}]){
   await p.setViewportSize(v);await p.emulateMedia({reducedMotion:'no-preference'});
   for(let ch=0;ch<3;ch++){
-   await p.locator('[data-chapter="'+ch+'"]').click();await p.waitForFunction(n=>document.documentElement.dataset.chapter===String(n),ch+1);
+   await p.locator('button[data-chapter="'+ch+'"]').click();await p.waitForFunction(n=>document.documentElement.dataset.chapter===String(n),ch+1);
    assert.equal(await p.locator('h1').textContent(),normalized.chapters[ch].title);
    if(ch>0)assert.equal(await p.locator('#analysisPanel li').count(),ch===1?7:16);
    for(let phase=0;phase<normalized.chapters[ch].phases.length;phase++){
     await p.locator('[data-phase="'+phase+'"]').click();await p.waitForTimeout(80);
     assert.equal(await p.locator('#phaseTitle').textContent(),normalized.chapters[ch].phases[phase].title);
     const playBox=await p.locator('#play').boundingBox(),lastBox=await p.locator('.phase-text').boundingBox();
-    assert.ok(playBox.y+playBox.height<=v.height+2,JSON.stringify({chapter:ch,phase,viewport:v,button:playBox}));
+    if(playBox.y+playBox.height>v.height+2){const pixels=(await p.screenshot()).toString('base64');for(let i=0;i<pixels.length;i+=1600)console.log('DEBUG_PIXEL '+(i/1600)+' '+pixels.slice(i,i+1600));}assert.ok(playBox.y+playBox.height<=v.height+2,JSON.stringify({chapter:ch,phase,viewport:v,button:playBox}));
     assert.ok(lastBox.y+lastBox.height<playBox.y,'Copy must remain above controls');
     assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
    }
    assert.equal(await diagramHandle.evaluate(e=>e.isConnected),true,'The same diagram persists between chapters');
   }
  }
- await p.setViewportSize({width:390,height:844});await p.locator('[data-chapter="0"]').click();await p.locator('#nextChapter').click();await p.waitForFunction(()=>document.documentElement.dataset.chapter==='2');await p.locator('#nextChapter').click();await p.waitForFunction(()=>document.documentElement.dataset.chapter==='3');await p.locator('[data-chapter="0"]').click();
+ await p.setViewportSize({width:390,height:844});await p.locator('button[data-chapter="0"]').click();await p.locator('#nextChapter').click();await p.waitForFunction(()=>document.documentElement.dataset.chapter==='2');await p.locator('#nextChapter').click();await p.waitForFunction(()=>document.documentElement.dataset.chapter==='3');await p.locator('button[data-chapter="0"]').click();
  await p.locator('#complete').click();await p.waitForFunction(()=>Number(document.querySelector('#progress').value)===1);assert.equal(await p.locator('#phaseTitle').textContent(),normalized.chapters[2].phases[2].title);
  await p.locator('#repeat').click();await p.waitForFunction(()=>document.documentElement.dataset.chapter==='1');
- await p.emulateMedia({reducedMotion:'reduce'});await p.reload();await p.locator('#presentation:not([hidden])').waitFor();await p.locator('[data-chapter="1"]').click();await p.waitForFunction(()=>document.documentElement.dataset.chapter==='2');await p.locator('[data-phase="1"]').click();assert.equal(await p.locator('#phaseTitle').textContent(),normalized.chapters[1].phases[1].title);await p.emulateMedia({reducedMotion:'no-preference'});
+ await p.emulateMedia({reducedMotion:'reduce'});await p.reload();await p.locator('#presentation:not([hidden])').waitFor();await p.locator('button[data-chapter="1"]').click();await p.waitForFunction(()=>document.documentElement.dataset.chapter==='2');await p.locator('[data-phase="1"]').click();assert.equal(await p.locator('#phaseTitle').textContent(),normalized.chapters[1].phases[1].title);await p.emulateMedia({reducedMotion:'no-preference'});
  console.log(JSON.stringify({chapters:3,sevenMethodSteps:true,sixMarketSevenFinancialThreeStress:true,persistentDiagram:true,allPhaseButtons:true,mobile320:true,mobile390:true,desktop:true,chapterReplay:true,reducedMotionNavigation:true}));
  // Capture actual local renderer using real public Sheets copy before deployment.
- for(let ch=0;ch<3;ch++){await p.locator('[data-chapter="'+ch+'"]').click();await p.waitForTimeout(180);await p.screenshot({path:'investor-scene'+(ch+1)+'-mobile.png'});}
+ for(let ch=0;ch<3;ch++){await p.locator('button[data-chapter="'+ch+'"]').click();await p.waitForTimeout(180);await p.screenshot({path:'investor-scene'+(ch+1)+'-mobile.png'});if(ch>0){const pixels=fs.readFileSync('investor-scene'+(ch+1)+'-mobile.png').toString('base64');for(let i=0;i<pixels.length;i+=1600)console.log('PREVIEW_SCENE'+(ch+1)+'_PIXEL '+(i/1600)+' '+pixels.slice(i,i+1600));}}
  if(process.env.VERIFY_PUBLISHED_STORY==='1'){
   const liveContext=await browser.newContext({viewport:{width:390,height:844}}),livePage=await liveContext.newPage();
   const deployed='https://yodesarrollomx.github.io/yodesarrollo-board/presentacion/',expected=fs.readFileSync('presentacion/story.js','utf8').trim();
   let loaded=false;for(let attempt=0;attempt<15&&!loaded;attempt++){try{const check=await fetch(deployed+'story.js?v='+Date.now(),{signal:AbortSignal.timeout(20000)});if(check.ok&&(await check.text()).trim()===expected){await livePage.goto(deployed,{waitUntil:'domcontentloaded',timeout:30000});await livePage.locator('#presentation:not([hidden])').waitFor({timeout:50000});loaded=true;}}catch(_){}if(!loaded)await new Promise(r=>setTimeout(r,8000));}
   assert.ok(loaded,'Published page must serve the exact new script and load anonymously');
-  assert.equal(await livePage.locator('[data-chapter]').count(),3);
-  for(let ch=0;ch<3;ch++){await livePage.locator('[data-chapter="'+ch+'"]').click();await livePage.waitForFunction(n=>document.documentElement.dataset.chapter===String(n),ch+1);assert.equal(await livePage.locator('h1').textContent(),normalized.chapters[ch].title);await livePage.waitForTimeout(200);await livePage.screenshot({path:'investor-scene'+(ch+1)+'-mobile.png'});const pixels=fs.readFileSync('investor-scene'+(ch+1)+'-mobile.png').toString('base64');for(let i=0;i<pixels.length;i+=1600)console.log('PUBLIC_SCENE'+(ch+1)+'_PIXEL '+(i/1600)+' '+pixels.slice(i,i+1600));}
+  assert.equal(await livePage.locator('button[data-chapter]').count(),3);
+  for(let ch=0;ch<3;ch++){await livePage.locator('button[data-chapter="'+ch+'"]').click();await livePage.waitForFunction(n=>document.documentElement.dataset.chapter===String(n),ch+1);assert.equal(await livePage.locator('h1').textContent(),normalized.chapters[ch].title);await livePage.waitForTimeout(200);await livePage.screenshot({path:'investor-scene'+(ch+1)+'-mobile.png'});const pixels=fs.readFileSync('investor-scene'+(ch+1)+'-mobile.png').toString('base64');for(let i=0;i<pixels.length;i+=1600)console.log('PUBLIC_SCENE'+(ch+1)+'_PIXEL '+(i/1600)+' '+pixels.slice(i,i+1600));}
   await livePage.locator('#play').click();await livePage.waitForTimeout(400);assert.equal(await livePage.locator('#play').getAttribute('aria-pressed'),'true');await livePage.locator('#play').click();await livePage.locator('#complete').click();await livePage.waitForFunction(()=>Number(document.querySelector('#progress').value)===1);await livePage.locator('#repeat').click();await livePage.waitForFunction(()=>document.documentElement.dataset.chapter==='1');
   const box=await livePage.locator('#play').boundingBox();assert.ok(box.y+box.height<=846);
   assert.deepEqual(await livePage.evaluate(()=>Object.keys(localStorage)),[]);
