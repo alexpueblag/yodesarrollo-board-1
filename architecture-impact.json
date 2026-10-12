@@ -1,7 +1,7 @@
 {
-  "model_revision": "2026-10-12.investor-story123.1",
-  "proposal_id": "CHG-INVESTOR-STORY-SCENES23",
-  "summary": "Historia pública conectada de las láminas 1–3, mismo SVG y timeline; textos y parámetros vivos en Sheets. Siete etapas de operación, seis variables de mercado, siete financieras y tres pruebas adversas. Navegación, replay y movimiento reducido verificados; publicación anónima comprobada después del despliegue.",
+  "model_revision": "2026-10-12.investor-story17.1",
+  "proposal_id": "CHG-INVESTOR-STORY-SCENES47",
+  "summary": "Completar siete láminas públicas con el mismo inmueble y timeline: caso, controles, participación y cierre. Copy y parámetros en Sheets; cierre local copiable sin envíos ni datos privados.",
   "components": [
     "SYS-INVERSION",
     "GAS-PLAN-POTENCIAL",
@@ -13,7 +13,8 @@
     "node tests/brokers-evaluator-browser.cjs",
     "node tests/brokers-story-browser.cjs",
     "Producción anónima: URL real, mismo script servido, textos vivos, scroll y controles visibles; sólo lecturas públicas, sin escrituras CRM.",
-    "Publicación real de las tres escenas: JS, core y CSS idénticos; todas las fases en 320/390/1440 px; scroll nativo, play, pause, repeat, captura y acceso anónimo."
+    "Publicación real de las tres escenas: JS, core y CSS idénticos; todas las fases en 320/390/1440 px; scroll nativo, play, pause, repeat, captura y acceso anónimo.",
+    "Siete capítulos y todas sus fases; ocho datos del modelo, nueve etapas legales, términos de inversión y tres intenciones de cierre con copia al portapapeles."
   ],
   "rollback": "Revertir el PR frontend. Conservar textos de Sheets, presentaciones anteriores y todos los expedientes."
 }

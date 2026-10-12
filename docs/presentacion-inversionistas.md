@@ -2,14 +2,14 @@
 
 URL: https://yodesarrollomx.github.io/yodesarrollo-board/presentacion/
 
-Las láminas 1–3 forman una sola historia por scroll: oportunidad, método y sustento. El SVG conserva el inmueble y mueve al guía sobre una línea temporal compartida; reproducción, pausa, repetición, avance y navegación por capítulos usan ese mismo estado.
+Borrador de siete láminas: oportunidad → método → decisión → caso → controles → participación → siguiente paso. Un mismo SVG y guía acompaña el timeline compartido por scroll, reproducción y botones. La navegación horizontal permite elegir cualquiera de las siete en móvil.
 
-El contrato público existente de TEXTOS POTENCIAL conserva inv1_* y agrega inv2_* e inv3_*. Toda narrativa, logo, tema y duración provienen de Sheets. No se incluyen datos de inversionistas, brokers, precios, retornos reales o credenciales en el repositorio. La última sección conecta con un futuro caso concreto y no simula un análisis realizado.
+El contrato público existente TEXTOS POTENCIAL conserva inv1_* a inv3_* y agrega inv4_* a inv7_*. Copy, marca, grupos y parámetros proceden de Sheets. La versión anterior sigue funcionando con el contenido adicional. El cliente valida grupos completos y requiere el cierre cuando existen capítulos 4–7.
 
-En móvil, el bloque de variables muestra el grupo seleccionado; en escritorio aparecen los tres grupos. Todas las variables están disponibles mediante sus botones de fase. La animación se desactiva con prefers-reduced-motion y la navegación sigue disponible.
+Contenido original conservado: siete etapas de operación, seis variables de mercado, siete financieras, ocho datos del proyecto modelo, nueve etapas legales y de desarrollo, cuatro condiciones del inversionista. Se organiza por fase y agrega controles de ejecución, acuerdos y siguiente paso. No presenta cifras, rendimientos garantizados, casos aprobados ni datos privados.
 
-Pruebas: node --test tests/brokers*.test.cjs; node tests/brokers-story-browser.cjs. El navegador comprueba los tres capítulos, todas sus fases, la permanencia del mismo SVG, 320/390/1440 px, replay, compartir y lectura de copy real. VERIFY_PUBLISHED_STORY=1 agrega comprobación del sitio publicado en un contexto anónimo, compara el script y obtiene capturas reales. No escribe en CRM.
+El cierre ofrece tres intenciones, muestra un mensaje listo y permite copiarlo para enviarlo a quien compartió el enlace. No envía mensajes, registra leads, solicita un depósito ni formaliza una participación. Todo el texto viene de Sheets. Compartir siempre elimina argumentos y hashes de identidad del URL.
 
-El enlace desde Material permanece en el tablero del Masterbroker. Publicar esta narrativa no cambia permisos del tablero ni publica la hoja CRM. Las versiones previas quedan conservadas en el historial y en las láminas existentes.
+Pruebas: contratos y sintaxis; Chromium con todas las fases de las siete láminas en 320/390/1440 px, continuidad del SVG, reproducción/pausa/repetición/avance, movimiento reducido, Material y portapapeles del cierre. VERIFY_PUBLISHED_STORY=1 verifica sitio anónimo, recursos JS/CSS exactos, copy vivo y capturas de las siete. Sólo lecturas públicas y dobles de negocio.
 
-Reversión: revertir el PR frontend. Conservar los nuevos textos aditivos en Sheets y todos los expedientes.
+Las versiones previas y originales se conservan. El tablero privado y su Portero siguen separados; no cambia ACL. Reversión: revertir PR frontend sin borrar textos de Sheets ni expedientes.
