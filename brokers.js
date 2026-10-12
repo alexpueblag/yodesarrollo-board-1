@@ -92,9 +92,33 @@
       return `<tr><td><strong>${esc(c.name)}</strong><span class="secondary">${esc([c.company,c.email,c.phone].filter(Boolean).join(' · '))}</span></td><td>${esc(c.type)}</td><td>${related.map(g=>`<button class="text-button" data-open="${esc(g.records[0].id)}">${esc(g.records[0].title)}</button>`).join('')}</td><td>${canEdit()?`<button data-edit-contact="${esc(c.id)}">Editar</button>`:''}</td></tr>`;
     }).join(''),'Contactos');
   }
+  let publicPresentation=null, publicPresentationRequest=null;
+  function publicMaterialCard(){
+    queueMicrotask(hydratePublicMaterial);
+    return '<section id="public-presentation" class="public-presentation" aria-live="polite"><p>Preparando material de presentación…</p></section>';
+  }
+  async function hydratePublicMaterial(){
+    const ownToken=loadedToken, mount=$('public-presentation');
+    if(!mount||!snapshot||tab!=='offer'||token()!==ownToken)return;
+    try{
+      if(!publicPresentation){if(!publicPresentationRequest)publicPresentationRequest=window.YodPublicCopy().then(window.InvestorStoryCore.normalize);publicPresentation=await publicPresentationRequest;}
+      if(!snapshot||tab!=='offer'||token()!==ownToken||$('public-presentation')!==mount)return;
+      const c=publicPresentation,u=C.safeLink(c.material_profile);
+      if(!u||new URL(u).hostname!=='yodesarrollomx.github.io')throw Error('Enlace no disponible.');
+      mount.innerHTML='<div><p class="eyebrow">PARA PRESENTAR</p><h3>'+esc(c.material_title)+'</h3><p>'+esc(c.material_body)+'</p></div><div class="presentation-actions"><a class="button primary" target="_blank" rel="noopener noreferrer" href="'+esc(u)+'">'+esc(c.material_open)+' ↗</a><button type="button" data-copy-story>'+esc(c.material_copy)+'</button><span class="secondary" data-copy-status role="status"></span></div>';
+      mount.querySelector('[data-copy-story]').onclick=async()=>{
+        const status=mount.querySelector('[data-copy-status]');
+        try{await navigator.clipboard.writeText(u);status.textContent='Enlace copiado.';}
+        catch(_){mount.querySelector('[data-copy-story]').hidden=true;const input=document.createElement('input');input.value=u;input.readOnly=true;input.setAttribute('aria-label','Enlace de presentación');mount.querySelector('.presentation-actions').append(input);input.focus();input.select();status.textContent='Selecciona y copia el enlace.';}
+      };
+    }catch(_){
+      publicPresentationRequest=null;
+      if(snapshot&&tab==='offer'&&token()===ownToken&&$('public-presentation')===mount){mount.innerHTML='<p>No se pudo cargar el material de presentación.</p><button type="button">Volver a intentar</button>';mount.querySelector('button').onclick=hydratePublicMaterial;}
+    }
+  }
   function materialView() {
     const all=C.caseGroups(snapshot,broker,'','','');
-    return `<div class="section-heading"><h2>Material</h2><a class="button" href="index.html">Carpeta comercial ↗</a></div>`+table(['Expediente','Material',''],all.map(g=>{
+    return `<div class="section-heading"><h2>Material</h2><a class="button" href="index.html">Carpeta comercial ↗</a></div>`+publicMaterialCard()+table(['Expediente','Material',''],all.map(g=>{
       const links=groupLinks(g);
       return links?`<tr><td><strong>${esc(g.records[0].title)}</strong></td><td class="material-links">${links}</td><td><button data-open="${esc(g.records[0].id)}">Ver tablero →</button></td></tr>`:'';
     }).join(''),'Material por expediente');

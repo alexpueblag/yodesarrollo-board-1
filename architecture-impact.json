@@ -1,20 +1,17 @@
 {
-  "model_revision": "2026-10-11.masterbroker-preevaluation",
-  "proposal_id": "CHG-MASTERBROKER-PREEVALUATION",
-  "summary": "Preevaluación desde cartera y regreso autenticado al formulario de terreno, conservando identidad canónica y guardado CRM existente.",
+  "model_revision": "2026-10-12.investor-story1.1",
+  "proposal_id": "CHG-INVESTOR-STORY-SCENE1",
+  "summary": "Primera escena comercial pública por scroll para inversionistas y acceso desde Material. Copy y parámetros en el contrato público existente de Sheets.",
   "components": [
     "SYS-INVERSION",
-    "SYS-POTENCIALES",
-    "GAS-PORTERO",
-    "GAS-CRM",
-    "SHEET-CRM",
-    "EXT-DRIVE"
+    "GAS-PLAN-POTENCIAL",
+    "SHEET-PLAN-POTENCIAL"
   ],
   "tests": [
     "node --test tests/brokers*.test.cjs",
-    "node --check brokers.js y brokers-evaluator.js; git diff --check",
-    "Navegador sintético: retorno, alta explícita, reapertura, vista previa denegada y móvil",
-    "Publicación pública y backend verificadas por separado; sin escrituras de prueba CRM"
+    "node --check brokers.js; node --check presentacion/*.js; git diff --check",
+    "node tests/brokers-evaluator-browser.cjs",
+    "node tests/brokers-story-browser.cjs"
   ],
-  "rollback": "Revertir interfaz; conservar expedientes Drive y referencias guardadas en CRM."
+  "rollback": "Revertir el PR frontend. Conservar textos de Sheets, presentaciones anteriores y todos los expedientes."
 }
