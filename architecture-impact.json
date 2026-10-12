@@ -1,7 +1,7 @@
 {
-  "model_revision": "2026-10-12.investor-story1.1",
-  "proposal_id": "CHG-INVESTOR-STORY-SCENE1",
-  "summary": "Primera escena comercial pública por scroll para inversionistas y acceso desde Material. Copy y parámetros en el contrato público existente de Sheets. Comprobación real de publicación y captura móvil, separada de los dobles.",
+  "model_revision": "2026-10-12.investor-story123.1",
+  "proposal_id": "CHG-INVESTOR-STORY-SCENES23",
+  "summary": "Historia pública conectada de las láminas 1–3, mismo SVG y timeline; textos y parámetros vivos en Sheets. Siete etapas de operación, seis variables de mercado, siete financieras y tres pruebas adversas. Navegación, replay y movimiento reducido verificados; publicación anónima comprobada después del despliegue.",
   "components": [
     "SYS-INVERSION",
     "GAS-PLAN-POTENCIAL",
