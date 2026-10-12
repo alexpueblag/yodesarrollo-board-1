@@ -1,13 +1,15 @@
-# Introducción animada para inversionistas
+# Presentación pública de inversión
 
-Primera escena pública independiente bajo `presentacion/`, enlazada desde Material de Masterbrokers. El inmueble conceptual se conserva al entrar en el puente a la evaluación; no se desarrolla todavía el segundo capítulo.
+URL: https://yodesarrollomx.github.io/yodesarrollo-board/presentacion/
 
-El contenido y parámetros visuales salen de las claves `inv1_*` del contrato público `recurso=textos` existente de Plan de Potencial. Se leen mediante `source.js`; el código no copia textos comerciales, identidades, cartera, precios ni supuestos financieros. No se añade una escritura pública ni un backend.
+Las láminas 1–3 forman una sola historia por scroll: oportunidad, método y sustento. El SVG conserva el inmueble y mueve al guía sobre una línea temporal compartida; reproducción, pausa, repetición, avance y navegación por capítulos usan ese mismo estado.
 
-Scroll y reproducción comparten un progreso. Reproducir/Pausar, Repetir, Ver completa, momentos y Compartir no necesitan sesión. Al regresar de otra pestaña se pausa. Movimiento reducido muestra la composición final sin desplazamiento automático. Una falla de contenido deja reintento visible, sin recuperar datos privados del tablero.
+El contrato público existente de TEXTOS POTENCIAL conserva inv1_* y agrega inv2_* e inv3_*. Toda narrativa, logo, tema y duración provienen de Sheets. No se incluyen datos de inversionistas, brokers, precios, retornos reales o credenciales en el repositorio. La última sección conecta con un futuro caso concreto y no simula un análisis realizado.
 
-Material consulta los mismos textos públicos sólo tras una sesión de Brokers válida. El enlace compartido no contiene broker, token ni parámetros de revisión. La presentación no activa perfiles ni concede derechos en otros módulos.
+En móvil, el bloque de variables muestra el grupo seleccionado; en escritorio aparecen los tres grupos. Todas las variables están disponibles mediante sus botones de fase. La animación se desactiva con prefers-reduced-motion y la navegación sigue disponible.
 
-Verificación prevista: contratos con datos sintéticos, navegador móvil/escritorio, movimiento reducido, controles y copia en Material; lectura pública y publicación se registran por separado. No afirmar que el acceso individual está activo sin contrastarlo con el registro privado.
+Pruebas: node --test tests/brokers*.test.cjs; node tests/brokers-story-browser.cjs. El navegador comprueba los tres capítulos, todas sus fases, la permanencia del mismo SVG, 320/390/1440 px, replay, compartir y lectura de copy real. VERIFY_PUBLISHED_STORY=1 agrega comprobación del sitio publicado en un contexto anónimo, compara el script y obtiene capturas reales. No escribe en CRM.
 
-Reversión: revertir el PR de frontend. Conservar textos en Sheets, expedientes y presentaciones anteriores.
+El enlace desde Material permanece en el tablero del Masterbroker. Publicar esta narrativa no cambia permisos del tablero ni publica la hoja CRM. Las versiones previas quedan conservadas en el historial y en las láminas existentes.
+
+Reversión: revertir el PR frontend. Conservar los nuevos textos aditivos en Sheets y todos los expedientes.
