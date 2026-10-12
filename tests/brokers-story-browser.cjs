@@ -60,6 +60,17 @@ function fixture(){const d={inv1_version:'1',inv1_brand:'Synthetic Studio',inv1_
   let loaded=false;for(let attempt=0;attempt<15&&!loaded;attempt++){try{const check=await fetch(deployed+'story.js?v='+Date.now(),{signal:AbortSignal.timeout(20000)});if(check.ok&&(await check.text()).trim()===expected){await livePage.goto(deployed,{waitUntil:'domcontentloaded',timeout:30000});await livePage.locator('#presentation:not([hidden])').waitFor({timeout:50000});loaded=true;}}catch(_){}if(!loaded)await new Promise(r=>setTimeout(r,8000));}
   assert.ok(loaded,'Published page must serve the exact new script and load anonymously');
   assert.equal(await livePage.locator('button[data-chapter]').count(),3);
+  for(const file of ['story-core.js','story.css']){const r=await fetch(deployed+file+'?v='+Date.now(),{signal:AbortSignal.timeout(30000)});assert.ok(r.ok);assert.equal((await r.text()).trim(),fs.readFileSync('presentacion/'+file,'utf8').trim(),'Published '+file+' must match');}
+  for(const viewport of [{width:320,height:640},{width:390,height:844},{width:1440,height:900}]){
+   await livePage.setViewportSize(viewport);
+   for(let ch=0;ch<3;ch++){
+    await livePage.locator('button[data-chapter="'+ch+'"]').click();await livePage.waitForFunction(n=>document.documentElement.dataset.chapter===String(n),ch+1);
+    for(let ph=0;ph<normalized.chapters[ch].phases.length;ph++){await livePage.locator('[data-phase="'+ph+'"]').click();await livePage.waitForTimeout(100);assert.equal(await livePage.locator('#phaseTitle').textContent(),normalized.chapters[ch].phases[ph].title);const box=await livePage.locator('#play').boundingBox();assert.ok(box.y+box.height<=viewport.height+2);assert.ok(await livePage.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));}
+   }
+  }
+  await livePage.setViewportSize({width:390,height:844});
+  for(let ch=0;ch<3;ch++){const value=C.chapterStart(normalized.chapters,ch)+.01;await livePage.evaluate(v=>{const s=document.querySelector('#story');window.scrollTo(0,window.scrollY+s.getBoundingClientRect().top+v*(s.offsetHeight-innerHeight));},value);await livePage.waitForFunction(n=>document.documentElement.dataset.chapter===String(n),ch+1);}
+
   for(let ch=0;ch<3;ch++){await livePage.locator('button[data-chapter="'+ch+'"]').click();await livePage.waitForFunction(n=>document.documentElement.dataset.chapter===String(n),ch+1);assert.equal(await livePage.locator('h1').textContent(),normalized.chapters[ch].title);await livePage.waitForTimeout(200);await livePage.screenshot({path:'investor-scene'+(ch+1)+'-mobile.png'});const pixels=fs.readFileSync('investor-scene'+(ch+1)+'-mobile.png').toString('base64');for(let i=0;i<pixels.length;i+=1600)console.log('PUBLIC_SCENE'+(ch+1)+'_PIXEL '+(i/1600)+' '+pixels.slice(i,i+1600));}
   await livePage.locator('#play').click();await livePage.waitForTimeout(400);assert.equal(await livePage.locator('#play').getAttribute('aria-pressed'),'true');await livePage.locator('#play').click();await livePage.locator('#complete').click();await livePage.waitForFunction(()=>Number(document.querySelector('#progress').value)===1);await livePage.locator('#repeat').click();await livePage.waitForFunction(()=>document.documentElement.dataset.chapter==='1');
   const box=await livePage.locator('#play').boundingBox();assert.ok(box.y+box.height<=846);
