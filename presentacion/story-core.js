@@ -17,21 +17,27 @@ function normalize(input){
  c.duration=clamp(Number(c.duration_seconds)||22,10,90)*1000;c.screens=clamp(Number(c.scroll_screens)||3.5,2,6);
  c.material_profile=safeUrl(c.material_profile);
  c.nav=c.chapter1_nav||c.kicker;c.chapters=[{...c,number:1}];
- for(let n=2;n<=3;n++){
+ for(let n=2;n<=7;n++){
   const d={number:n};for(const[k,v]of Object.entries(raw))if(k.startsWith('inv'+n+'_'))d[k.slice(5)]=String(v??'').trim();
   if(!d.version)continue;if(c.chapters.length!==n-1||d.version!=='1')throw Error('Secuencia de capítulos inválida.');
   const required=['kicker','nav','title','lead','schema_note','gate','panel_note','group1_title','group2_title','group3_title'];
   if(n===2)for(let i=1;i<=7;i++)required.push('step'+i);
   if(n===3){for(const[t,total]of [['market',6],['finance',7],['stress',3]])for(let i=1;i<=total;i++)required.push(t+i);for(const k of ['bridge_kicker','bridge_title','bridge_body','bridge_1','bridge_2','bridge_3','replay_cta'])required.push(k);}
+  if(n>=4){
+   d.groups=Array.from({length:3},(_,i)=>{const g=i+1,count=Number(d['group'+g+'_count']);if(!Number.isInteger(count)||count<1||count>8)throw Error('Grupo inválido.');return {title:d['group'+g+'_title'],items:Array.from({length:count},(_,j)=>{const key='group'+g+'_item'+(j+1);required.push(key);return d[key];})};});
+  }
+  if(n===7)for(const k of ['bridge_kicker','bridge_title','bridge_body','bridge_1','bridge_2','bridge_3','replay_cta','close_label','dialog_title','dialog_body','choice1','choice2','choice3','message1','message2','message3','copy_label','copied_label','manual_label','message_label','close_dialog_label'])required.push(k);
   for(const k of required)if(!d[k])throw Error('Contenido incompleto: inv'+n+'_'+k);
   d.phases=Array.from({length:3},(_,i)=>{const z=i+1,s={};for(const k of ['label','title','body','nav']){s[k]=d['phase'+z+'_'+k];if(!s[k])throw Error('Fase incompleta.');}return s;});
   d.duration=clamp(Number(d.duration_seconds)||24,10,90)*1000;d.screens=clamp(Number(d.scroll_screens)||3,2,6);c.chapters.push(d);
  }
+ if(c.chapters.length>3&&c.chapters.length<7)throw Error('Falta el cierre de la presentación.');
  c.totalDuration=c.chapters.reduce((a,d)=>a+d.duration,0);c.totalScreens=c.chapters.reduce((a,d)=>a+d.screens,0);
  return c;
 }
+function closingMessage(c,choice,url){const last=c.chapters[c.chapters.length-1];if(last.number!==7||![1,2,3].includes(choice))throw Error('Selecciona un siguiente paso válido.');return last['message'+choice]+'\n\n'+publicLink(url);}
 function publicLink(url){const u=new URL(url);u.search='';u.hash='';return u.href;}
 function locate(chapters,p){p=clamp(p);const total=chapters.reduce((a,d)=>a+d.duration,0);let start=0;for(let i=0;i<chapters.length;i++){const end=start+chapters[i].duration/total;if(p<end||i===chapters.length-1){const local=clamp((p-start)/(end-start));return {index:i,local,phase:Math.min(chapters[i].phases.length-1,Math.floor(local*chapters[i].phases.length)),start,end};}start=end;}}
 function chapterStart(chapters,index){const total=chapters.reduce((a,d)=>a+d.duration,0);return chapters.slice(0,index).reduce((a,d)=>a+d.duration,0)/total;}
-const api={locate,chapterStart,clamp,smooth,phase,progress,safeUrl,normalize,publicLink,fields};if(typeof module!=='undefined')module.exports=api;root.InvestorStoryCore=api;
+const api={closingMessage,locate,chapterStart,clamp,smooth,phase,progress,safeUrl,normalize,publicLink,fields};if(typeof module!=='undefined')module.exports=api;root.InvestorStoryCore=api;
 })(typeof window==='undefined'?globalThis:window);
