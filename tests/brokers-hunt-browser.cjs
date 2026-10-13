@@ -2,7 +2,8 @@ const {chromium}=require('playwright'),fs=require('node:fs'),http=require('node:
 const synthetic={...require('./brokers-story.test.cjs').fullFixture(),...require('./brokers-hunt.test.cjs').fixture()};
 
 async function revealLegacy(page){
- await page.waitForFunction(()=>{const mono=document.querySelector('#monoline'),story=document.querySelector('#story');return(mono&&!mono.hidden&&mono.offsetWidth>0)||(story&&!story.hidden&&story.offsetWidth>0);},null,{timeout:60000});
+ await page.waitForFunction(()=>{const principal=document.querySelector('#principal'),mono=document.querySelector('#monoline'),story=document.querySelector('#story');return(principal&&!principal.hidden&&principal.offsetWidth>0)||(mono&&!mono.hidden&&mono.offsetWidth>0)||(story&&!story.hidden&&story.offsetWidth>0);},null,{timeout:60000});
+ if(await page.locator('#principal').isVisible()){await page.locator('#principalBeta').click();await page.locator('#monoline:not([hidden])').waitFor();}
  if(await page.locator('#monoline').isVisible()){await page.locator('#monoLegacy').click();await page.locator('#story:not([hidden])').waitFor();}
 }
 

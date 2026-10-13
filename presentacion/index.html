@@ -1,8 +1,33 @@
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow,noarchive"><meta name="referrer" content="strict-origin"><title>Presentación</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="story.css?v=story17-thread2"><link rel="stylesheet" href="hunt.css?v=thread1-2"><link rel="stylesheet" href="monoline.css?v=mono4r4-1"></head><body>
+<link rel="stylesheet" href="story.css?v=story17-thread2"><link rel="stylesheet" href="hunt.css?v=thread1-2"><link rel="stylesheet" href="monoline.css?v=mono4r4-1"><link rel="stylesheet" href="principal.css?v=principal-1r2"></head><body>
 <div id="loading" class="loading" role="status"><span class="load-mark" aria-hidden="true">↗</span><p id="load-message">Preparando la presentación…</p><button id="retry" hidden>Volver a intentar</button></div>
+
+
+<main id="principal" hidden>
+<header id="principalHeader" class="p-header">
+<span id="principalBrand" class="p-brand"></span>
+<div class="p-actions"><button id="principalPlay" type="button" aria-pressed="false"><span class="p-play-glyph" aria-hidden="true">▶</span><span class="p-action-label"></span></button><button id="principalShare" type="button"><span aria-hidden="true">↗</span><span class="p-action-label"></span></button></div>
+<nav id="principalNav" aria-label="Recorrido"></nav>
+</header>
+<div class="p-shell">
+<section class="p-hero"><p id="principalIntroKicker"></p><h1 id="principalHeadline"></h1><p id="principalIntroLead"></p></section>
+<div class="p-story">
+<aside id="principalStage" class="p-stage">
+<div class="p-stage-title"><p><span id="principalKicker"></span><span id="principalCount"></span></p><h2 id="principalTitle"></h2></div>
+<div class="p-context"><span id="principalContext"></span><span id="principalContextNote"></span></div>
+<div class="p-window"><svg id="principalSvg" viewBox="0 0 1000 760" role="img" aria-labelledby="principalSvgTitle principalSvgDesc"><title id="principalSvgTitle"></title><desc id="principalSvgDesc"></desc><path id="principalPath" fill="none"/><g id="principalAnnotations"></g><circle id="principalTip" r="3" fill="currentColor"/></svg></div>
+<div id="principalCriteria" class="p-criteria" hidden></div>
+<div id="principalEquation" class="p-equation" hidden><span id="principalIncome"></span><b aria-hidden="true">−</b><span id="principalInvestment"></span><b aria-hidden="true">=</b><span id="principalProfit"></span></div>
+<div class="p-beat-caption"><h3 id="principalBeatTitle"></h3><p id="principalBeatBody" class="p-accessible"></p></div>
+<div class="p-bottom"><button id="principalReplay" type="button"></button><span id="principalStep"></span><progress id="principalProgress" max="1" value="0"></progress></div>
+</aside>
+<article id="principalDetails" class="p-details"></article>
+</div>
+<footer id="principalClosing" class="p-closing"><h2 id="principalClosingTitle"></h2><p id="principalClosingLead"></p><div id="principalCtas"></div><button id="principalBeta" type="button"></button><div id="principalFootnotes"></div></footer>
+</div></main>
+<dialog id="principalMessageDialog"><form method="dialog"><button id="principalMessageClose" type="submit" class="p-close">×</button><h2 id="principalMessageTitle"></h2><p id="principalMessageScope"></p><textarea id="principalMessage" readonly rows="7"></textarea><button id="principalMessageCopy" type="button"></button><p id="principalMessageStatus" role="status"></p></form></dialog>
 
 <main id="monoline" hidden>
 <header class="mono-topbar"><span id="monoBrand" class="mono-brand"></span><nav id="monoNav" aria-label="Recorrido"></nav><button id="monoShare" type="button"></button></header>
@@ -67,4 +92,4 @@
 <section id="bridge" class="bridge"><div class="bridge-model" id="bridgeModel" aria-hidden="true"></div><div class="bridge-copy"><p class="eyebrow" data-copy="bridge_kicker"></p><h2 data-copy="bridge_title"></h2><p data-copy="bridge_body"></p><div class="criteria"><span data-copy="bridge_1"></span><span data-copy="bridge_2"></span><span data-copy="bridge_3"></span></div><button id="closeCta" class="primary" hidden></button><button id="replayEnd" class="primary" data-copy="replay_cta"></button></div></section>
 </main><dialog id="shareDialog"><form method="dialog"><button class="close" aria-label="Cerrar">×</button><h2>Enlace de la presentación</h2><p id="shareStatus"></p><label for="shareUrl">Copia este enlace</label><input id="shareUrl" readonly><button id="copyShare" type="button">Copiar enlace</button></form></dialog>
 <dialog id="closingDialog"><form method="dialog"><button id="closingClose" class="close" aria-label="Cerrar">×</button><h2 id="closingTitle"></h2><p id="closingBody"></p><div id="closingChoices" class="closing-choices"></div><label id="closingLabel" for="closingMessage"></label><textarea id="closingMessage" readonly rows="6"></textarea><p id="closingStatus" role="status"></p><button id="closingCopy" class="primary" type="button"></button></form></dialog>
-<script>window.YOD_MONOLINE_BOOT=true;</script><script src="story-core.js?v=story17-thread2"></script><script src="source.js?v=story17-thread2"></script><script src="hunt-core.js?v=thread1-2"></script><script src="thread-core.js?v=thread1-2"></script><script src="hunt.js?v=thread1-2"></script><script src="story.js?v=story18-mono4r4-1"></script><script src="monoline-core.js?v=mono4r4-1"></script><script src="monoline.js?v=mono4r4-1"></script></body></html>
+<script>window.YOD_MONOLINE_BOOT=true;window.YOD_PRINCIPAL_BOOT=true;</script><script src="story-core.js?v=story17-thread2"></script><script src="source.js?v=story17-thread2"></script><script src="hunt-core.js?v=thread1-2"></script><script src="thread-core.js?v=thread1-2"></script><script src="hunt.js?v=thread1-2"></script><script src="story.js?v=story18-mono4r4-1"></script><script src="monoline-core.js?v=mono4r4-1"></script><script src="monoline.js?v=mono4r4-beta2"></script><script src="principal-core.js?v=principal-1r2"></script><script src="principal.js?v=principal-1r2"></script></body></html>

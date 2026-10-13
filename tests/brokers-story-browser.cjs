@@ -3,7 +3,8 @@ const C=require('../presentacion/story-core.js');
 function fixture(){const d={inv1_version:'1',inv1_brand:'Synthetic Studio',inv1_logo_url:'https://example.test/logo.png',inv1_primary:'#123456',inv1_ink:'#222222',inv1_paper:'#eeeeee',inv1_duration_seconds:'10',inv1_title:'A clear investment opportunity.',inv1_lead:'Synthetic description of the opportunity for a property development.',inv1_material_profile:'https://yodesarrollomx.github.io/yodesarrollo-board/presentacion/'};for(const k of C.fields)if(!d['inv1_'+k])d['inv1_'+k]='Synthetic '+k;for(let n=1;n<=4;n++){d['inv1_phase'+n+'_label']='PHASE '+n;d['inv1_phase'+n+'_title']='A clear step '+n;d['inv1_phase'+n+'_body']='A synthetic explanation with enough words to exercise the space that the public narrative requires.';}return d;}
 
 async function revealLegacy(page){
- await page.waitForFunction(()=>{const mono=document.querySelector('#monoline'),story=document.querySelector('#story');return(mono&&!mono.hidden&&mono.offsetWidth>0)||(story&&!story.hidden&&story.offsetWidth>0);},null,{timeout:60000});
+ await page.waitForFunction(()=>{const principal=document.querySelector('#principal'),mono=document.querySelector('#monoline'),story=document.querySelector('#story');return(principal&&!principal.hidden&&principal.offsetWidth>0)||(mono&&!mono.hidden&&mono.offsetWidth>0)||(story&&!story.hidden&&story.offsetWidth>0);},null,{timeout:60000});
+ if(await page.locator('#principal').isVisible()){await page.locator('#principalBeta').click();await page.locator('#monoline:not([hidden])').waitFor();}
  if(await page.locator('#monoline').isVisible()){await page.locator('#monoLegacy').click();await page.locator('#story:not([hidden])').waitFor();}
 }
 
