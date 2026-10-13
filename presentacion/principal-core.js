@@ -340,10 +340,18 @@ function build(sourceMap,config){
    const doc={x:2760,y:490,w:70,h:105};tr.box(doc);tr.line(point(doc.x,doc.y+20));
    for(const y of [doc.y+20,doc.y+45,doc.y+70]){tr.line(point(doc.x,y));tr.retrace(()=>tr.line(point(doc.x+50,y)));}
   });
-  tr.line(point(2860,620));
-  tr.tag='sale-direction-arrow';tr.retrace(()=>{tr.line(point(2845,610));tr.line(point(2860,620));tr.line(point(2845,630));});
-  annotate('documentation',2570,760,{centered:true,maxChars:12,maxWidth:250});annotate('sale',2910,685,{centered:true,maxChars:10,maxWidth:250});annotate('cashflow',2950,810,{centered:true,maxChars:10,maxWidth:250});
- },{x:2120,y:240,width:1020,height:650},'development');
+  tr.line(point(3245,620));
+  tr.tag='sale-direction-arrow';tr.retrace(()=>{tr.line(point(3230,610));tr.line(point(3245,620));tr.line(point(3230,630));});
+  tr.tag='documentation-sale-collections';tr.line(point(3650,620));
+  tr.retrace(()=>{
+   const ledger={x:3650,y:510,w:90,h:85};tr.line(point(ledger.x,ledger.y+ledger.h));tr.box(ledger);
+   tr.line(point(ledger.x,ledger.y+28));tr.retrace(()=>tr.line(point(ledger.x+ledger.w,ledger.y+28)));
+   tr.line(point(ledger.x,ledger.y+56));tr.retrace(()=>tr.line(point(ledger.x+ledger.w,ledger.y+56)));
+  });
+  annotate('documentation',2795,750,{centered:true,maxChars:12,maxWidth:420});
+  annotate('sale',3245,750,{centered:true,maxChars:10,maxWidth:420});
+  annotate('cashflow',3695,750,{centered:true,maxChars:10,maxWidth:420});
+ },{x:2070,y:240,width:1850,height:800},'development');
  done(s);
  const projectJoin=point(2860,620),junction=point(2920,620);
  const roles={
