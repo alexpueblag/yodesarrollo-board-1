@@ -52,7 +52,7 @@ function drawAnnotations(loc,view,scale){
   e.setAttribute('font-size',font);e.setAttribute('stroke-width',3.8/scale);
   let available=Math.min(view[2]-font*2,a.maxWidth||Infinity);
   if(a.node){const node=layout.roles?.[a.key]||(a.key==='agreement'?layout.agreement:null);if(node)available=Math.min(available,node.w-font*.8);}
-  for(const other of active){if(other.a===a)continue;const dx=Math.abs(other.a.x-a.x),dy=Math.abs(other.a.y-a.y);if(dx>font&&dy<font*1.3)available=Math.min(available,dx-font*.8);}
+  for(const other of active){if(other.a===a)continue;const dx=Math.abs(other.a.x-a.x),dy=Math.abs(other.a.y-a.y);if(dx>font&&dy<font*.4)available=Math.min(available,dx-font*.8);}
   const maxChars=a.maxChars||(a.node?20:24);
   const lines=[],words=String(value).split(/\s+/);let line='';
   e.textContent='';
@@ -71,13 +71,15 @@ function drawAnnotations(loc,view,scale){
   }
   e.setAttribute('transform','translate('+shiftX+' '+shiftY+')');
   b={x:b.x+shiftX,y:b.y+shiftY,width:b.width,height:b.height};
-  const intersects=(candidate,r)=>candidate.x<r.x+r.width+font*.35&&candidate.x+candidate.width+font*.35>r.x&&candidate.y<r.y+r.height+font*.25&&candidate.y+candidate.height+font*.25>r.y;
-  let overlaps=placed.some(r=>intersects(b,r));
+  const screenRect=()=>{const r=e.getBoundingClientRect();return{x:r.left,y:r.top,width:r.width,height:r.height};};
+  const intersects=(candidate,r)=>candidate.x<r.x+r.width+4.9&&candidate.x+candidate.width+4.9>r.x&&candidate.y<r.y+r.height+3.5&&candidate.y+candidate.height+3.5>r.y;
+  let actual=screenRect(),overlaps=placed.some(r=>intersects(actual,r));
   if(overlaps&&!a.node&&!a.source){
-   const options=placed.flatMap(r=>[r.y-font*.4-(b.y+b.height),r.y+r.height+font*.4-b.y]).filter(d=>Math.abs(d)<=font*3.5).sort((x,y)=>Math.abs(x)-Math.abs(y));
-   for(const dy of options){const candidate={...b,y:b.y+dy};if(candidate.y>=view[1]+font*.55&&candidate.y+candidate.height<=view[1]+view[3]-font*.55&&!placed.some(r=>intersects(candidate,r))){shiftY+=dy;b=candidate;e.setAttribute('transform','translate('+shiftX+' '+shiftY+')');overlaps=false;break;}}
+   const bounds=$('principalSvg').getBoundingClientRect();
+   const options=placed.flatMap(r=>[r.y-5.6-(actual.y+actual.height),r.y+r.height+5.6-actual.y]).filter(d=>Math.abs(d)<=49).sort((x,y)=>Math.abs(x)-Math.abs(y));
+   for(const dy of options){const candidate={...actual,y:actual.y+dy};if(candidate.y>=bounds.top+7.7&&candidate.y+candidate.height<=bounds.bottom-7.7&&!placed.some(r=>intersects(candidate,r))){shiftY+=dy/scale;e.setAttribute('transform','translate('+shiftX+' '+shiftY+')');actual=screenRect();overlaps=placed.some(r=>intersects(actual,r));if(!overlaps)break;}}
   }
-  if(a.source&&(overlaps||b.width>available)){e.style.display='none';continue;}placed.push(b);
+  if(a.source&&(overlaps||b.width>available)){e.style.display='none';continue;}placed.push(actual);
  }
 }
 function context(){
