@@ -35,11 +35,11 @@ function drawAnnotations(loc,view,scale){
  for(const item of [...labels].sort((a,b)=>b.a.scene-a.a.scene)){
   const {a,e}=item,visited=a.atLength<=prefix+.2,current=a.scene===scene&&(a.beat===beat%4||a.identity===true),identity=identities.has(a.key)&&a.scene<=scene;
   const inFrame=a.x>=view[0]+font&&a.x<=view[0]+view[2]-font&&a.y>=view[1]+font&&a.y<=view[1]+view[3]-font;
-  const key=a.key+'|'+Math.round(a.x)+'|'+Math.round(a.y);
+  const key=identities.has(a.key)?a.key:a.key+'|'+Math.round(a.x)+'|'+Math.round(a.y);
   let show=visited&&inFrame&&(current||identity);if(show&&seen.has(key))show=false;if(show)seen.add(key);e.style.display=show?'':'none';if(!show)continue;
   e.setAttribute('font-size',font);e.setAttribute('stroke-width',3.8/scale);
   const lines=wrap(item.value,Math.max(12,Math.min(24,Math.floor(box.width/11))));e.replaceChildren();
-  lines.forEach((line,i)=>{const t=svg('tspan');t.setAttribute('x',a.x);t.setAttribute('dy',i?'1.15em':'0');text(t,line);e.append(t);});
+  lines.forEach((line,i)=>{const t=svg('tspan');t.setAttribute('x',a.x);t.setAttribute('dy',i?'1.15em':'0');text(t,(i?' ':'')+line+(i===lines.length-1?' ':''));e.append(t);});
  }
 }
 function context(){

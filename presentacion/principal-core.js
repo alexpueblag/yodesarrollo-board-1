@@ -216,7 +216,7 @@ function build(sourceMap,config){
   const p=places[id],z=zones[p.zoneId];goNode(z.node);
   tr.tag='zone-to-schematic-property';
   const n=project(graph.nodes.get(z.node).point),lane=point(1030,streetY);
-  tr.retrace(()=>{
+  const draw=()=>{
    tr.line(point(1030,n.y));tr.line(lane);tr.line(p.access);
    tr.tag='schematic-property';tr.box(p);
    tr.retrace(()=>{
@@ -224,19 +224,20 @@ function build(sourceMap,config){
     tr.line(point(x,y+h));tr.loop([point(x,y+h),point(x,y),point(x+w/2,y-30),point(x+w,y),point(x+w,y+h),point(x,y+h)]);
    });
    annotate(p.id==='P1'?'property1':'property2',p.x+p.w/2,p.y-22,{identity:p.id,zoneId:p.zoneId,schematic:true});
-  });
+  };
+  if(id==='P2')draw();else tr.retrace(draw);
  };
- const goStreet=()=>{tr.tag='schematic-street';tr.line(point(1030,streetY));tr.line(point(1160,streetY));};
+ const goStreet=()=>{tr.tag='schematic-street';tr.line(point(2060,streetY));};
  const survey=p=>{
   tr.tag='physical-measure';tr.retrace(()=>{
-   tr.line(point(p.measure.x,p.y));tr.retrace(()=>tr.line(point(p.measure.x+8,p.y)));
+   tr.line(point(p.measure.x,streetY));tr.line(point(p.measure.x,p.y));tr.retrace(()=>tr.line(point(p.measure.x+8,p.y)));
    tr.line(point(p.measure.x,p.y+p.h));tr.retrace(()=>tr.line(point(p.measure.x+8,p.y+p.h)));
    tr.line(point(p.x,p.y+p.h+35));tr.line(point(p.x+p.w,p.y+p.h+35));
   });
   annotate('physicalMeasure',p.x+p.w/2,p.y+p.h+70,{identity:p.id,schematic:true});
  };
  s=newScene(5,'properties',pair);
- mark(5,0,()=>{propertyOrigin('P1');propertyOrigin('P2');goStreet();},pair,'properties',{enterFrom:city});
+ mark(5,0,()=>{propertyOrigin('P1');propertyOrigin('P2');goStreet();},{x:0,y:0,width:2120,height:960},'properties',{enterFrom:city,enterDelay:0,enterDuration:.15});
  mark(5,1,()=>{for(const p of Object.values(places))survey(p);annotate('constructionFootprint',1605,265,{schematic:true});},pair,'properties');
  mark(5,2,()=>{
   for(const p of Object.values(places)){
@@ -335,7 +336,7 @@ function locate(layout,p){
  p=clamp(p);const n=layout.marks.length,g=p*n,index=Math.min(n-1,Math.floor(g)),mark=layout.marks[index],beatLocal=p===1?1:g-index;
  const length=mix(mark.startLength,mark.endLength,beatLocal),position=pointAtLength(layout,length);
  let focus={...mark.focus};
- if(mark.enterFrom)focus=boxMix(mark.enterFrom,mark.focus,ease(clamp((beatLocal-.4)/.6)));
+ if(mark.enterFrom){const delay=mark.enterDelay===undefined?.4:mark.enterDelay,duration=mark.enterDuration===undefined?.6:mark.enterDuration;focus=boxMix(mark.enterFrom,mark.focus,ease(clamp((beatLocal-delay)/duration)));}
  if(mark.exitTo)focus=boxMix(mark.focus,mark.exitTo,ease(clamp((beatLocal-.7)/.3)));
  const next=layout.marks[index+1];
  if(next&&!mark.exitTo&&!next.enterFrom&&beatLocal>.82)focus=boxMix(focus,next.focus,ease((beatLocal-.82)/.18));
