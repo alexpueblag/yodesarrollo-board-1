@@ -30,3 +30,6 @@
 @media(max-width:760px) and (max-height:740px){.hunt[data-stage="7"] .hunt-frame{height:var(--hunt-vh,100svh);min-height:0}.hunt[data-stage="7"] .hunt-world{flex:1;height:auto;min-height:105px}.hunt-world{min-height:105px}.hunt-frame{padding-bottom:8px}.hunt-heading>p:last-child{font-size:14px}.hunt-controls button{min-height:36px}}
 
 .hunt-cases{overflow:hidden;min-height:0}.hunt-case{min-height:0;box-sizing:border-box}
+
+.thread-road-name{fill:#456a63!important;font-size:32px;stroke:var(--paper)!important;stroke-linejoin:round}.thread-roof{stroke-width:1.1}
+@media(max-width:760px){.hunt-criteria span{font-size:14px;line-height:1.25;color:var(--primary);padding:7px}.hunt-controls button#huntContinue{font-weight:600}.hunt-criteria-heading{font-size:12px}}
