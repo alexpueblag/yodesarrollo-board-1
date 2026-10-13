@@ -45,7 +45,7 @@ function reset(){pause();scrollTo({top:0,behavior:'instant'});render(initial());
 function tick(ts){if(!playing||document.hidden||reduce.matches)return pause();if(!last)last=ts;const dt=Math.min(120,ts-last);last=ts;const seconds=clamp(cfg.motion?.durationSeconds||105,20,300);move(p+dt/(seconds*1000));if(p>=1)return pause();raf=requestAnimationFrame(tick);}
 function play(){if(!cfg||reduce.matches)return pause();if(playing)return pause();if(p>=.999)reset();measure();playing=true;last=0;text($('monoPlay'),cfg.controls.pause);$('monoPlay').setAttribute('aria-pressed','true');raf=requestAnimationFrame(tick);}
 function onScroll(){if(legacy||!cfg||scrollRaf)return;scrollRaf=requestAnimationFrame(()=>{scrollRaf=0;render(fromScroll());});}
-function onResize(){if(!cfg||legacy)return;const preserved=p;pause();cancelAnimationFrame(resizeRaf);resizeRaf=requestAnimationFrame(()=>{measure();if(preserved<.0001){scrollTo(0,0);render(0);}else move(preserved);});}
+function onResize(){if(!cfg||legacy)return;pause();cancelAnimationFrame(resizeRaf);resizeRaf=requestAnimationFrame(()=>{const preserved=p;measure();if(preserved<=initial()+.0001){scrollTo({top:0,behavior:"instant"});render(initial());}else move(preserved);});}
 function createDetails(){
  const out=$('monoDetails');out.replaceChildren();
  cfg.scenes.forEach((s,i)=>{const section=node('section','mono-detail-scene');section.dataset.monoScene=String(i);section.id='monoScene'+i;const intro=node('div','mono-scene-intro');intro.append(node('h2','',s.title),node('p','',s.lead));section.append(intro);

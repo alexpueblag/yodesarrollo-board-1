@@ -16,7 +16,7 @@ function readConfig(payload){const d=payload.textos||payload;assert.ok(d.mono_co
 async function state(page){return page.evaluate(()=>window.YodMonoline.api.state());}
 async function settle(page){await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));}
 async function seek(page,index){await page.evaluate(n=>window.YodMonoline.api.seekBeat(n),index);await settle(page);}
-async function ready(page){await page.locator('#monoline:not([hidden])').waitFor({timeout:60000});await page.waitForFunction(()=>window.YodMonoline&&window.YodMonoline.api&&Number.isFinite(window.YodMonoline.api.state().p));}
+async function ready(page){await page.locator('#monoline:not([hidden])').waitFor({timeout:60000});await page.waitForFunction(()=>window.YodMonoline&&window.YodMonoline.api&&Number.isFinite(window.YodMonoline.api.state().p));await page.evaluate(()=>document.fonts.ready);}
 async function visibleDetails(page,config){
  assert.equal(await page.locator('#monoDetails [data-mono-scene]').count(),7);
  for(let i=0;i<7;i++){const block=page.locator('#monoDetails [data-mono-scene="'+i+'"]');assert.ok(await block.isVisible(),'Every chapter detail must be in normal document flow');assert.equal(await block.evaluate(e=>Boolean(e.closest('details,[hidden],dialog'))),false,'Details must not require disclosure controls');const text=await block.textContent();for(const group of config.scenes[i].details)for(const item of group.items)assert.ok(text.includes(item),'Missing visible detail from scene '+i);}
@@ -56,6 +56,13 @@ async function verify(page,config){
  await page.setViewportSize({width:390,height:844});await seek(page,11);const preserved=(await state(page)).p;
  await page.setViewportSize({width:400,height:850});await settle(page);assert.ok(Math.abs((await state(page)).p-preserved)<.003,'Resize must preserve narrative progress');
  await page.setViewportSize({width:390,height:844});await settle(page);assert.ok(Math.abs((await state(page)).p-preserved)<.003);
+ // Reset during a viewport change must win over a queued resize restoration.
+ for(const viewport of [{width:1440,height:900},{width:390,height:844}]){
+  await seek(page,20);await page.setViewportSize(viewport);await page.evaluate(()=>window.YodMonoline.api.reset());await settle(page);
+  assert.equal(await page.evaluate(()=>scrollY),0,'Reset plus resize must keep the opening headline at the top');
+  const opening=await page.locator('#monoHeadline').boundingBox();assert.ok(opening.y>=0&&opening.y+opening.height<=viewport.height,'Opening headline must be visible after reset plus resize');
+  assert.ok((await state(page)).p<.01,'Resize must not restore progress from before reset');
+ }
  await seek(page,20);await visibleDetails(page,config);
  assert.equal(await page.locator('#monoline [data-mono-cta]').count(),2,'Both investor/property conversation paths must be available');
  await page.locator('#monoline [data-mono-cta="0"]').click();await page.locator('#monoMessageDialog[open]').waitFor();const message=await page.locator('#monoMessage').inputValue();assert.ok(message.includes(config.cta[0].message));assert.ok(!/[?&](?:k|token|masterbroker)=/i.test(message),'Prepared message must not carry credentials or private profile query parameters');await page.locator('#monoMessageClose').click();
@@ -89,7 +96,7 @@ async function shot(page,id){const pixels=await page.screenshot({path:'mono-'+id
   const files=['monoline.js','monoline-core.js','monoline.css'],publicContext=await browser.newContext({viewport:{width:390,height:844},permissions:['clipboard-read','clipboard-write']}),published=await publicContext.newPage(),publicErrors=[];published.on('pageerror',error=>publicErrors.push(error.message));let readyFlag=false,productionWrites=0;
   await publicContext.route('**/*',route=>{if(route.request().method()!=='GET'){productionWrites++;return route.abort('blockedbyclient');}return route.continue();});
   for(let attempt=0;attempt<15&&!readyFlag;attempt++){try{let match=true;for(const file of files){const r=await fetch(PUBLIC+file+'?v='+Date.now(),{signal:AbortSignal.timeout(20000)});if(!r.ok||(await r.text()).trim()!==fs.readFileSync('presentacion/'+file,'utf8').trim()){match=false;break;}}if(match){await published.goto(PUBLIC,{waitUntil:'domcontentloaded',timeout:30000});await ready(published);readyFlag=true;}}catch(_){}if(!readyFlag)await new Promise(resolve=>setTimeout(resolve,8000));}
-  assert.ok(readyFlag,'The anonymous published page must serve the exact candidate files');await verify(published,real);await capture(published,'public');assert.equal(productionWrites,0);assert.deepEqual(publicErrors,[]);assert.deepEqual(await published.evaluate(()=>Object.keys(localStorage)),[]);console.log(JSON.stringify({productionMonoline:true,anonymous:true,exactPublishedCode:true,publicMarketingCopy:true,actualProductionScreenshots:9,businessWrites:0}));await publicContext.close();
+  assert.ok(readyFlag,'The anonymous published page must serve the exact candidate files');await verify(published,real);await capture(published,'public');assert.equal(productionWrites,0);assert.deepEqual(publicErrors,[]);assert.deepEqual(await published.evaluate(()=>Object.keys(localStorage)),[]);console.log(JSON.stringify({productionMonoline:true,anonymous:true,exactPublishedCode:true,publicMarketingCopy:true,actualProductionScreenshots:13,businessWrites:0}));await publicContext.close();
  }
  await browser.close();await new Promise(resolve=>server.close(resolve));
 })().catch(error=>{console.error(error);process.exit(1)});
