@@ -11,7 +11,7 @@ function play(){if(!content)return;if(reduce.matches){goPhase(content.chapters[c
 function render(v){
  if(!content)return;p=C.clamp(v);root.style.setProperty('--p',p);$('progress').value=p;
 
- const at=C.locate(content.chapters,p),ch=content.chapters[at.index],local=at.local;
+ const at=C.locate(content.chapters,p),ch=content.chapters[at.index],local=at.local;if(story.getBoundingClientRect().top<=1)document.querySelector('.chapter-label').textContent=ch.kicker;
  if(chapter!==at.index){
   chapter=at.index;phase=-1;root.dataset.chapter=String(ch.number);root.classList.toggle('detailed-chapter',chapter>0);
   const activeNav=$('chapterNav').querySelector('button[data-chapter="'+chapter+'"]');if(activeNav&&content.chapters.length>3){const nav=$('chapterNav');nav.scrollLeft=Math.max(0,activeNav.offsetLeft-(nav.clientWidth-activeNav.offsetWidth)/2);}
@@ -74,7 +74,7 @@ function bind(){
 async function load(){
  $('retry').hidden=true;$('load-message').textContent='Preparando la presentación…';
  try{
-  content=C.normalize(await window.YodPublicCopy());document.title=content.title+' · '+content.brand;
+  const publicCopy=await window.YodPublicCopy();content=C.normalize(publicCopy);window.YodHunt.mount(publicCopy);document.title=content.title+' · '+content.brand;
   for(const k of ['primary','ink','paper'])root.style.setProperty('--'+k,content[k]);
   document.querySelectorAll('[data-copy]').forEach(el=>el.textContent=content[el.dataset.copy]||'');
   $('brandLogo').alt=content.brand;$('brandLogo').src=content.logo_url;$('brandLogo').onerror=()=>{$('brandLogo').hidden=true;$('brandText').hidden=false;$('brandText').textContent=content.brand;};
@@ -83,8 +83,8 @@ async function load(){
   $('closeCta').hidden=final.number!==7;$('closeCta').textContent=final.close_label||'';
   phase=-1;chapter=-1;
   if(!$('bridgeModel').children.length){const clone=document.querySelector('.diagram').cloneNode(true);clone.removeAttribute('aria-labelledby');clone.setAttribute('aria-hidden','true');clone.querySelectorAll('[id]').forEach(el=>el.removeAttribute('id'));$('bridgeModel').append(clone);}
-  $('loading').hidden=true;$('presentation').hidden=false;bind();resize();render(reduce.matches?1:0);onScroll();
+  $('loading').hidden=true;$('presentation').hidden=false;bind();resize();render(reduce.matches?1:0);onScroll();window.YodHunt.refresh();
  }catch(e){content=null;$('presentation').hidden=true;$('loading').hidden=false;$('load-message').textContent=e.name==='AbortError'?'La conexión tardó. Vuelve a intentar.':'No se pudo cargar la presentación. Vuelve a intentar.';$('retry').hidden=false;console.warn('Presentation content unavailable');}
 }
-$('retry').onclick=load;load();
+window.YodStoryStart=()=>{window.YodHunt.stop();stop();chapter=-1;phase=-1;moveTo(0);};$('retry').onclick=load;load();
 })();

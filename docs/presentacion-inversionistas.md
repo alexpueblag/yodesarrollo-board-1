@@ -1,15 +1,15 @@
-# Presentación pública de inversión
+# Presentación pública · apertura desde la ciudad
 
-URL: https://yodesarrollomx.github.io/yodesarrollo-board/presentacion/
+La URL existente conserva el borrador de siete láminas. Antes aparece el recorrido por ocho momentos: ciudad, uso mixto buscado, población y empleo buscados, barrios consolidados, dos oportunidades, costo, viviendas y saldo.
 
-Borrador de siete láminas: oportunidad → método → decisión → caso → controles → participación → siguiente paso. Un mismo SVG y guía acompaña el timeline compartido por scroll, reproducción y botones. La navegación horizontal permite elegir cualquiera de las siete en móvil.
+El trazado de vialidades reales se obtiene de OpenStreetMap con parámetros de Sheets, se simplifica y se guarda en el contrato editorial público hunt_*. Las áreas naranja e iconos son criterios ilustrativos, no capas municipales ni establecimientos acreditados. La transición a dos cuadras/predios es un esquema, sin afirmar ubicación o propiedad real.
 
-El contrato público existente TEXTOS POTENCIAL conserva inv1_* a inv3_* y agrega inv4_* a inv7_*. Copy, marca, grupos y parámetros proceden de Sheets. La versión anterior sigue funcionando con el contenido adicional. El cliente valida grupos completos y requiere el cierre cuando existen capítulos 4–7.
+Cada casa representa una vivienda; las monedas son unidades abstractas de valor. Los casos y conteos viven en Sheets. Costo = valor del inmueble + ejecución; saldo = venta − costo. La aportación no elimina el valor del inmueble y el saldo del proyecto no se ofrece como reparto al inversionista. No son pesos ni un pronóstico de rentabilidad.
 
-Contenido original conservado: siete etapas de operación, seis variables de mercado, siete financieras, ocho datos del proyecto modelo, nueve etapas legales y de desarrollo, cuatro condiciones del inversionista. Se organiza por fase y agrega controles de ejecución, acuerdos y siguiente paso. No presenta cifras, rendimientos garantizados, casos aprobados ni datos privados.
+La apertura tiene scroll, ocho botones, reproducción, pausa, replay, comparación y continuación al borrador. Prefers-reduced-motion conserva controles sin movimiento automático. Usa un único fetch editorial; no pide datos ni credenciales ni consulta servicios cartográficos en cada visita.
 
-El cierre ofrece tres intenciones, muestra un mensaje listo y permite copiarlo para enviarlo a quien compartió el enlace. No envía mensajes, registra leads, solicita un depósito ni formaliza una participación. Todo el texto viene de Sheets. Compartir siempre elimina argumentos y hashes de identidad del URL.
+Pruebas: node --test tests/brokers*.test.cjs; node tests/brokers-story-browser.cjs; node tests/brokers-hunt-browser.cjs. Publicación anónima y capturas reales se comprueban con VERIFY_PUBLISHED_STORY=1 después del despliegue. Las consultas cartográficas son lecturas, no pruebas de escrituras de negocio.
 
-Pruebas: contratos y sintaxis; Chromium con todas las fases de las siete láminas en 320/390/1440 px, continuidad del SVG, reproducción/pausa/repetición/avance, movimiento reducido, Material y portapapeles del cierre. VERIFY_PUBLISHED_STORY=1 verifica sitio anónimo, recursos JS/CSS exactos, copy vivo y capturas de las siete. Sólo lecturas públicas y dobles de negocio.
+Reversión por PR: retirar la apertura conservando el borrador de siete láminas y todo el contenido/historial de Sheets. Sin cambios al Portero del Masterbroker.
 
-Las versiones previas y originales se conservan. El tablero privado y su Portero siguen separados; no cambia ACL. Reversión: revertir PR frontend sin borrar textos de Sheets ni expedientes.
+La obtención de vialidades es una preparación manual con workflow_dispatch; no se repite en cada visita ni cambio del frontend. Las consultas cartográficas sólo recuperan datos públicos. Guardar la salida atribuida en las celdas editoriales y revisar antes de publicarla.

@@ -45,7 +45,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: yodesarrollomx/yod-portal
-          ref: 0c9e06d95f4c6724c4425bd147e3abe8daeb4140
+          ref: f0b931b0903dbdc92bb8fe8d8161e6e625c06610
           path: .yod-atlas
           persist-credentials: false
           sparse-checkout-cone-mode: false
@@ -64,6 +64,8 @@ jobs:
           node --check presentacion/story-core.js
           node --check presentacion/source.js
           node --check presentacion/story.js
+          node --check presentacion/hunt-core.js
+          node --check presentacion/hunt.js
           git diff --check HEAD^ HEAD
       - name: Navegador con servicios sintéticos
         env:
@@ -73,11 +75,14 @@ jobs:
           npx playwright install --with-deps chromium
           node tests/brokers-evaluator-browser.cjs
           node tests/brokers-story-browser.cjs
+          node tests/brokers-hunt-browser.cjs
       - name: Vistas móviles de las siete escenas
         uses: actions/upload-artifact@v4
         with:
           name: investor-scene1-mobile
-          path: investor-scene*-mobile.png
+          path: |
+            investor-scene*-mobile.png
+            hunt-*.png
           retention-days: 7
       - name: Resolver comparación
         id: refs

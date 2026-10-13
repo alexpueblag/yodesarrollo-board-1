@@ -1,21 +1,19 @@
 {
-  "model_revision": "2026-10-12.investor-story17.1",
-  "proposal_id": "CHG-INVESTOR-STORY-SCENES47",
-  "summary": "Completar siete láminas públicas con el mismo inmueble y timeline: caso, controles, participación y cierre. Copy y parámetros en Sheets; cierre local copiable sin envíos ni datos privados.",
+  "model_revision": "2026-10-12.investor-hermosillo-zoom.1",
+  "proposal_id": "CHG-INVESTOR-HERMOSILLO-ZOOM",
+  "summary": "Apertura por zoom con vialidades públicas y dos casos simbólicos; configuración y geometría en Sheets, sin introducir cifras reales.",
   "components": [
     "SYS-INVERSION",
     "GAS-PLAN-POTENCIAL",
-    "SHEET-PLAN-POTENCIAL"
+    "SHEET-PLAN-POTENCIAL",
+    "SYS-YOD-OS",
+    "SYS-CONTROL"
   ],
   "tests": [
     "node --test tests/brokers*.test.cjs",
-    "node --check brokers.js; node --check presentacion/*.js; git diff --check",
-    "node tests/brokers-evaluator-browser.cjs",
     "node tests/brokers-story-browser.cjs",
-    "Producción anónima: URL real, mismo script servido, textos vivos, scroll y controles visibles; sólo lecturas públicas, sin escrituras CRM.",
-    "Publicación real de las tres escenas: JS, core y CSS idénticos; todas las fases en 320/390/1440 px; scroll nativo, play, pause, repeat, captura y acceso anónimo.",
-    "Siete capítulos y todas sus fases; ocho datos del modelo, nueve etapas legales, términos de inversión y tres intenciones de cierre con copia al portapapeles.",
-    "Producción real de siete láminas: sin sesión; exactitud de JS/core/CSS; todos los grupos sin solapamiento; selección y portapapeles del cierre con capturas reales."
+    "node scripts/prepare-hunt-map.cjs",
+    "Pruebas de ocho momentos de zoom, símbolos, sumatorias y continuación; publicación real por comprobar."
   ],
-  "rollback": "Revertir el PR frontend. Conservar textos de Sheets, presentaciones anteriores y todos los expedientes."
+  "rollback": "Revertir frontend por PR sin borrar contenido de Sheets, láminas originales o permisos Masterbroker."
 }
