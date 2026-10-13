@@ -274,7 +274,7 @@ function build(sourceMap,config){
  };
  s=newScene(5,'properties',pair);
  mark(5,0,()=>{propertyOrigin('P1');propertyOrigin('P2');goStreet();},{x:0,y:0,width:2120,height:960},'properties',{enterFrom:city,enterDelay:0,enterDuration:.15});
- mark(5,1,()=>{for(const p of Object.values(places))survey(p);annotate('constructionFootprint',1605,185,{schematic:true,maxWidth:450});},pair,'properties');
+ mark(5,1,()=>{for(const p of Object.values(places))survey(p);annotate('constructionFootprint',1605,185,{schematic:true,centered:true});},pair,'properties');
  mark(5,2,()=>{
   for(const p of Object.values(places)){
    tr.tag='participation-route';tr.retrace(()=>{
@@ -291,7 +291,7 @@ function build(sourceMap,config){
   for(const p of Object.values(places)){
    tr.tag='possible-product';tr.retrace(()=>{tr.line(p.access);tr.box(p);});
   }
-  annotate('departments',1605,185,{schematic:true,conditional:true,maxWidth:450});
+  annotate('departments',1605,185,{schematic:true,conditional:true,centered:true});
  },pair,'comparison');
  mark(6,1,()=>stream('project-account',['income','investment','profit']),{x:1090,y:230,width:1030,height:720},'comparison');
  mark(6,2,()=>stream('adverse-conditions',['adverseCost','adversePrice','adverseTime']),{x:1090,y:230,width:1030,height:720},'comparison');
