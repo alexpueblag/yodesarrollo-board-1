@@ -52,7 +52,7 @@ function drawAnnotations(loc,view,scale){
   e.setAttribute('font-size',font);e.setAttribute('stroke-width',3.8/scale);
   let available=Math.min(view[2]-font*2,a.maxWidth||Infinity);
   if(a.node){const node=layout.roles?.[a.key]||(a.key==='agreement'?layout.agreement:null);if(node)available=Math.min(available,node.w-font*.8);}
-  for(const other of active){if(other.a===a)continue;const dx=Math.abs(other.a.x-a.x),dy=Math.abs(other.a.y-a.y);if(dx>font&&dy<font*3.2)available=Math.min(available,dx-font*.8);}
+  for(const other of active){if(other.a===a)continue;const dx=Math.abs(other.a.x-a.x),dy=Math.abs(other.a.y-a.y);if(dx>font&&dy<font*1.3)available=Math.min(available,dx-font*.8);}
   const maxChars=a.maxChars||(a.node?20:24);
   const lines=[],words=String(value).split(/\s+/);let line='';
   e.textContent='';
