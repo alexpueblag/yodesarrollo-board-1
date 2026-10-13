@@ -71,7 +71,12 @@ function drawAnnotations(loc,view,scale){
   }
   e.setAttribute('transform','translate('+shiftX+' '+shiftY+')');
   b={x:b.x+shiftX,y:b.y+shiftY,width:b.width,height:b.height};
-  const overlaps=placed.some(r=>b.x<r.x+r.width+font*.35&&b.x+b.width+font*.35>r.x&&b.y<r.y+r.height+font*.25&&b.y+b.height+font*.25>r.y);
+  const intersects=(candidate,r)=>candidate.x<r.x+r.width+font*.35&&candidate.x+candidate.width+font*.35>r.x&&candidate.y<r.y+r.height+font*.25&&candidate.y+candidate.height+font*.25>r.y;
+  let overlaps=placed.some(r=>intersects(b,r));
+  if(overlaps&&!a.node&&!a.source){
+   const options=placed.flatMap(r=>[r.y-font*.4-(b.y+b.height),r.y+r.height+font*.4-b.y]).filter(d=>Math.abs(d)<=font*3.5).sort((x,y)=>Math.abs(x)-Math.abs(y));
+   for(const dy of options){const candidate={...b,y:b.y+dy};if(candidate.y>=view[1]+font*.55&&candidate.y+candidate.height<=view[1]+view[3]-font*.55&&!placed.some(r=>intersects(candidate,r))){shiftY+=dy;b=candidate;e.setAttribute('transform','translate('+shiftX+' '+shiftY+')');overlaps=false;break;}}
+  }
   if(a.source&&(overlaps||b.width>available)){e.style.display='none';continue;}placed.push(b);
  }
 }

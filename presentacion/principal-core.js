@@ -311,7 +311,7 @@ function build(sourceMap,config){
  mark(7,0,()=>{
   tr.tag='review-before-commitment';tr.line(gate);tr.retrace(()=>tr.box({x:2160,y:550,w:70,h:70}));
   annotate('review',2170,700,{conditional:true});annotate('conditions',2440,700,{conditional:true});
-  tr.line(point(2430,620));annotate('formalization',2430,765,{conditional:true});
+  tr.line(point(2430,620));annotate('formalization',2430,830,{conditional:true,centered:true});
  },projectFocus,'development');
  mark(7,1,()=>{
   tr.tag='conditional-project';tr.box(projectBox);
