@@ -43,12 +43,12 @@ function stop(){playing=false;cancelAnimationFrame(raf);last=0;if(c){$('huntPlay
 function frame(ts){if(!playing||document.hidden)return stop();if(!last)last=ts;p=H.clamp(p+Math.min(100,ts-last)/c.duration);last=ts;move(p);if(p>=1)return stop();raf=requestAnimationFrame(frame);}
 function play(){if(reduce.matches)return move(1);if(playing)return stop();if(p>.999)move(0);playing=true;$('huntPlay').textContent=c.pause_label;$('huntPlay').setAttribute('aria-pressed','true');last=0;raf=requestAnimationFrame(frame);}
 function framePoint(x,y){const s=$('huntSvg'),pt=s.createSVGPoint();pt.x=x;pt.y=y;const point=pt.matrixTransform(s.getScreenCTM()),r=$('huntThreadOverlay').getBoundingClientRect();return{x:point.x-r.left,y:point.y-r.top};}
-function center(el){const b=el.getBoundingClientRect(),r=$('huntThreadOverlay').getBoundingClientRect();return{x:b.left+b.width*.5-r.left,y:b.bottom+5-r.top};}
+function center(el,edge){const b=el.getBoundingClientRect(),r=$('huntThreadOverlay').getBoundingClientRect();return{x:b.left+b.width*.5-r.left,y:(edge==='top'?b.top-5:b.bottom+5)-r.top};}
 function thread(v){
 const frame=$('huntFrame'),w=frame.clientWidth,h=frame.clientHeight;if(!w||!h)return;$('huntThreadOverlay').style.width=w+'px';$('huntThreadOverlay').style.height=h+'px';$('huntThreadOverlay').setAttribute('preserveAspectRatio','none');$('huntThreadOverlay').setAttribute('viewBox','0 0 '+w+' '+h);
 const start={x:18,y:Math.min(h-120,framePoint(35,470).y)},a=framePoint(330,320),b=framePoint(735,325),city=framePoint(500,186),criteria=[1,2,3].map(i=>center($('huntCriterion'+i)));
 const mathA=$('huntCases').querySelector('[data-case="A"] .final'),mathB=$('huntCases').querySelector('[data-case="B"] .final');
-const anchors=[city,criteria[0],criteria[1],criteria[2],a,b,a,b,mathA?center(mathA):b,mathB?center(mathB):b,center($('huntContinue'))];
+const anchors=[city,criteria[0],criteria[1],criteria[2],a,b,a,b,mathA?center(mathA):b,mathB?center(mathB):b,center($('huntContinue'),'top')];
 let head=T.headAt(v,anchors);head.x=H.clamp(head.x,24,w-24);head.y=H.clamp(head.y,82,h-6);
 const path=$('huntThread');path.setAttribute('d',T.curve(start,head,w));const length=path.getTotalLength(),visible=length*T.state(v).trace;path.style.strokeDasharray=visible+' '+length;const tip=path.getPointAtLength(visible);$('huntThreadTip').setAttribute('cx',tip.x);$('huntThreadTip').setAttribute('cy',tip.y);section.dataset.threadProgress=String(v);
 }
