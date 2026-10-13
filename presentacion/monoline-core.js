@@ -128,12 +128,13 @@ function build(width,sourceMap){
  const survey=g=>{
   axisTo(g.access.y);tr.tag='physical-cota-'+g.id;
   tr.retrace(()=>{
-   tr.line(point(axis,g.y-24*ratio));tr.line(point(g.x,g.y-24*ratio));
-   tr.retrace(()=>tr.line(point(g.x,g.y-29*ratio)));
-   tr.line(point(g.x+g.w,g.y-24*ratio));
-   tr.retrace(()=>tr.line(point(g.x+g.w,g.y-29*ratio)));
+   const x=g.x-15*ratio;
+   axisTo(g.y);tr.line(point(x,g.y));
+   tr.retrace(()=>tr.line(point(x+5*ratio,g.y)));
+   tr.line(point(x,g.y+g.h));
+   tr.retrace(()=>tr.line(point(x+5*ratio,g.y+g.h)));
   });
-  label('area'+g.id,g.x+g.w/2,g.y-29*ratio,{identity:g.id});
+  label('area'+g.id,g.x+g.w/2,g.y-16*ratio,{identity:g.id});
  };
  const gate=g=>{
   axisTo(g.access.y);tr.tag='review-threshold-'+g.id;

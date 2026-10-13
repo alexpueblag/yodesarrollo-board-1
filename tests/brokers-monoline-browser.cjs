@@ -61,9 +61,10 @@ async function verify(page,config){
  await page.locator('#monoline [data-mono-cta="0"]').click();await page.locator('#monoMessageDialog[open]').waitFor();const message=await page.locator('#monoMessage').inputValue();assert.ok(message.includes(config.cta[0].message));assert.ok(!/[?&](?:k|token|masterbroker)=/i.test(message),'Prepared message must not carry credentials or private profile query parameters');await page.locator('#monoMessageClose').click();
 }
 async function capture(page,prefix){
- await page.setViewportSize({width:390,height:844});
+ await page.setViewportSize({width:390,height:844});await page.evaluate(()=>window.YodMonoline.api.reset());await page.waitForTimeout(80);await shot(page,prefix+'-opening-mobile390');
  for(let scene=0;scene<7;scene++){await seek(page,scene*3+1);await page.waitForTimeout(80);await shot(page,prefix+'-scene'+(scene+1)+'-mobile390');}
- await page.setViewportSize({width:1440,height:900});for(const scene of [0,2]){await seek(page,scene*3+1);await page.waitForTimeout(80);await shot(page,prefix+'-scene'+(scene+1)+'-desktop1440');}
+ await seek(page,14);await page.waitForTimeout(80);await shot(page,prefix+'-execution-end-mobile390');await seek(page,20);await page.locator('#monoClosing').scrollIntoViewIfNeeded();await page.waitForTimeout(80);await shot(page,prefix+'-closing-mobile390');
+ await page.setViewportSize({width:1440,height:900});await page.evaluate(()=>window.YodMonoline.api.reset());await page.waitForTimeout(80);await shot(page,prefix+'-opening-desktop1440');for(const scene of [0,2]){await seek(page,scene*3+1);await page.waitForTimeout(80);await shot(page,prefix+'-scene'+(scene+1)+'-desktop1440');}
 }
 async function shot(page,id){const pixels=await page.screenshot({path:'mono-'+id+'.jpg',type:'jpeg',quality:45}),b64=pixels.toString('base64'),total=Math.ceil(b64.length/1600);console.log('MONO_SCREEN_START '+JSON.stringify({id,mime:'image/jpeg',bytes:pixels.length,total}));for(let index=0;index<total;index++)console.log('MONO_SCREEN_CHUNK '+id+' '+index+' '+total+' '+b64.slice(index*1600,(index+1)*1600));console.log('MONO_SCREEN_END '+id);}
 (async()=>{

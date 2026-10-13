@@ -18,7 +18,7 @@ body.monoline-active{background:var(--mono-paper);color:var(--mono-ink);font-fam
 .mono-hero h1{font-family:"Instrument Serif",serif;font-weight:400;font-size:clamp(36px,5.1vw,72px);line-height:1.02;letter-spacing:-.03em;margin:16px 0 22px}
 .mono-hero>p:last-child{font-size:18px;line-height:1.6;max-width:600px}
 .mono-layout{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr);gap:7vw;align-items:start}
-.mono-stage{position:sticky;top:88px;height:calc(100svh - 108px);max-height:850px;min-height:490px;display:flex;flex-direction:column;background:var(--mono-paper);z-index:10;border-top:1px solid currentColor;overflow-anchor:none}
+.mono-stage{width:100%;min-width:0;position:sticky;top:88px;height:calc(100svh - 108px);max-height:850px;min-height:490px;display:flex;flex-direction:column;background:var(--mono-paper);z-index:10;border-top:1px solid currentColor;overflow-anchor:none}
 .mono-stage-heading>p:first-child{display:flex;justify-content:space-between;font-size:14px;letter-spacing:.035em;margin:18px 0 12px}
 #monoTitle{font-family:"Instrument Serif",serif;font-weight:400;font-size:clamp(24px,2.7vw,40px);line-height:1.1;margin:0 0 10px}
 #monoLead{display:none}
@@ -28,11 +28,12 @@ body.monoline-active{background:var(--mono-paper);color:var(--mono-ink);font-fam
 #monoAnnotations text{fill:currentColor;font-family:"Instrument Sans",sans-serif}
 .mono-case-key{display:flex;justify-content:space-between;gap:12px;font-size:14px;border-top:1px solid currentColor;padding-top:10px}
 .mono-current h3{font-size:16px;font-weight:600;margin:14px 0 4px;line-height:1.35}
-.mono-current p{font-size:16px;line-height:1.45;margin:0}
+.mono-current p{font-size:16px;line-height:1.45;margin:0;display:none}
 .mono-controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:14px 0 0;padding:0 0 8px}
 .mono-controls button{font-size:14px}
 #monoPlay{background:var(--mono-ink);color:var(--mono-paper)}
 #monoStep{margin-left:auto;font-size:14px;font-variant-numeric:tabular-nums}
+.mono-stage>div{min-width:0;max-width:100%}.mono-equation{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) auto minmax(0,1fr);gap:8px;align-items:center;font-size:14px;line-height:1.25;margin:12px 0 0;border-top:1px solid currentColor;padding-top:10px}.mono-equation span{min-width:0;text-align:center;overflow-wrap:anywhere}.mono-equation b{font-size:20px;font-weight:400}.mono-stage[data-scene="2"] .mono-current{display:none}
 #monoProgress{width:100%;height:2px;appearance:none;border:none;background:var(--mono-paper);color:var(--mono-ink)}
 #monoProgress::-webkit-progress-bar{background:var(--mono-paper)}#monoProgress::-webkit-progress-value{background:var(--mono-ink)}#monoProgress::-moz-progress-bar{background:var(--mono-ink)}
 .mono-details{min-width:0}
@@ -75,9 +76,9 @@ body.monoline-active{background:var(--mono-paper);color:var(--mono-ink);font-fam
 .mono-hero h1{font-size:40px;line-height:1.02;margin:12px 0 16px}
 .mono-hero>p:last-child{font-size:16px;line-height:1.5;margin-bottom:0}
 .mono-layout{display:block}
-.mono-stage{top:var(--mono-top-height,112px);height:clamp(335px,49svh,430px);min-height:0;max-height:none;box-shadow:0 14px 0 var(--mono-paper)}
+.mono-stage{top:var(--mono-top-height,112px);height:clamp(390px,52svh,470px);min-height:0;max-height:none;box-shadow:0 14px 0 var(--mono-paper)}
 .mono-stage-heading>p:first-child{font-size:14px;margin:10px 0 6px}
-#monoTitle{font-size:22px;line-height:1.1;margin:0 0 4px;display:none}
+#monoTitle{font-size:22px;line-height:1.1;margin:0 0 4px;display:block}
 .mono-window{min-height:165px;margin:0}
 .mono-case-key{font-size:14px;padding-top:6px}
 .mono-current h3{font-size:16px;margin:8px 0 0}.mono-current p{display:none}
@@ -91,7 +92,7 @@ body.monoline-active{background:var(--mono-paper);color:var(--mono-ink);font-fam
 .mono-closing{padding:40px 0 60px;margin-top:24px}
 #monoCtas{display:grid}#monoMessageDialog{padding:22px}
 }
-@media(max-width:359px){.mono-hero h1{font-size:36px}#monoTitle{font-size:22px}.mono-stage{height:335px}.mono-stage-heading>p:first-child{font-size:14px}.mono-controls button{font-size:14px;padding:8px}#monoStep{font-size:14px}}
+@media(max-width:359px){.mono-hero h1{font-size:36px}#monoTitle{font-size:22px}.mono-stage{height:390px}.mono-stage-heading>p:first-child{font-size:14px}.mono-controls button{font-size:14px;padding:8px}#monoStep{font-size:14px}}
 @media(prefers-reduced-motion:reduce){
 .mono-stage{position:relative;top:auto;height:auto;min-height:0;max-height:none}
 .mono-window{min-height:0;height:auto;overflow:visible}
@@ -101,3 +102,5 @@ body.monoline-active{background:var(--mono-paper);color:var(--mono-ink);font-fam
 .mono-step{min-height:0}
 .mono-detail-scene,.mono-step{scroll-margin-top:125px}
 }
+
+@media(max-width:800px){.mono-stage[data-scene="2"] .mono-window{min-height:140px}.mono-equation{margin-top:6px;padding-top:6px;gap:5px}.mono-window{min-width:0}.mono-case-key>span{min-width:0;max-width:50%;overflow-wrap:anywhere}.mono-current h3{overflow-wrap:anywhere}}
