@@ -1,7 +1,6 @@
 name: Trazado público de la apertura
 on:
-  pull_request:
-    paths: ['scripts/prepare-hunt-map.cjs', '.github/workflows/hunt-map.yml']
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
