@@ -1,7 +1,7 @@
 {
   "model_revision": "2026-10-13.investor-orange-thread.1",
   "proposal_id": "CHG-INVESTOR-ORANGE-THREAD",
-  "summary": "Apertura HTML ilustrada por scroll: territorio, contexto, proyecto y comparación, con un hilo naranja y una sola punta; fuentes editoriales conservadas en Sheets.",
+  "summary": "Conservar el progreso de la apertura al redimensionar el navegador; SVG/hilo y fuentes editoriales sin cambios de datos.",
   "components": [
     "SYS-INVERSION",
     "GAS-PLAN-POTENCIAL",
@@ -14,7 +14,8 @@
     "node tests/brokers-story-browser.cjs",
     "node tests/brokers-hunt-browser.cjs",
     "Continuidad determinista, SVG/path persistentes y punta sobre curva; viviendas contadas y saldos calculados.",
-    "Chromium320/390/1440, cuatro actos/ocho momentos, pausa/replay/reversión/reduced-motion y continuación; comprobar código exacto publicado por separado."
+    "Chromium320/390/1440, cuatro actos/ocho momentos, pausa/replay/reversión/reduced-motion y continuación; comprobar código exacto publicado por separado.",
+    "Regresión reproducida en Chromium público: resize mantiene progreso y el mismo hilo se reconstruye al volver al punto; impedir scroll anchoring interno."
   ],
   "rollback": "Revertir PR frontend sin borrar contenido editorial, láminas anteriores, acceso Masterbroker ni expedientes."
 }
