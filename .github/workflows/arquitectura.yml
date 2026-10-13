@@ -45,7 +45,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: yodesarrollomx/yod-portal
-          ref: 47bbfdfe81632d8d69baa8795bf6ea7ee2f42722
+          ref: 3db869a05a2dbc0c4e91e9f9ea50db9be28f4308
           path: .yod-atlas
           persist-credentials: false
           sparse-checkout-cone-mode: false
@@ -69,6 +69,8 @@ jobs:
           node --check presentacion/thread-core.js
           node --check presentacion/monoline-core.js
           node --check presentacion/monoline.js
+          node --check presentacion/principal-core.js
+          node --check presentacion/principal.js
           git diff --check HEAD^ HEAD
       - name: Navegador con servicios sintéticos
         env:
@@ -76,11 +78,12 @@ jobs:
         run: |
           npm install --no-save --ignore-scripts --no-audit --no-fund playwright@1.58.2
           npx playwright install --with-deps chromium
+          node tests/brokers-principal-browser.cjs
           node tests/brokers-evaluator-browser.cjs
           node tests/brokers-story-browser.cjs
           node tests/brokers-hunt-browser.cjs
           node tests/brokers-monoline-browser.cjs
-      - name: Vistas móviles de las siete escenas
+      - name: Vistas reales principal y beta
         uses: actions/upload-artifact@v4
         with:
           name: investor-scene1-mobile
@@ -88,6 +91,7 @@ jobs:
             investor-scene*-mobile.png
             hunt-*.png
             mono-*.jpg
+            principal-*.jpg
           retention-days: 7
       - name: Resolver comparación
         id: refs

@@ -14,7 +14,7 @@ function parse(input){const raw=input?.textos||input;if(!raw?.mono_config)return
 }
 function cleanURL(){const u=new URL(location.href);u.search='';u.hash='';return u.href;}
 function stageReadLine(){const header=document.querySelector('.mono-topbar').offsetHeight;return innerWidth<=800?Math.min(innerHeight-50,header+$('monoStage').offsetHeight+24):Math.min(innerHeight*.4,header+196);}
-function measure(){if(!cfg||legacy)return;root.style.setProperty('--mono-top-height',document.querySelector('.mono-topbar').getBoundingClientRect().height+'px');const line=stageReadLine();markers=Array.from(document.querySelectorAll('.mono-step'),el=>Math.max(0,scrollY+el.getBoundingClientRect().top-line));const max=Math.max(0,document.documentElement.scrollHeight-innerHeight);markers.push(Math.max(markers[20]+1,Math.min(max,scrollY+$('monoClosing').getBoundingClientRect().top-line)));for(let i=1;i<markers.length;i++)markers[i]=Math.max(markers[i],markers[i-1]+1);}
+function measure(){if(!cfg||legacy||$('monoline').hidden)return;root.style.setProperty('--mono-top-height',document.querySelector('.mono-topbar').getBoundingClientRect().height+'px');const line=stageReadLine();markers=Array.from(document.querySelectorAll('.mono-step'),el=>Math.max(0,scrollY+el.getBoundingClientRect().top-line));const max=Math.max(0,document.documentElement.scrollHeight-innerHeight);markers.push(Math.max(markers[20]+1,Math.min(max,scrollY+$('monoClosing').getBoundingClientRect().top-line)));for(let i=1;i<markers.length;i++)markers[i]=Math.max(markers[i],markers[i-1]+1);}
 function scrollAt(v){const t=clamp(v)*21,i=Math.min(20,Math.floor(t)),local=t-i;return markers[i]+(markers[i+1]-markers[i])*local;}
 function initial(){return clamp(cfg?.motion?.initialProgress||0,0,.009);}function fromScroll(){if(!markers.length||scrollY<=markers[0])return initial();let i=0;while(i<20&&scrollY>=markers[i+1])i++;return clamp((i+clamp((scrollY-markers[i])/(markers[i+1]-markers[i])))/21);}
 function pause(){playing=false;cancelAnimationFrame(raf);raf=0;last=0;if(cfg){text($('monoPlay'),cfg.controls.play);$('monoPlay').setAttribute('aria-pressed','false');}}
@@ -44,8 +44,8 @@ function seekScene(index){seekBeat(clamp(Math.floor(index),0,6)*3);}
 function reset(){pause();scrollTo({top:0,behavior:'instant'});render(initial());}
 function tick(ts){if(!playing||document.hidden||reduce.matches)return pause();if(!last)last=ts;const dt=Math.min(120,ts-last);last=ts;const seconds=clamp(cfg.motion?.durationSeconds||105,20,300);move(p+dt/(seconds*1000));if(p>=1)return pause();raf=requestAnimationFrame(tick);}
 function play(){if(!cfg||reduce.matches)return pause();if(playing)return pause();if(p>=.999)reset();measure();playing=true;last=0;text($('monoPlay'),cfg.controls.pause);$('monoPlay').setAttribute('aria-pressed','true');raf=requestAnimationFrame(tick);}
-function onScroll(){if(legacy||!cfg||scrollRaf)return;scrollRaf=requestAnimationFrame(()=>{scrollRaf=0;render(fromScroll());});}
-function onResize(){if(!cfg||legacy)return;pause();cancelAnimationFrame(resizeRaf);resizeRaf=requestAnimationFrame(()=>{const preserved=p;measure();if(preserved<=initial()+.0001){scrollTo({top:0,behavior:"instant"});render(initial());}else move(preserved);});}
+function onScroll(){if(legacy||!cfg||$('monoline').hidden||scrollRaf)return;scrollRaf=requestAnimationFrame(()=>{scrollRaf=0;render(fromScroll());});}
+function onResize(){if(!cfg||legacy||$('monoline').hidden)return;pause();cancelAnimationFrame(resizeRaf);resizeRaf=requestAnimationFrame(()=>{if($('monoline').hidden)return;const preserved=p;measure();if(preserved<=initial()+.0001){scrollTo({top:0,behavior:"instant"});render(initial());}else move(preserved);});}
 function createDetails(){
  const out=$('monoDetails');out.replaceChildren();
  cfg.scenes.forEach((s,i)=>{const section=node('section','mono-detail-scene');section.dataset.monoScene=String(i);section.id='monoScene'+i;const intro=node('div','mono-scene-intro');intro.append(node('h2','',s.title),node('p','',s.lead));section.append(intro);
@@ -83,5 +83,5 @@ const terms=cfg.diagramLabels?.financeTerms||{income:cfg.labels.market,investmen
  window.YodMonoline.api={seekBeat,seekScene,play,pause,reset,state:()=>({p,scene,beat,playing,legacy,version:cfg.version,mapCoverage:layout.mapCoverage})};
 }
 async function load(){try{$('retry').hidden=true;const data=await window.YodPublicCopy();await mount(data);}catch(e){$('monoline').hidden=true;$('presentation').hidden=true;$('loading').hidden=false;$('retry').hidden=false;console.warn('Monoline presentation unavailable: '+e.message);}}
-window.YodMonoline={mount,api:null};$('retry').onclick=load;bind();load();
+window.YodMonoline={mount,api:null};$('retry').onclick=load;bind();if(!window.YOD_PRINCIPAL_BOOT)load();
 })();
