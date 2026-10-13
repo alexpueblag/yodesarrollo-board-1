@@ -114,3 +114,5 @@ body.principal-active #monoline,body.principal-active #presentation,body.princip
 #principal .p-zone-common{font-size:14px;line-height:1.7;margin-top:18px}#principal .p-zone-context{font-size:14px;margin-top:9px}
 
 @media(max-width:760px){#principalPlay{width:auto;max-width:120px}#principalPlay .p-action-label{position:static;width:auto;height:auto;clip:auto;overflow:visible;white-space:normal;font-size:14px}}
+
+.p-details,.p-closing,.p-hero{overflow-wrap:anywhere}
