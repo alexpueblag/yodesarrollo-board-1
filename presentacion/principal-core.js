@@ -115,10 +115,30 @@ Trace.prototype.line=function(p){
 };
 Trace.prototype.loop=function(vertices){const origin=this.points[this.points.length-1];for(const p of vertices)this.line(p);this.line(origin);};
 Trace.prototype.retrace=function(fn){const start=this.points.length-1;fn();const route=this.points.slice(start);for(let i=route.length-2;i>=0;i--)this.line(route[i]);};
-Trace.prototype.box=function(b){this.loop([point(b.x,b.y+b.h/2),point(b.x,b.y),point(b.x+b.w,b.y),point(b.x+b.w,b.y+b.h),point(b.x,b.y+b.h),point(b.x,b.y+b.h/2)]);};
+Trace.prototype.ortho=function(p,verticalFirst=false){
+ const from=this.points[this.points.length-1];
+ this.line(verticalFirst?point(from.x,p.y):point(p.x,from.y));this.line(p);
+};
+Trace.prototype.box=function(b){
+ const origin=this.points[this.points.length-1];
+ let anchor;
+ if(origin.y>=b.y+b.h)anchor=point(b.x,b.y+b.h);
+ else if(origin.y<=b.y)anchor=point(b.x,b.y);
+ else if(origin.x<=b.x)anchor=point(b.x,b.y);
+ else if(origin.x>=b.x+b.w)anchor=point(b.x+b.w,b.y);
+ else throw Error('Box entry must be outside symbol');
+ this.retrace(()=>{
+  this.ortho(anchor);
+  this.loop([point(b.x,b.y),point(b.x+b.w,b.y),point(b.x+b.w,b.y+b.h),point(b.x,b.y+b.h),point(b.x,b.y)]);
+ });
+};
 Trace.prototype.circle=function(center,r){
- const vertices=Array.from({length:49},(_,i)=>point(center.x+r*Math.cos(Math.PI*2*i/48),center.y+r*Math.sin(Math.PI*2*i/48)));
- this.loop(vertices);
+ const anchor=point(center.x-r,center.y);
+ this.retrace(()=>{
+  this.ortho(anchor);
+  const vertices=Array.from({length:49},(_,i)=>point(center.x+r*Math.cos(Math.PI+Math.PI*2*i/48),center.y+r*Math.sin(Math.PI+Math.PI*2*i/48)));
+  this.loop(vertices);
+ });
 };
 function hull(points){
  const ps=[...new Map(points.map(p=>[p.x+','+p.y,p])).values()].sort((a,b)=>a.x-b.x||a.y-b.y);
@@ -139,14 +159,14 @@ function build(sourceMap,config){
  const nearest=p=>graph.component.keys.reduce((best,k)=>Math.hypot(project(graph.nodes.get(k).point).x-p.x,project(graph.nodes.get(k).point).y-p.y)<Math.hypot(project(graph.nodes.get(best).point).x-p.x,project(graph.nodes.get(best).point).y-p.y)?k:best,graph.component.keys[0]);
  const hubKey=nearest(project(graph.hub)),tr=new Trace(project(graph.hub));
  const zones=Object.fromEntries(cfg.diagram.zones.map(z=>{
-  const center=point(40+z.center[0]*880,50+z.center[1]*620),radius=round(z.radius*620),node=nearest(center);
+  const center=point(40+z.center[0]*880,50+z.center[1]*620),radius=round(z.radius*620),node=nearest(point(center.x-radius,center.y));
   return [z.id,{id:z.id,center,radius,node,focus:{x:center.x-radius*2.9,y:center.y-radius*2.6,width:radius*5.8,height:radius*5.2},schematic:true}];
  }));
  const orderedPlaces=cfg.diagram.places.slice().sort((a,b)=>a.id.localeCompare(b.id));
  const places=Object.fromEntries(orderedPlaces.map((p,i)=>[p.id,{...p,x:1260+i*450,y:340,w:250,h:170,schematic:true,access:point(1260+i*450,620),measure:{x:1225+i*450,y:340,h:170}}]));
  const pair={x:1120,y:230,width:970,height:720};
  const projectBox={x:2260,y:340,w:340,h:220},projectFocus={x:2070,y:150,width:780,height:720};
- const participantFocus={x:2790,y:160,width:850,height:720};
+ const participantFocus={x:2790,y:170,width:920,height:820};
  const annotations=[],marks=[],scenes=[];
  let graphKey=hubKey;
  const annotate=(key,x,y,extra={})=>annotations.push({key,x:round(x),y:round(y),scene:tr.scene,beat:tr.beat,index:tr.scene*4+tr.beat,atLength:tr.length,...extra});
@@ -161,7 +181,7 @@ function build(sourceMap,config){
   const keys=[];for(let k=to;k!==null;k=parent.get(k))keys.push(k);return keys.reverse();
  };
  const goNode=key=>{tr.tag='source-road-visit';for(const k of route(graphKey,key).slice(1))tr.line(project(graph.nodes.get(k).point));graphKey=key;};
- const atZone=(id,draw)=>{const z=zones[id];goNode(z.node);tr.tag='schematic-zone-guide';tr.retrace(()=>{tr.line(z.center);draw(z);});};
+ const atZone=(id,draw)=>{const z=zones[id];goNode(z.node);tr.tag='schematic-zone-guide';tr.retrace(()=>{tr.ortho(point(z.center.x-z.radius,z.center.y));draw(z);});};
  const mark=(scene,beat,draw,focus,context,options={})=>{
   tr.scene=scene;tr.beat=beat;const startLength=tr.length,segmentStart=tr.segments.length;
   draw();
@@ -201,11 +221,14 @@ function build(sourceMap,config){
   for(let b=1;b<=2;b++){
    mark(scene,b,()=>atZone(id,zone=>{
     tr.tag='zone-research-criteria';
+    const railX=zone.center.x-zone.radius*1.85,railY=zone.center.y+(b===1?-1:1)*zone.radius*1.65;
+    tr.line(point(railX,zone.center.y));tr.line(point(railX,railY));
     for(let j=0;j<3;j++){
-     const angle=(-150+j*60+(b-1)*180)*Math.PI/180,tip=point(zone.center.x+zone.radius*1.6*Math.cos(angle),zone.center.y+zone.radius*1.6*Math.sin(angle));
-     tr.retrace(()=>{tr.line(tip);tr.line(point(tip.x+8,tip.y));});
-     annotate(zoneCriteria[zi][b-1][j],tip.x,tip.y+(Math.sin(angle)>0?20:-20),{zoneId:id,criterion:true});
+     const x=zone.center.x+(j-1)*zone.radius*1.7;
+     tr.line(point(x,railY));tr.retrace(()=>tr.line(point(x,railY+(b===1?-8:8))));
+     annotate(zoneCriteria[zi][b-1][j],x,railY+(b===1?-22:22),{zoneId:id,criterion:true});
     }
+    tr.line(point(railX,railY));tr.line(point(railX,zone.center.y));tr.line(point(zone.center.x-zone.radius,zone.center.y));
    }),z.focus,'zone-'+id);
   }
   mark(scene,3,()=>{goNode(hubKey);tr.tag='zone-reference';tr.retrace(()=>{tr.line(point(100+zi*210,690));tr.line(point(220+zi*210,690));});annotate('references',480,660);},z.focus,'zone-'+id,{exitTo:city});
@@ -221,109 +244,150 @@ function build(sourceMap,config){
    tr.tag='schematic-property';tr.box(p);
    tr.retrace(()=>{
     const x=p.x+45,y=p.y+55,w=p.w-90,h=p.h-80;
-    tr.line(point(x,y+h));tr.loop([point(x,y+h),point(x,y),point(x+w/2,y-30),point(x+w,y),point(x+w,y+h),point(x,y+h)]);
+    tr.line(point(x,streetY));tr.line(point(x,y+h));
+    tr.tag='existing-house-outline';tr.loop([point(x,y+h),point(x,y),point(x+w/2,y-30),point(x+w,y),point(x+w,y+h),point(x,y+h)]);
    });
-   annotate(p.id==='P1'?'property1':'property2',p.x+p.w/2,p.y-22,{identity:p.id,zoneId:p.zoneId,schematic:true});
+   annotate(p.id==='P1'?'property1':'property2',p.x+p.w/2,p.y-22,{identity:p.id,zoneId:p.zoneId,schematic:true,persistent:true});
   };
   if(id==='P2')draw();else tr.retrace(draw);
  };
  const goStreet=()=>{tr.tag='schematic-street';tr.line(point(2060,streetY));};
  const survey=p=>{
   tr.tag='physical-measure';tr.retrace(()=>{
-   tr.line(point(p.measure.x,streetY));tr.line(point(p.measure.x,p.y));tr.retrace(()=>tr.line(point(p.measure.x+8,p.y)));
+   tr.line(point(p.measure.x,streetY));tr.line(point(p.measure.x,p.y));
+   tr.retrace(()=>tr.line(point(p.measure.x+8,p.y)));
    tr.line(point(p.measure.x,p.y+p.h));tr.retrace(()=>tr.line(point(p.measure.x+8,p.y+p.h)));
-   tr.line(point(p.x,p.y+p.h+35));tr.line(point(p.x+p.w,p.y+p.h+35));
+   tr.line(point(p.measure.x,p.y+p.h+35));tr.line(point(p.x,p.y+p.h+35));tr.line(point(p.x+p.w,p.y+p.h+35));
   });
   annotate('physicalMeasure',p.x+p.w/2,p.y+p.h+70,{identity:p.id,schematic:true});
+ };
+ const stream=(tag,keys)=>{
+  tr.tag=tag;tr.retrace(()=>{
+   tr.line(point(2060,900));tr.line(point(1150,900));
+   for(let i=0;i<3;i++){
+    const x=[1270,1605,1940][i];
+    tr.line(point(x,900));
+    tr.retrace(()=>{tr.line(point(x,870));tr.box({x:x-36,y:814,w:72,h:56});});
+    annotate(keys[i],x,778);
+   }
+  });
  };
  s=newScene(5,'properties',pair);
  mark(5,0,()=>{propertyOrigin('P1');propertyOrigin('P2');goStreet();},{x:0,y:0,width:2120,height:960},'properties',{enterFrom:city,enterDelay:0,enterDuration:.15});
  mark(5,1,()=>{for(const p of Object.values(places))survey(p);annotate('constructionFootprint',1605,265,{schematic:true});},pair,'properties');
  mark(5,2,()=>{
   for(const p of Object.values(places)){
-   tr.tag='participation-route';tr.retrace(()=>{tr.line(p.access);tr.circle(point(p.x+p.w/2,680),24);});
+   tr.tag='participation-route';tr.retrace(()=>{
+    const x=p.x+p.w/2;
+    tr.line(point(x,streetY));tr.line(point(x,685));tr.retrace(()=>{tr.line(point(x-36,685));tr.line(point(x+36,685));});
+   });
    annotate(p.mode,p.x+p.w/2,725,{identity:p.id,zoneId:p.zoneId});
   }
  },pair,'properties');
- mark(5,3,()=>{tr.tag='common-property-criteria';tr.retrace(()=>{tr.line(point(1120,780));tr.line(point(2000,780));});annotate('references',1605,815);},pair,'properties');
+ mark(5,3,()=>{tr.tag='common-property-criteria';tr.retrace(()=>{tr.line(point(2060,760));tr.line(point(1120,760));});annotate('references',1605,790);},pair,'properties');
  done(s);
  s=newScene(6,'comparison',pair);
  mark(6,0,()=>{
   for(const p of Object.values(places)){
-   tr.tag='possible-product';tr.retrace(()=>{tr.line(p.access);tr.line(point(p.x+p.w/2,p.y+p.h/2));tr.line(point(p.x+p.w/2,p.y+20));});
+   tr.tag='possible-product';tr.retrace(()=>{tr.line(p.access);tr.box(p);});
   }
   annotate('departments',1605,265,{schematic:true,conditional:true});
  },pair,'comparison');
- mark(6,1,()=>{
-  tr.tag='project-account';tr.retrace(()=>{tr.line(point(1150,855));tr.line(point(2050,855));for(const x of [1270,1605,1940])tr.retrace(()=>tr.box({x:x-30,y:800,w:60,h:50}));});
-  annotate('income',1270,770);annotate('investment',1605,770);annotate('profit',1940,770);
- },{x:1090,y:230,width:1030,height:720},'comparison');
- mark(6,2,()=>{
-  tr.tag='adverse-conditions';tr.retrace(()=>{tr.line(point(1150,930));for(const x of [1270,1605,1940]){tr.line(point(x,930));tr.retrace(()=>tr.loop([point(x-25,930),point(x,890),point(x+25,930)]));}});
-  annotate('adverseCost',1270,970);annotate('adversePrice',1605,970);annotate('adverseTime',1940,970);
- },{x:1090,y:260,width:1030,height:780},'comparison');
+ mark(6,1,()=>stream('project-account',['income','investment','profit']),{x:1090,y:230,width:1030,height:720},'comparison');
+ mark(6,2,()=>stream('adverse-conditions',['adverseCost','adversePrice','adverseTime']),{x:1090,y:230,width:1030,height:720},'comparison');
  mark(6,3,()=>{
-  tr.tag='conditional-decision';tr.line(point(2060,620));
-  tr.retrace(()=>tr.loop([point(2060,620),point(2100,580),point(2140,620),point(2100,660),point(2060,620)]));
+  tr.tag='conditional-decision';tr.line(point(2100,620));
+  tr.tag='decision-gate-outline';tr.line(point(2130,590));tr.line(point(2160,620));tr.line(point(2130,650));tr.line(point(2100,620));tr.line(point(2130,590));tr.line(point(2160,620));
+  tr.tag='conditional-decision';tr.line(point(2190,620));
   for(let i=0;i<3;i++){
-   const y=510+i*115;tr.retrace(()=>{tr.line(point(2180,y));tr.line(point(2230,y));});
-   annotate('decision',2240,y+5,{labelIndex:i,conditional:true});
+   const y=510+i*115;
+   tr.retrace(()=>{tr.line(point(2190,y));tr.line(point(2260,y));});
+   annotate('decision',2330,y+5,{labelIndex:i,conditional:true});
   }
  },{x:1110,y:230,width:1410,height:820},'comparison');
  done(s);
  const gate=point(2210,620);
  s=newScene(7,'development',projectFocus);
  mark(7,0,()=>{
-  tr.tag='review-before-commitment';tr.line(gate);tr.retrace(()=>tr.box({x:2185,y:580,w:50,h:80}));
-  annotate('review',2205,260,{conditional:true});annotate('conditions',2450,260,{conditional:true});
-  tr.line(point(2430,620));annotate('formalization',2430,665,{conditional:true});
+  tr.tag='review-before-commitment';tr.line(gate);tr.retrace(()=>tr.box({x:2160,y:550,w:70,h:70}));
+  annotate('review',2170,700,{conditional:true});annotate('conditions',2440,700,{conditional:true});
+  tr.line(point(2430,620));annotate('formalization',2430,765,{conditional:true});
  },projectFocus,'development');
  mark(7,1,()=>{
   tr.tag='conditional-project';tr.box(projectBox);
+  const facade={x:2330,y:385,w:200,h:150};
   tr.retrace(()=>{
-   const x=projectBox.x+70,y=projectBox.y+55,w=projectBox.w-140,h=projectBox.h-80;
-   tr.line(point(x,y+h));tr.loop([point(x,y+h),point(x,y),point(x+w,y),point(x+w,y+h),point(x,y+h)]);
+   tr.line(point(facade.x,620));tr.box(facade);
+   tr.line(point(facade.x,facade.y));
+   tr.tag='project-volume-outline';tr.loop([point(facade.x,facade.y),point(facade.x+40,facade.y-30),point(facade.x+facade.w+40,facade.y-30),point(facade.x+facade.w,facade.y),point(facade.x,facade.y)]);
   });
-  annotate('departments',2430,300,{schematic:true,conditional:true});annotate('permits',2430,605,{conditional:true});
+  tr.tag='conditional-project';tr.retrace(()=>{
+   tr.line(point(facade.x+facade.w+40,620));tr.line(point(facade.x+facade.w+40,facade.y+facade.h-30));
+   tr.tag='project-volume-outline';tr.loop([point(facade.x+facade.w+40,facade.y+facade.h-30),point(facade.x+facade.w+40,facade.y-30),point(facade.x+facade.w,facade.y),point(facade.x+facade.w,facade.y+facade.h),point(facade.x+facade.w+40,facade.y+facade.h-30)]);
+  });
+  annotate('departments',2430,290,{schematic:true,conditional:true});annotate('permits',2430,690,{conditional:true});
  },projectFocus,'development');
  mark(7,2,()=>{
   tr.tag='construction-and-control';tr.retrace(()=>{
-   tr.line(point(2650,620));tr.line(point(2650,355));tr.line(point(2580,355));
-   tr.retrace(()=>{tr.line(point(2580,315));tr.line(point(2530,315));});
-   tr.line(point(2580,580));
+   tr.line(point(2700,620));tr.line(point(2700,300));tr.line(point(2460,300));
+   tr.retrace(()=>{tr.line(point(2460,325));tr.line(point(2470,325));});
   });
-  annotate('construction',2450,730);annotate('adverse',2650,780);
+  annotate('construction',2450,730);annotate('adverse',2680,785);
  },projectFocus,'development');
  mark(7,3,()=>{
-  tr.tag='documentation-sale-collections';tr.line(point(2690,620));
-  tr.retrace(()=>tr.box({x:2655,y:470,w:70,h:105}));
-  tr.line(point(2790,620));tr.retrace(()=>tr.circle(point(2790,620),27));
-  annotate('documentation',2620,850);annotate('sale',2790,690);annotate('cashflow',2790,775);
- },{x:2120,y:250,width:970,height:650},'development');
+  tr.tag='documentation-sale-collections';tr.line(point(2760,620));
+  tr.retrace(()=>{
+   const doc={x:2760,y:490,w:70,h:105};tr.box(doc);tr.line(point(doc.x,doc.y+20));
+   for(const y of [doc.y+20,doc.y+45,doc.y+70]){tr.line(point(doc.x,y));tr.retrace(()=>tr.line(point(doc.x+50,y)));}
+  });
+  tr.line(point(2860,620));
+  tr.tag='sale-direction-arrow';tr.retrace(()=>{tr.line(point(2845,610));tr.line(point(2860,620));tr.line(point(2845,630));});
+  annotate('documentation',2750,760);annotate('sale',2910,690);annotate('cashflow',2910,820);
+ },{x:2120,y:240,width:1020,height:650},'development');
  done(s);
- const projectJoin=point(2860,620),capital=point(3290,320),land=point(3290,790),coordination=point(3070,550),agreement=point(3470,550);
- s=newScene(8,'participation',participantFocus);
+ const projectJoin=point(2860,620),junction=point(2920,620);
+ const roles={
+  capital:{x:3020,y:230,w:650,h:210},
+  land:{x:3950,y:230,w:650,h:210},
+  coordination:{x:3720,y:540,w:650,h:210}
+ };
+ const agreement={x:3380,y:850,w:750,h:200};
+ const capitalFocus={x:2880,y:140,width:900,height:560};
+ const landCoordFocus={x:3680,y:140,width:1080,height:740};
+ const agreementFocus={x:3240,y:760,width:1200,height:560};
+ const wholeRoles={x:2900,y:130,width:1870,height:1030};
+ const roleNode=key=>{
+  const node=roles[key],cy=node.y+node.h/2;
+  tr.tag='role-'+key;tr.box(node);
+  annotate(key,node.x+node.w/2,cy,{persistent:true,node:true,centered:true,maxChars:24});
+ };
+ s=newScene(8,'participation',wholeRoles);
  mark(8,0,()=>{
-  tr.tag='capital-participation';tr.line(projectJoin);tr.retrace(()=>{tr.line(capital);tr.circle(capital,40);});
-  annotate('capital',3290,230);annotate('capitalContribution',3290,395);
- },participantFocus,'participation');
+  tr.tag='capital-participation';tr.line(projectJoin);tr.line(junction);
+  tr.line(point(junction.x,335));tr.line(point(roles.capital.x,335));roleNode('capital');
+ },capitalFocus,'participation');
  mark(8,1,()=>{
-  tr.tag='property-participation';tr.retrace(()=>{tr.line(land);tr.box({x:land.x-60,y:land.y-35,w:120,h:70});});
-  tr.tag='coordination';tr.line(coordination);tr.retrace(()=>tr.circle(coordination,45));
-  annotate('land',3290,855);annotate('landContribution',3290,725);annotate('coordination',3030,460);
- },participantFocus,'participation');
+  tr.tag='role-land';tr.line(point(junction.x,335));tr.line(point(junction.x,170));
+  tr.line(point(3890,170));tr.line(point(3890,335));tr.line(point(roles.land.x,335));roleNode('land');
+  tr.tag='role-coordination';tr.line(point(3890,335));tr.line(point(3890,170));tr.line(point(3710,170));
+  tr.line(point(3710,645));tr.line(point(roles.coordination.x,645));roleNode('coordination');
+ },landCoordFocus,'participation',{enterFrom:capitalFocus,enterDelay:0,enterDuration:.35});
  mark(8,2,()=>{
-  tr.tag='participation-agreement';tr.line(agreement);tr.retrace(()=>tr.box({x:agreement.x-50,y:agreement.y-65,w:100,h:130}));
-  annotate('return',3300,980);annotate('projectVsInvestor',3300,1030);
- },{x:2820,y:300,width:850,height:790},'participation');
+  tr.tag='participation-agreement';
+  tr.line(point(3300,645));tr.line(point(3300,950));tr.line(point(agreement.x,950));tr.box(agreement);
+  annotate('agreement',agreement.x+agreement.w/2,agreement.y+agreement.h/2,{persistent:true,node:true,centered:true,maxChars:24});
+  annotate('return',agreement.x+agreement.w/2,1110,{captionOnly:true});
+  annotate('projectVsInvestor',agreement.x+agreement.w/2,1170,{captionOnly:true});
+ },agreementFocus,'participation',{enterFrom:landCoordFocus,enterDelay:0,enterDuration:.2});
  mark(8,3,()=>{
-  tr.tag='open-conversation';tr.line(point(3470,900));tr.line(point(3330,900));tr.line(point(3330,940));tr.line(point(3470,940));
-  annotate('start',3240,640);annotate('scope',3240,690);
- },{x:2870,y:450,width:800,height:600},'participation');
+  tr.tag='open-conversation';
+  tr.line(point(3300,950));tr.line(point(3300,1110));tr.line(point(3380,1110));tr.line(point(3380,1140));tr.line(point(3600,1140));
+  annotate('start',3755,1160,{captionOnly:true});annotate('scope',3755,1220,{captionOnly:true});
+ },wholeRoles,'participation',{enterFrom:agreementFocus,enterDelay:0,enterDuration:.35});
  done(s);
  const all=tr.points.concat(annotations.map(a=>point(a.x,a.y))).reduce((b,p)=>({minX:Math.min(b.minX,p.x),minY:Math.min(b.minY,p.y),maxX:Math.max(b.maxX,p.x),maxY:Math.max(b.maxY,p.y)}),{minX:Infinity,minY:Infinity,maxX:-Infinity,maxY:-Infinity});
  const d='M'+tr.points[0].x+' '+tr.points[0].y+tr.points.slice(1).map(p=>' L'+p.x+' '+p.y).join('');
- return {version:VERSION,d,singleM:true,points:tr.points,segments:tr.segments,totalLength:tr.length,marks,scenes,annotations,labels:annotations,bounds:all,width:all.maxX-all.minX,height:all.maxY-all.minY,zones,places,project:{...projectBox,schematic:true,conditional:true},mapCoverage:graph.coverage,cityFocus:city};
+ return {version:VERSION,d,singleM:true,points:tr.points,segments:tr.segments,totalLength:tr.length,marks,scenes,annotations,labels:annotations,bounds:all,width:all.maxX-all.minX,height:all.maxY-all.minY,zones,places,project:{...projectBox,schematic:true,conditional:true},roles,agreement,mapCoverage:graph.coverage,cityFocus:city};
 }
 function pointAtLength(layout,length){
  if(!layout||!Array.isArray(layout.segments)||!layout.segments.length)throw Error('Empty trace');

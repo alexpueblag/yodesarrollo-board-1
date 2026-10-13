@@ -120,3 +120,44 @@ test('every annotation has a temporal and narrative anchor and only source roads
  for(const a of g.annotations){assert.ok(Number.isFinite(a.x)&&Number.isFinite(a.y)&&Number.isFinite(a.atLength));assert.equal(a.index,a.scene*4+a.beat);assert.ok(a.index>=0&&a.index<36);assert.ok(a.atLength>=g.marks[a.index].startLength&&a.atLength<=g.marks[a.index].endLength);if(a.text)assert.equal(a.source,true);}
  assert.ok(g.annotations.some(a=>a.key==='mapCaption'&&a.schematic));
 });
+
+test('external connectors are orthogonal and do not create diagonal spaghetti',()=>{
+ const g=C.build(source(),config());
+ const symbolTags=new Set(['source-road-visit','existing-house-outline','decision-gate-outline','project-volume-outline','sale-direction-arrow']);
+ const connectors=g.segments.filter(s=>s.scene>=5&&!symbolTags.has(s.tag));
+ assert.ok(connectors.length>200);
+ assert.ok(connectors.every(s=>s.from.x===s.to.x||s.from.y===s.to.y));
+ const zoneRails=g.segments.filter(s=>s.tag==='zone-research-criteria');
+ assert.ok(zoneRails.length);assert.ok(zoneRails.every(s=>s.from.x===s.to.x||s.from.y===s.to.y));
+ const houseDiagonals=g.segments.filter(s=>s.tag==='existing-house-outline'&&s.from.x!==s.to.x&&s.from.y!==s.to.y);
+ assert.ok(houseDiagonals.length);
+ assert.ok(houseDiagonals.every(s=>Object.values(g.places).some(p=>[s.from,s.to].every(q=>q.x>=p.x&&q.x<=p.x+p.w&&q.y>=p.y&&q.y<=p.y+p.h))));
+});
+test('financial and adverse streams stay outside both property interiors',()=>{
+ const g=C.build(source(),config());
+ const crossesInterior=(s,p)=>{
+  if(s.from.x===s.to.x)return s.from.x>p.x&&s.from.x<p.x+p.w&&Math.max(s.from.y,s.to.y)>p.y&&Math.min(s.from.y,s.to.y)<p.y+p.h;
+  if(s.from.y===s.to.y)return s.from.y>p.y&&s.from.y<p.y+p.h&&Math.max(s.from.x,s.to.x)>p.x&&Math.min(s.from.x,s.to.x)<p.x+p.w;
+  return true;
+ };
+ for(const s of g.segments.filter(s=>['project-account','adverse-conditions','physical-measure'].includes(s.tag)))for(const p of Object.values(g.places))assert.equal(crossesInterior(s,p),false);
+ const account=g.annotations.filter(a=>a.index===25),adverse=g.annotations.filter(a=>a.index===26);
+ assert.equal(account.length,3);assert.equal(adverse.length,3);
+ assert.deepEqual(account.map(a=>[a.x,a.y]),adverse.map(a=>[a.x,a.y]),'reuse one clean account row instead of accumulating zigzags');
+});
+test('roles have three named nodes and one shared agreement, not extra circles',()=>{
+ const g=C.build(source(),config());
+ assert.deepEqual(Object.keys(g.roles),['capital','land','coordination']);
+ for(const key of Object.keys(g.roles)){
+  const n=g.roles[key],a=g.annotations.find(a=>a.scene===8&&a.key===key);
+  assert.ok(n.w>=600&&n.h>=200);assert.equal(a.persistent,true);assert.equal(a.centered,true);assert.equal(a.node,true);
+  assert.equal(a.x,n.x+n.w/2);assert.equal(a.y,n.y+n.h/2);
+ }
+ const a=g.annotations.find(a=>a.index===34&&a.key==='agreement');
+ assert.ok(a&&a.persistent&&a.centered);assert.ok(g.agreement.w>g.roles.capital.w);
+ assert.deepEqual(g.annotations.filter(a=>a.index===34).map(a=>a.key),['agreement','return','projectVsInvestor']);
+ assert.deepEqual(g.annotations.filter(a=>a.index===35).map(a=>a.key),['start','scope']);
+ assert.ok(g.annotations.filter(a=>a.index===35).every(a=>a.captionOnly));
+ const final=C.locate(g,35.4/36).viewBox;
+ for(const n of [...Object.values(g.roles),g.agreement]){assert.ok(n.x>=final[0]&&n.x+n.w<=final[0]+final[2]);assert.ok(n.y>=final[1]&&n.y+n.h<=final[1]+final[3]);}
+});

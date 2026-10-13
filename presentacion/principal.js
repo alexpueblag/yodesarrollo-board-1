@@ -14,6 +14,7 @@ function measure(){
  const header=$('principalHeader').getBoundingClientRect().height;root.style.setProperty('--p-header',header+'px');$('principal').style.setProperty('--p-header',header+'px');
  const screen=Number(cfg.motion.stepScreens);$('principal').style.setProperty('--p-beat-height',Math.max(260,innerHeight*screen)+'px');
  const line=innerWidth<=760?Math.min(innerHeight-22,header+$('principalStage').offsetHeight+18):Math.min(innerHeight*.43,header+186);
+ $('principal').style.setProperty('--p-readline',line+'px');
  markers=[...document.querySelectorAll('#principalDetails [data-principal-beat]')].map(e=>Math.max(0,e.getBoundingClientRect().top+scrollY-line));
  for(let i=1;i<markers.length;i++)markers[i]=Math.max(markers[i],markers[i-1]+1);
  markers.push(Math.max(markers[35]+180,document.documentElement.scrollHeight-innerHeight));
@@ -28,17 +29,23 @@ function labelValue(a){const value=a.text??cfg.labels[a.key];return Array.isArra
 function wrap(value,max=22){const result=[],words=String(value).split(/\s+/);let line='';for(const word of words){if(line&&(line+' '+word).length>max){result.push(line);line=word;}else line+=(line?' ':'')+word;}if(line)result.push(line);return result;}
 function buildLabels(){
  $('principalAnnotations').replaceChildren();labels=[];
- for(const a of layout.annotations||[]){const value=labelValue(a);if(!value)continue;const e=svg('text');e.setAttribute('x',a.x);e.setAttribute('y',a.y);e.setAttribute('text-anchor',a.align||'middle');e.dataset.key=a.key||'';e.dataset.scene=String(a.scene);$('principalAnnotations').append(e);labels.push({a,e,value:String(value)});}
+ for(const a of layout.annotations||[]){if(a.captionOnly)continue;const value=labelValue(a);if(!value)continue;const e=svg('text');e.setAttribute('x',a.x);e.setAttribute('y',a.y);e.setAttribute('text-anchor',a.align||'middle');e.dataset.key=a.key||'';e.dataset.scene=String(a.scene);$('principalAnnotations').append(e);labels.push({a,e,value:String(value)});}
 }
 function drawAnnotations(loc,view,scale){
- const prefix=reduce.matches?pathLength:loc.length,box=$('principalSvg').getBoundingClientRect(),font=14/scale;const identities=new Set(['zoneA','zoneB','zoneC','property1','property2']);const seen=new Set();
- for(const item of [...labels].sort((a,b)=>b.a.scene-a.a.scene)){
-  const {a,e}=item,visited=a.atLength<=prefix+.2,current=a.scene===scene&&(a.beat===beat%4||a.identity===true),identity=identities.has(a.key)&&a.scene<=scene;
-  const inFrame=a.x>=view[0]+font&&a.x<=view[0]+view[2]-font&&a.y>=view[1]+font&&a.y<=view[1]+view[3]-font;
-  const key=identities.has(a.key)?a.key:a.key+'|'+Math.round(a.x)+'|'+Math.round(a.y);
-  let show=visited&&inFrame&&(current||identity);if(show&&seen.has(key))show=false;if(show)seen.add(key);e.style.display=show?'':'none';if(!show)continue;
-  e.setAttribute('font-size',font);e.setAttribute('stroke-width',3.8/scale);
-  const lines=wrap(item.value,Math.max(12,Math.min(24,Math.floor(box.width/11))));e.replaceChildren();
+ const prefix=reduce.matches?pathLength:loc.length,box=$('principalSvg').getBoundingClientRect(),font=14/scale,local=beat%4,zoneScene=scene>=2&&scene<=4;
+ const identities=new Set(['zoneA','zoneB','zoneC','property1','property2','purchase','contribution']),seen=new Set();
+ let count=0;
+ const ordered=[...labels].sort((x,y)=>{const rank=i=>i.a.scene===scene&&i.a.beat===local?10:i.a.persistent&&i.a.scene===scene?9:identities.has(i.a.key)?8:i.a.source?1:0;return rank(y)-rank(x)||y.a.scene-x.a.scene;});
+ for(const {a,e,value} of ordered){
+  const current=a.scene===scene&&a.beat===local,persistent=a.persistent===true&&a.scene===scene&&a.beat<=local,visited=a.atLength<=prefix+.2;
+  const identity=identities.has(a.key)&&a.scene<=scene&&visited;
+  let eligible=current||persistent||identity||(a.source&&visited&&zoneScene);
+  if(zoneScene&&/^zone[ABC]$/.test(a.key)){eligible=current&&a.key==='zone'+['A','B','C'][scene-2];}
+  const inFrame=a.x>=view[0]+font*.5&&a.x<=view[0]+view[2]-font*.5&&a.y>=view[1]+font*.5&&a.y<=view[1]+view[3]-font*.5;
+  const key=identities.has(a.key)||a.persistent?a.key:a.key+'|'+Math.round(a.x)+'|'+Math.round(a.y);
+  let show=eligible&&inFrame&&!seen.has(key);if(show&&!persistent&&count>=Math.max(3,cfg.diagram.annotationsPerBeat||3))show=false;
+  e.style.display=show?'':'none';if(!show)continue;seen.add(key);count++;
+  e.setAttribute('font-size',font);e.setAttribute('stroke-width',3.8/scale);const lines=wrap(value,a.maxChars||Math.max(12,Math.min(24,Math.floor(box.width/11))));e.setAttribute('y',a.centered?a.y-(lines.length-1)*font*.575:a.y);e.replaceChildren();
   lines.forEach((line,i)=>{const t=svg('tspan');t.setAttribute('x',a.x);t.setAttribute('dy',i?'1.15em':'0');text(t,(i?' ':'')+line+(i===lines.length-1?' ':''));e.append(t);});
  }
 }
@@ -53,7 +60,7 @@ function context(){
 function render(value){
  if(!cfg||beta)return;p=clamp(value);const loc=window.YodPrincipalCore.locate(layout,p);scene=loc.scene;beat=loc.index??(loc.scene*4+loc.beat);
  const s=cfg.scenes[scene],b=s.beats[beat%4];
- text($('principalTitle'),s.shortTitle||s.title);text($('principalKicker'),s.kicker);text($('principalCount'),String(scene+1).padStart(2,'0')+' / 09');text($('principalBeatTitle'),b.title);text($('principalBeatBody'),b.body);text($('principalStep'),String(beat+1).padStart(2,'0')+' / 36');$('principalProgress').value=p;context();
+ text($('principalTitle'),s.shortTitle||s.title);text($('principalKicker'),s.kicker);text($('principalCount'),String(scene+1).padStart(2,'0')+' / 09');text($('principalBeatTitle'),b.title);text($('principalBeatBody'),b.body);text($('principalStep'),String(beat+1).padStart(2,'0')+' / 36');$('principalProgress').value=p;context();const semantic=(layout.annotations||[]).filter(a=>a.captionOnly&&a.scene===scene&&a.beat===beat%4).map(labelValue).filter(Boolean);text($('principalSemantic'),semantic.join(' · '));$('principalSemantic').hidden=!semantic.length;
  document.querySelectorAll('#principalNav button').forEach((button,i)=>{const start=cfg.navigation[i].scene,end=cfg.navigation[i+1]?.scene??9;button.setAttribute('aria-current',scene>=start&&scene<end?'step':'false');});
  const raw=reduce.matches?[layout.bounds.minX,layout.bounds.minY,layout.bounds.maxX-layout.bounds.minX,layout.bounds.maxY-layout.bounds.minY]:loc.viewBox,view=fit(Array.isArray(raw)?raw:[raw.x,raw.y,raw.width,raw.height]),rect=$('principalSvg').getBoundingClientRect(),scale=Math.max(.001,Math.min(rect.width/view[2],rect.height/view[3]));
  $('principalSvg').setAttribute('viewBox',view.join(' '));$('principalPath').style.strokeWidth=String(1.85/scale);$('principalPath').style.strokeDashoffset=String(reduce.matches?0:pathLength-loc.length);drawAnnotations(loc,view,scale);$('principalTip').setAttribute('cx',loc.point.x);$('principalTip').setAttribute('cy',loc.point.y);$('principalTip').setAttribute('r',3/scale);$('principalTip').style.display=reduce.matches?'none':'';
@@ -70,7 +77,7 @@ function onResize(){if(!cfg||beta)return;pause();cancelAnimationFrame(resizeRaf)
 function createDetails(){
  const article=$('principalDetails');article.replaceChildren();
  cfg.scenes.forEach((s,i)=>{const section=el('section','p-detail-scene');section.dataset.principalScene=String(i);section.id='principalScene'+i;const intro=el('div','p-scene-intro');intro.append(el('h2','',s.title),el('p','',s.lead));if(cfg.sharedCriteria.scenes.includes(i)){intro.append(el('p','p-zone-common',cfg.sharedCriteria.title+': '+cfg.sharedCriteria.items.join(' · ')),el('p','p-zone-context',cfg.sharedCriteria.context));}section.append(intro);
- s.beats.forEach((b,j)=>{const step=el('div','p-step');step.dataset.principalBeat=String(i*4+j);step.append(el('p','p-step-index',String(i+1).padStart(2,'0')+' · '+String(j+1).padStart(2,'0')),el('h3','',b.title),el('p','',b.body));section.append(step);});
+ s.beats.forEach((b,j)=>{const step=el('div','p-step');step.dataset.principalBeat=String(i*4+j);const copy=el('div','p-step-copy');copy.append(el('p','p-step-index',String(i+1).padStart(2,'0')+' · '+String(j+1).padStart(2,'0')),el('h3','',b.title),el('p','',b.body));step.append(copy);section.append(step);});
  const groups=el('div','p-detail-groups');groups.append(el('h3','',cfg.controls.details));
  for(const group of s.details){const part=el('div','p-detail-group'),list=el('ul');part.append(el('h4','',group.title));for(const value of group.items)list.append(el('li','',value));part.append(list);groups.append(part);}section.append(groups);article.append(section);});
 }

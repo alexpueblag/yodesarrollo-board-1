@@ -19,7 +19,7 @@ function configFixture(){
  labels.equation={income:'Synthetic income',investment:'Synthetic investment',profit:'Synthetic project profit'};labels.decision=['Synthetic continue','Synthetic revise','Synthetic decline'];labels.market=Array.from({length:6},(_,i)=>'Synthetic market criterion '+(i+1));
  const config={version:'principal-1r2',brand:'Synthetic Studio',headline:'Understand the example before considering participation.',lead:'A synthetic narrative with no property, price, person or investment promise.',theme:{ink:'#AD451C',paper:'#FFF9F1'},labels,scenes:[],navigation:[{title:'What we do',scene:0},{title:'How we decide',scene:5},{title:'How to participate',scene:8}],cta:[{label:'Discuss a property',message:'Synthetic request to discuss a property.'},{label:'Discuss capital participation',message:'Synthetic request about capital participation.'}],controls:{play:'Play',pause:'Pause',replay:'Replay',share:'Share',details:'Read details',previous:'Previous',next:'Next',copy:'Copy',copied:'Copied',manual:'Manual',back:'Back',legacy:'Original',close:'Close',loading:'Loading',error:'Error',beta:'View beta',returnPrincipal:'Return to main',copyFailed:'Copy failed',retry:'Retry',sceneLabel:'Scene',stepLabel:'Step',progress:'Progress',dialogTitle:'Prepared message',shareTitle:'Public story',reducedMotion:'Motion reduced',source:'Source',phase:'Phase',zone:'Zone',property:'Property',openDetails:'Read details'},footnotes:['Synthetic public marketing copy. Not an evaluated property.']};
  const ids=['territory','zones','zone-a','zone-b','zone-c','properties','comparison','development','participation'];
- for(let scene=0;scene<9;scene++)config.scenes.push({id:ids[scene],kicker:String(scene+1).padStart(2,'0'),title:'Synthetic scene '+(scene+1),shortTitle:'Synthetic chapter '+(scene+1),lead:'Synthetic explanation for scene '+(scene+1)+', written to exercise ordinary mobile reading.',beats:Array.from({length:4},(_,beat)=>({title:'Synthetic scene '+(scene+1)+' step '+(beat+1),body:'Synthetic step explanation '+(beat+1)+' with enough words to verify that copy remains readable on a narrow mobile screen.'})),details:[{title:'Synthetic criteria '+(scene+1),items:['Synthetic visible detail '+(scene+1)+'A','Synthetic visible detail '+(scene+1)+'B'],sourcefieldcoverage:['synthetic.source.'+scene]}]});
+ for(let scene=0;scene<9;scene++)config.scenes.push({id:ids[scene],kicker:String(scene+1).padStart(2,'0'),title:'Synthetic scene '+(scene+1),shortTitle:'Synthetic chapter '+(scene+1),lead:'Synthetic explanation for scene '+(scene+1)+', written to exercise ordinary mobile reading.',beats:Array.from({length:4},(_,beat)=>({title:'Synthetic scene '+(scene+1)+' step '+(beat+1),body:'Synthetic scene '+(scene+1)+' step explanation '+(beat+1)+' with enough words to verify that copy remains readable on a narrow mobile screen.'})),details:[{title:'Synthetic criteria '+(scene+1),items:['Synthetic visible detail '+(scene+1)+'A','Synthetic visible detail '+(scene+1)+'B'],sourcefieldcoverage:['synthetic.source.'+scene]}]});
  config.motion={durationSeconds:216,stepScreens:.58,initialProgress:.006};
  config.diagram={schematic:true,coordinateSystem:'normalized-conceptual',zones:[{id:'A',center:[.36,.36],radius:.09},{id:'B',center:[.62,.45],radius:.09},{id:'C',center:[.43,.64],radius:.09}],places:[{id:'P1',zoneId:'A',mode:'purchase'},{id:'P2',zoneId:'B',mode:'contribution'}],annotationsPerBeat:3,semantics:'Synthetic normalized zones and property identities; no real market data.'};
  config.closingLead='Define a synthetic opportunity, the evaluation scope and the next conversation.';
@@ -35,6 +35,39 @@ async function ready(page){await page.locator('#principal:not([hidden])').waitFo
 async function visibleDetails(page,config){
  assert.equal(await page.locator('#principalDetails [data-principal-scene]').count(),9);
  for(let i=0;i<9;i++){const block=page.locator('#principalDetails [data-principal-scene="'+i+'"]');assert.ok(await block.isVisible(),'Every chapter detail must be in normal document flow');assert.equal(await block.evaluate(e=>Boolean(e.closest('details,[hidden],dialog'))),false,'Details must not require disclosure controls');const text=await block.textContent();assert.ok(text.includes(config.scenes[i].title),'Missing full chapter title');assert.ok(text.includes(config.scenes[i].lead),'Missing full chapter lead');for(const beat of config.scenes[i].beats){assert.ok(text.includes(beat.title),'Missing full beat title');assert.ok(text.includes(beat.body),'Missing full beat explanation');}for(const group of config.scenes[i].details)for(const item of group.items)assert.ok(text.includes(item),'Missing visible detail from scene '+i);}
+}
+
+function canonicalText(value){return String(value).replace(/\s+/g,' ').trim().toLocaleLowerCase();}
+async function visibleStageSemantics(page){
+ return page.evaluate(()=>{
+  const stage=document.querySelector('#principalStage'),svg=document.querySelector('#principalSvg'),stageBox=stage.getBoundingClientRect(),svgBox=svg.getBoundingClientRect();
+  const clipped=(box,region)=>{const left=Math.max(0,region.left,box.left),right=Math.min(innerWidth,region.right,box.right),top=Math.max(0,region.top,box.top),bottom=Math.min(innerHeight,region.bottom,box.bottom);return{width:Math.max(0,right-left),height:Math.max(0,bottom-top)};};
+  const visible=(e,region)=>{
+   const style=getComputedStyle(e),box=e.getBoundingClientRect();if(style.display==='none'||style.visibility==='hidden'||Number(style.opacity)===0||box.width<2||box.height<2||e.closest('[hidden],dialog:not([open])'))return false;
+   if(style.clip!=='auto'||style.clipPath!=='none')return false;
+   const part=clipped(box,region),centerX=box.left+box.width/2,centerY=box.top+box.height/2;
+   return centerX>=Math.max(0,region.left)&&centerX<=Math.min(innerWidth,region.right)&&centerY>=Math.max(0,region.top)&&centerY<=Math.min(innerHeight,region.bottom)&&part.width*part.height>=box.width*box.height*.5;
+  };
+  const items=[];
+  for(const e of svg.querySelectorAll('text'))if(visible(e,svgBox))items.push({kind:'svg',key:e.dataset.key||'',text:e.textContent});
+  for(const e of stage.querySelectorAll('p,h2,h3,span,figcaption'))if(!e.closest('svg')&&visible(e,stageBox))items.push({kind:'caption',text:e.textContent});
+  return items;
+ });
+}
+async function assertStageMeaning(page,config,index,keys){
+ await seek(page,index);const visible=await visibleStageSemantics(page),text=canonicalText(visible.map(item=>item.text).join(' | '));
+ for(const key of keys){assert.equal(typeof config.labels[key],'string','Expected a string label for semantic key '+key);assert.ok(text.includes(canonicalText(config.labels[key])),'Stage must visibly explain '+key+' at beat '+index+'; offscreen/hidden source text is not evidence. '+JSON.stringify({index,viewport:page.viewportSize(),visible}));}
+}
+async function assertCurrentBodyReadable(page,config,index){
+ await seek(page,index);const expected=config.scenes[Math.floor(index/4)].beats[index%4].body;
+ const result=await page.evaluate(body=>{
+  const normalized=s=>String(s).replace(/\s+/g,' ').trim(),stage=document.querySelector('#principalStage').getBoundingClientRect(),header=document.querySelector('#principalHeader').getBoundingClientRect(),readingTop=Math.max(0,header.bottom,stage.bottom);
+  return [...document.querySelectorAll('#principalDetails p')].filter(e=>normalized(e.textContent)===normalized(body)).map(e=>{
+   const style=getComputedStyle(e),box=e.getBoundingClientRect(),top=Math.max(readingTop,box.top),bottom=Math.min(innerHeight,box.bottom),left=Math.max(0,box.left),right=Math.min(innerWidth,box.right);
+   return{display:style.display,visibility:style.visibility,opacity:Number(style.opacity),clip:style.clip,clipPath:style.clipPath,font:parseFloat(style.fontSize),width:box.width,height:box.height,visibleWidth:Math.max(0,right-left),visibleHeight:Math.max(0,bottom-top),hidden:Boolean(e.closest('[hidden]')),readingTop,viewportHeight:innerHeight};
+  });
+ },expected);
+ assert.ok(result.some(r=>!r.hidden&&r.display!=='none'&&r.visibility!=='hidden'&&r.opacity>0&&r.clip==='auto'&&r.clipPath==='none'&&r.font>=16&&r.width>=100&&r.height>=16&&r.visibleHeight>=r.height*.5&&r.visibleWidth>=r.width*.9),'Current explanation must be readable below the diagram, without an extra scroll or opening hidden content: '+JSON.stringify({index,viewport:page.viewportSize(),measurements:result}));
 }
 async function verify(page,config){
  await ready(page);await page.evaluate(()=>window.YodPrincipal.api.pause());
@@ -71,6 +104,13 @@ async function verify(page,config){
    assert.ok(await page.locator('#principalPlay').isVisible());const playBox=await page.locator('#principalPlay').boundingBox();assert.ok(playBox.y>=-1&&playBox.y+playBox.height<=viewport.height+1,'Playback must stay available inside the viewport: '+JSON.stringify({viewport,scene,playBox}));
   }
  }
+ // Verify meaning as rendered pixels: hidden annotation nodes do not satisfy these checks.
+ for(const viewport of [{width:320,height:640},{width:390,height:844}]){
+  await page.setViewportSize(viewport);await settle(page);
+  for(const[index,keys]of [[6,['zoneC']],[22,['purchase','contribution']],[26,['adverseCost','adversePrice','adverseTime']],[29,['departments','permits']],[30,['construction']],[31,['documentation','sale','cashflow']],[34,['agreement','return','projectVsInvestor']],[35,['start','scope']]]){
+   await assertStageMeaning(page,config,index,keys);await assertCurrentBodyReadable(page,config,index);
+  }
+ }
  await page.setViewportSize({width:390,height:844});await seek(page,19);const preserved=(await state(page)).p;
  await page.setViewportSize({width:400,height:850});await settle(page);assert.ok(Math.abs((await state(page)).p-preserved)<.003,'Resize must preserve narrative progress');
  await page.setViewportSize({width:390,height:844});await settle(page);assert.ok(Math.abs((await state(page)).p-preserved)<.003);
@@ -94,6 +134,7 @@ async function capture(page,prefix){
  for(let scene=0;scene<9;scene++){await seek(page,scene*4+2);await page.waitForTimeout(100);await shot(page,prefix+'-scene'+(scene+1)+'-mobile390');}
  for(const[name,beat]of [['zones-overview',7],['zoneA-end',11],['zoneB-end',15],['zoneC-end',19],['property-options',23],['comparison-end',27],['project-review',29],['project-end',31],['roles-end',35]]){await seek(page,beat);await page.waitForTimeout(100);await shot(page,prefix+'-'+name+'-mobile390');}
  await seek(page,35);await page.locator('#principalClosing').scrollIntoViewIfNeeded();await page.waitForTimeout(100);await shot(page,prefix+'-closing-mobile390');
+ await page.setViewportSize({width:320,height:640});for(const[name,index]of [['comparison',26],['agreement',34]]){await seek(page,index);await page.waitForTimeout(100);await shot(page,prefix+'-'+name+'-mobile320');}
  await page.setViewportSize({width:1440,height:900});await page.evaluate(()=>window.YodPrincipal.api.reset());await page.waitForTimeout(100);await shot(page,prefix+'-opening-desktop1440');for(const scene of [1,6,8]){await seek(page,scene*4+2);await page.waitForTimeout(100);await shot(page,prefix+'-scene'+(scene+1)+'-desktop1440');}
 }
 async function shot(page,id){const pixels=await page.screenshot({path:'principal-'+id+'.jpg',type:'jpeg',quality:45}),b64=pixels.toString('base64'),total=Math.ceil(b64.length/1600);console.log('PRINCIPAL_SCREEN_START '+JSON.stringify({id,mime:'image/jpeg',bytes:pixels.length,total}));for(let index=0;index<total;index++)console.log('PRINCIPAL_SCREEN_CHUNK '+id+' '+index+' '+total+' '+b64.slice(index*1600,(index+1)*1600));console.log('PRINCIPAL_SCREEN_END '+id);}
@@ -115,7 +156,7 @@ async function shot(page,id){const pixels=await page.screenshot({path:'principal
  assert.notEqual(await page.locator('#principalStage').evaluate(e=>getComputedStyle(e).position),'fixed');assert.notEqual(await page.locator('#principalStage').evaluate(e=>getComputedStyle(e).position),'sticky');await visibleDetails(page,readConfig(payload));
  await page.locator('#principalPlay').click();await page.waitForTimeout(150);assert.equal((await state(page)).playing,false,'Reduced motion must not start automated camera movement');await page.locator('#principalNav [data-principal-group="2"]').click();await settle(page);assert.equal((await state(page)).scene,readConfig(payload).navigation[2].scene);assert.equal(await page.locator('#principalPath').getAttribute('d'),stable);assert.ok(Math.abs(await page.locator('#principalPath').evaluate(e=>parseFloat(getComputedStyle(e).strokeDashoffset)))<.1,'Reduced navigation must not hide the static path');await page.emulateMedia({reducedMotion:'no-preference'});
  assert.equal(writes,0);assert.deepEqual(errors,[]);assert.equal(await page.evaluate(()=>localStorage.getItem('pyod_clave_v1')),'synthetic-shared-credential','The presentation must never clear the shared Portero credential');
- console.log(JSON.stringify({syntheticPrincipal:true,onePath:true,oneOrigin:true,beats:36,chapters:9,persistentCases:true,nativeReverse:true,replay:true,pause:true,groupNavigation:true,visibleDetails:true,textIsNotMarkup:true,resizePreservesProgress:true,mobile320:true,mobile390:true,desktop1440:true,reducedMotion:true,retainedDraft:true,noExtraLegacyFetch:true,businessWrites:writes}));
+ console.log(JSON.stringify({syntheticPrincipal:true,onePath:true,oneOrigin:true,beats:36,chapters:9,persistentCases:true,nativeReverse:true,replay:true,pause:true,groupNavigation:true,visibleDetails:true,visibleStageMeaning:true,currentBodyReadable:true,textIsNotMarkup:true,resizePreservesProgress:true,mobile320:true,mobile390:true,desktop1440:true,reducedMotion:true,retainedDraft:true,noExtraLegacyFetch:true,businessWrites:writes}));
  // Fetch only public marketing copy. It is neither persisted in Git nor printed in logs.
  const url=fs.readFileSync('presentacion/source.js','utf8').match(/url:'([^']+)'/)[1],response=await fetch(url,{signal:AbortSignal.timeout(60000)});assert.ok(response.ok);payload=await response.json();const real=readConfig(payload);assert.equal(real.scenes.length,9);assert.equal(real.scenes.reduce((n,s)=>n+s.beats.length,0),36);await page.goto(base);try{await verify(page,real);}catch(error){await shot(page,'public-copy-failure');throw error;}assert.deepEqual(errors,[]);
  if(process.env.VERIFY_PUBLISHED_STORY!=='1')await capture(page,'preview');
@@ -123,7 +164,7 @@ async function shot(page,id){const pixels=await page.screenshot({path:'principal
   const files=['principal.js','principal-core.js','principal.css'],publicContext=await browser.newContext({viewport:{width:390,height:844},permissions:['clipboard-read','clipboard-write']}),published=await publicContext.newPage(),publicErrors=[];published.on('pageerror',error=>publicErrors.push(error.message));let readyFlag=false,productionWrites=0;
   await publicContext.route('**/*',route=>{if(route.request().method()!=='GET'){productionWrites++;return route.abort('blockedbyclient');}return route.continue();});
   for(let attempt=0;attempt<15&&!readyFlag;attempt++){try{let match=true;for(const file of files){const r=await fetch(PUBLIC+file+'?v='+Date.now(),{signal:AbortSignal.timeout(20000)});if(!r.ok||(await r.text()).trim()!==fs.readFileSync('presentacion/'+file,'utf8').trim()){match=false;break;}}if(match){await published.goto(PUBLIC,{waitUntil:'domcontentloaded',timeout:30000});await ready(published);readyFlag=true;}}catch(_){}if(!readyFlag)await new Promise(resolve=>setTimeout(resolve,8000));}
-  assert.ok(readyFlag,'The anonymous published page must serve the exact candidate files');await verify(published,real);await capture(published,'public');assert.equal(productionWrites,0);assert.deepEqual(publicErrors,[]);assert.deepEqual(await published.evaluate(()=>Object.keys(localStorage)),[]);console.log(JSON.stringify({productionPrincipal:true,anonymous:true,exactPublishedCode:true,publicMarketingCopy:true,actualProductionScreenshots:24,businessWrites:0}));await publicContext.close();
+  assert.ok(readyFlag,'The anonymous published page must serve the exact candidate files');await verify(published,real);await capture(published,'public');assert.equal(productionWrites,0);assert.deepEqual(publicErrors,[]);assert.deepEqual(await published.evaluate(()=>Object.keys(localStorage)),[]);console.log(JSON.stringify({productionPrincipal:true,anonymous:true,exactPublishedCode:true,publicMarketingCopy:true,actualProductionScreenshots:26,businessWrites:0}));await publicContext.close();
  }
  await browser.close();await new Promise(resolve=>server.close(resolve));
 })().catch(error=>{console.error(error);process.exit(1)});

@@ -116,3 +116,10 @@ body.principal-active #monoline,body.principal-active #presentation,body.princip
 @media(max-width:760px){#principalPlay{width:auto;max-width:120px}#principalPlay .p-action-label{position:static;width:auto;height:auto;clip:auto;overflow:visible;white-space:normal;font-size:14px}}
 
 .p-details,.p-closing,.p-hero{overflow-wrap:anywhere}
+
+.p-step{padding-top:0}.p-step-copy{position:sticky;top:var(--p-readline,260px)}.p-step-copy>p:last-child{font-size:17px;line-height:1.8;margin:0}
+@media(max-width:760px){.p-step{padding-top:0}.p-step-copy>p:last-child{font-size:16px;line-height:1.65}}
+@media(max-height:760px) and (max-width:760px){.p-step-copy>.p-step-index,.p-step-copy>h3{display:none}.p-step-copy>p:last-child{margin-top:0}}
+@media(prefers-reduced-motion:reduce){.p-step-copy{position:static}}
+
+.p-semantic{font-size:14px;line-height:1.4;margin:5px 0 0}
