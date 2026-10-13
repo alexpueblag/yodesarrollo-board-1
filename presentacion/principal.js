@@ -64,7 +64,7 @@ function drawAnnotations(loc,view,scale){
   if(line)lines.push(line);e.replaceChildren();
   const y=a.centered?a.y-(lines.length-1)*font*.575:a.y;e.setAttribute('y',y);
   lines.forEach((line,i)=>{const t=svg('tspan');t.setAttribute('x',a.x);t.setAttribute('dy',i?'1.15em':'0');text(t,(i?' ':'')+line+(i===lines.length-1?' ':''));e.append(t);});
-  let b=e.getBBox(),shiftX=0,shiftY=0;
+  let b=e.getBBox(),shiftX=0,shiftY=a.node&&a.centered?a.y-(b.y+b.height/2):0;
   if(!a.node){
    shiftX=Math.max(0,view[0]+font*.55-b.x)-Math.max(0,b.x+b.width-(view[0]+view[2]-font*.55));
    shiftY=Math.max(0,view[1]+font*.55-b.y)-Math.max(0,b.y+b.height-(view[1]+view[3]-font*.55));
