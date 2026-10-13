@@ -23,7 +23,7 @@ async function visibleDetails(page,config){
 }
 async function verify(page,config){
  await ready(page);await page.evaluate(()=>window.YodMonoline.api.pause());
- assert.equal(await page.locator('#monoSvg').count(),1);assert.equal(await page.locator('#monoSvg path').count(),1,'The drawing must be one path, not an overlay connecting independent illustrations');
+ assert.equal(await page.locator('#monoPath').evaluate(e=>getComputedStyle(e).vectorEffect),'none','Stroke reveal must use the same coordinate system as geometric prefix lengths');assert.equal(await page.locator('#monoSvg').count(),1);assert.equal(await page.locator('#monoSvg path').count(),1,'The drawing must be one path, not an overlay connecting independent illustrations');
  const pathHandle=await page.locator('#monoPath').elementHandle(),original=await page.locator('#monoPath').getAttribute('d');assert.equal((original.match(/[Mm]/g)||[]).length,1,'One uninterrupted path origin');assert.ok(original.length>100);
  assert.equal(await page.locator('#monoNav [data-mono-group]').count(),3);
  assert.equal((await page.locator('#monoCaseA').textContent()).trim(),config.labels.a);assert.equal((await page.locator('#monoCaseB').textContent()).trim(),config.labels.b);
