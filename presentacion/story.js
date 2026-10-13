@@ -71,10 +71,10 @@ function bind(){
  reduce.addEventListener('change',()=>{stop();resize();render(reduce.matches?1:p);});
  $('shareDialog').addEventListener('click',e=>{if(e.target===$('shareDialog'))$('shareDialog').close();});
 }
-async function load(){
+async function load(cachedCopy){
  $('retry').hidden=true;$('load-message').textContent='Preparando la presentación…';
  try{
-  const publicCopy=await window.YodPublicCopy();content=C.normalize(publicCopy);window.YodHunt.mount(publicCopy);document.title=content.title+' · '+content.brand;
+  const publicCopy=cachedCopy||await window.YodPublicCopy();content=C.normalize(publicCopy);window.YodHunt.mount(publicCopy);document.title=content.title+' · '+content.brand;
   for(const k of ['primary','ink','paper'])root.style.setProperty('--'+k,content[k]);
   document.querySelectorAll('[data-copy]').forEach(el=>el.textContent=content[el.dataset.copy]||'');
   $('brandLogo').alt=content.brand;$('brandLogo').src=content.logo_url;$('brandLogo').onerror=()=>{$('brandLogo').hidden=true;$('brandText').hidden=false;$('brandText').textContent=content.brand;};
@@ -86,5 +86,5 @@ async function load(){
   $('loading').hidden=true;$('presentation').hidden=false;bind();resize();render(reduce.matches?1:0);onScroll();window.YodHunt.refresh();
  }catch(e){content=null;$('presentation').hidden=true;$('loading').hidden=false;$('load-message').textContent=e.name==='AbortError'?'La conexión tardó. Vuelve a intentar.':'No se pudo cargar la presentación. Vuelve a intentar.';$('retry').hidden=false;console.warn('Presentation content unavailable');}
 }
-window.YodStoryStart=()=>{window.YodHunt.stop();stop();chapter=-1;phase=-1;moveTo(0);};$('retry').onclick=load;load();
+window.YodLegacyMount=(payload)=>load(payload);window.YodLegacyHide=()=>{stop();window.YodHunt.stop();};window.YodStoryStart=()=>{window.YodHunt.stop();stop();chapter=-1;phase=-1;moveTo(0);};if(!window.YOD_MONOLINE_BOOT){$('retry').onclick=()=>load();load();}
 })();

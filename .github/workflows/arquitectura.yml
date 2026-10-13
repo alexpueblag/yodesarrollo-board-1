@@ -45,7 +45,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: yodesarrollomx/yod-portal
-          ref: 4b829efcb30d5e7abacc48c27d4dfad7396d3339
+          ref: 47bbfdfe81632d8d69baa8795bf6ea7ee2f42722
           path: .yod-atlas
           persist-credentials: false
           sparse-checkout-cone-mode: false
@@ -67,6 +67,8 @@ jobs:
           node --check presentacion/hunt-core.js
           node --check presentacion/hunt.js
           node --check presentacion/thread-core.js
+          node --check presentacion/monoline-core.js
+          node --check presentacion/monoline.js
           git diff --check HEAD^ HEAD
       - name: Navegador con servicios sintéticos
         env:
@@ -77,6 +79,7 @@ jobs:
           node tests/brokers-evaluator-browser.cjs
           node tests/brokers-story-browser.cjs
           node tests/brokers-hunt-browser.cjs
+          node tests/brokers-monoline-browser.cjs
       - name: Vistas móviles de las siete escenas
         uses: actions/upload-artifact@v4
         with:
@@ -84,6 +87,7 @@ jobs:
           path: |
             investor-scene*-mobile.png
             hunt-*.png
+            mono-*.jpg
           retention-days: 7
       - name: Resolver comparación
         id: refs
