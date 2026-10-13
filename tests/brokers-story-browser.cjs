@@ -1,3 +1,4 @@
+const {read:readPublicStory}=require('./public-story-copy.cjs');
 const {chromium}=require('playwright'),http=require('node:http'),fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const C=require('../presentacion/story-core.js');
 function fixture(){const d={inv1_version:'1',inv1_brand:'Synthetic Studio',inv1_logo_url:'https://example.test/logo.png',inv1_primary:'#123456',inv1_ink:'#222222',inv1_paper:'#eeeeee',inv1_duration_seconds:'10',inv1_title:'A clear investment opportunity.',inv1_lead:'Synthetic description of the opportunity for a property development.',inv1_material_profile:'https://yodesarrollomx.github.io/yodesarrollo-board/presentacion/'};for(const k of C.fields)if(!d['inv1_'+k])d['inv1_'+k]='Synthetic '+k;for(let n=1;n<=4;n++){d['inv1_phase'+n+'_label']='PHASE '+n;d['inv1_phase'+n+'_title']='A clear step '+n;d['inv1_phase'+n+'_body']='A synthetic explanation with enough words to exercise the space that the public narrative requires.';}return d;}
@@ -28,7 +29,7 @@ async function revealLegacy(page){
  assert.deepEqual(errors,[]);
  // Real, read-only publication contract: no credentials, no POST, no business writes.
  const source=fs.readFileSync('presentacion/source.js','utf8'),url=source.match(/url:'([^']+)'/)[1];
- const response=await fetch(url,{signal:AbortSignal.timeout(60000)});assert.ok(response.ok,'Public text endpoint must be reachable');const live=await response.json(),normalized=C.normalize(live);assert.equal(normalized.version,'1');
+ const live=await readPublicStory(url),normalized=C.normalize(live);assert.equal(normalized.version,'1');
  await context.route('**/*recurso=textos*',route=>route.fulfill({status:200,body:JSON.stringify(live),contentType:'application/json'}));
  await p.goto(base+'/presentacion/');await revealLegacy(p);await p.locator('#presentation:not([hidden])').waitFor();assert.equal(await p.locator('#chapterTitle').textContent(),normalized.title);
  await p.locator('#complete').click();await p.waitForTimeout(100);assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));await p.screenshot({path:'investor-scene1-mobile.png'});

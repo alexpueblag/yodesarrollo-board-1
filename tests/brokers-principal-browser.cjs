@@ -1,4 +1,5 @@
 'use strict';
+const {read:readPublicStory}=require('./public-story-copy.cjs');
 const {chromium}=require('playwright');
 const fs=require('node:fs'),http=require('node:http'),path=require('node:path'),assert=require('node:assert/strict');
 const ROOT=process.cwd(),PUBLIC='https://yodesarrollomx.github.io/yodesarrollo-board/presentacion/';
@@ -158,7 +159,7 @@ async function shot(page,id){const pixels=await page.screenshot({path:'principal
  assert.equal(writes,0);assert.deepEqual(errors,[]);assert.equal(await page.evaluate(()=>localStorage.getItem('pyod_clave_v1')),'synthetic-shared-credential','The presentation must never clear the shared Portero credential');
  console.log(JSON.stringify({syntheticPrincipal:true,onePath:true,oneOrigin:true,beats:36,chapters:9,persistentCases:true,nativeReverse:true,replay:true,pause:true,groupNavigation:true,visibleDetails:true,visibleStageMeaning:true,currentBodyReadable:true,textIsNotMarkup:true,resizePreservesProgress:true,mobile320:true,mobile390:true,desktop1440:true,reducedMotion:true,retainedDraft:true,noExtraLegacyFetch:true,businessWrites:writes}));
  // Fetch only public marketing copy. It is neither persisted in Git nor printed in logs.
- const url=fs.readFileSync('presentacion/source.js','utf8').match(/url:'([^']+)'/)[1],response=await fetch(url,{signal:AbortSignal.timeout(60000)});assert.ok(response.ok);payload=await response.json();const real=readConfig(payload);assert.equal(real.scenes.length,9);assert.equal(real.scenes.reduce((n,s)=>n+s.beats.length,0),36);await page.goto(base);try{await verify(page,real);}catch(error){await shot(page,'public-copy-failure');throw error;}assert.deepEqual(errors,[]);
+ const url=fs.readFileSync('presentacion/source.js','utf8').match(/url:'([^']+)'/)[1];payload=await readPublicStory(url);const real=readConfig(payload);assert.equal(real.scenes.length,9);assert.equal(real.scenes.reduce((n,s)=>n+s.beats.length,0),36);await page.goto(base);try{await verify(page,real);}catch(error){await shot(page,'public-copy-failure');throw error;}assert.deepEqual(errors,[]);
  if(process.env.VERIFY_PUBLISHED_STORY!=='1')await capture(page,'preview');
  if(process.env.VERIFY_PUBLISHED_STORY==='1'){
   const files=['principal.js','principal-core.js','principal.css'],publicContext=await browser.newContext({viewport:{width:390,height:844},permissions:['clipboard-read','clipboard-write']}),published=await publicContext.newPage(),publicErrors=[];published.on('pageerror',error=>publicErrors.push(error.message));let readyFlag=false,productionWrites=0;

@@ -45,7 +45,7 @@ function drawAnnotations(loc,view,scale){
   const key=identities.has(a.key)||a.persistent?a.key:a.key+'|'+Math.round(a.x)+'|'+Math.round(a.y);
   let show=eligible&&inFrame&&!seen.has(key);if(show&&!persistent&&count>=Math.max(3,cfg.diagram.annotationsPerBeat||3))show=false;
   e.style.display=show?'':'none';if(!show)continue;seen.add(key);count++;
-  e.setAttribute('font-size',font);e.setAttribute('stroke-width',3.8/scale);const lines=wrap(value,a.maxChars||Math.max(12,Math.min(24,Math.floor(box.width/11))));e.setAttribute('y',a.centered?a.y-(lines.length-1)*font*.575:a.y);e.replaceChildren();
+  e.setAttribute('font-size',font);e.setAttribute('stroke-width',3.8/scale);const maxChars=a.node?Math.min(20,a.maxChars||20):a.maxChars||Math.max(12,Math.min(24,Math.floor(box.width/11)));const lines=wrap(value,maxChars);e.setAttribute('y',a.centered?a.y-(lines.length-1)*font*.575:a.y);e.replaceChildren();
   lines.forEach((line,i)=>{const t=svg('tspan');t.setAttribute('x',a.x);t.setAttribute('dy',i?'1.15em':'0');text(t,(i?' ':'')+line+(i===lines.length-1?' ':''));e.append(t);});
  }
 }

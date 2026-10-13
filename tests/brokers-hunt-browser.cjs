@@ -1,3 +1,4 @@
+const {read:readPublicStory}=require('./public-story-copy.cjs');
 const {chromium}=require('playwright'),fs=require('node:fs'),http=require('node:http'),assert=require('node:assert/strict'),H=require('../presentacion/hunt-core.js'),T=require('../presentacion/thread-core.js');
 const synthetic={...require('./brokers-story.test.cjs').fullFixture(),...require('./brokers-hunt.test.cjs').fixture()};
 
@@ -14,7 +15,7 @@ async function revealLegacy(page){
  const p=await ctx.newPage();p.on('pageerror',e=>errors.push(e.message));await p.goto(base);await revealLegacy(p);await p.locator('#hunt:not([hidden])').waitFor();assert.equal(await p.locator('[data-hunt-act]').count(),4);await p.locator('[data-hunt-act="2"]').click();assert.equal(await p.locator('#hunt').getAttribute('data-act'),'2');
  await p.locator('#huntCompare').click();assert.equal(await p.locator('[data-case="A"]').getAttribute('data-balance'),'2');assert.equal(await p.locator('[data-case="B"]').getAttribute('data-balance'),'1');
  await p.locator('#huntRepeat').click();await p.locator('#huntPlay').click();await p.waitForTimeout(300);assert.ok(await p.locator('#huntProgress').evaluate(e=>e.value)>0);await p.locator('#huntPlay').click();const paused=await p.locator('#huntProgress').evaluate(e=>e.value);await p.waitForTimeout(180);assert.equal(await p.locator('#huntProgress').evaluate(e=>e.value),paused);
- const url=fs.readFileSync('presentacion/source.js','utf8').match(/url:'([^']+)'/)[1],r=await fetch(url,{signal:AbortSignal.timeout(60000)});assert.ok(r.ok);const live=await r.json(),n=H.normalize(live);assert.ok(n.map.roads.length>10&&n.map.streets.length>10);
+ const url=fs.readFileSync('presentacion/source.js','utf8').match(/url:'([^']+)'/)[1];const live=await readPublicStory(url),n=H.normalize(live);assert.ok(n.map.roads.length>10&&n.map.streets.length>10);
  await ctx.route('**/*recurso=textos*',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(live)}));await p.goto(base);await revealLegacy(p);await p.locator('#hunt:not([hidden])').waitFor();
  async function seek(page,progress){await page.evaluate(v=>window.YodHunt.seek(v),progress);await page.waitForTimeout(90);}
  async function verify(page){
