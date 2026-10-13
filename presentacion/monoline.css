@@ -68,14 +68,14 @@ body.monoline-active{background:var(--mono-paper);color:var(--mono-ink);font-fam
 .mono-topbar{grid-template-columns:1fr auto;gap:8px;padding:8px 16px;min-height:56px}
 .mono-brand{font-size:18px}
 #monoNav{grid-column:1 / -1;grid-row:2;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0}
-#monoNav button{font-size:14px;padding:8px 3px;white-space:nowrap;min-height:44px}
+#monoNav button{font-size:14px;padding:0 4px;white-space:normal;line-height:16px;min-height:44px;min-width:0;overflow-wrap:anywhere}
 #monoShare{font-size:14px;padding:8px 12px}
 .mono-shell{padding:0 16px}
 .mono-hero{padding:26px 0 24px}
 .mono-hero h1{font-size:40px;line-height:1.02;margin:12px 0 16px}
 .mono-hero>p:last-child{font-size:16px;line-height:1.5;margin-bottom:0}
 .mono-layout{display:block}
-.mono-stage{top:108px;height:clamp(335px,49svh,430px);min-height:0;max-height:none;box-shadow:0 14px 0 var(--mono-paper)}
+.mono-stage{top:var(--mono-top-height,112px);height:clamp(335px,49svh,430px);min-height:0;max-height:none;box-shadow:0 14px 0 var(--mono-paper)}
 .mono-stage-heading>p:first-child{font-size:14px;margin:10px 0 6px}
 #monoTitle{font-size:22px;line-height:1.1;margin:0 0 4px;display:none}
 .mono-window{min-height:165px;margin:0}
