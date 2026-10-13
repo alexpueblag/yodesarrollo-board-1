@@ -2,7 +2,7 @@
 (function(){
 'use strict';
 const $=id=>document.getElementById(id),NS='http://www.w3.org/2000/svg',reduce=matchMedia('(prefers-reduced-motion: reduce)'),root=document.documentElement;
-let cfg=null,payload=null,layout=null,p=0,scene=-1,beat=-1,beta=false,playing=false,raf=0,last=0,scrollRaf=0,resizeRaf=0,pathLength=0,markers=[],labels=[];
+let cfg=null,payload=null,layout=null,p=0,scene=-1,beat=-1,beta=false,playing=false,raf=0,last=0,scrollRaf=0,resizeRaf=0,pathLength=0,markers=[],spans=[],labels=[];
 const clamp=(n,a=0,b=1)=>Math.max(a,Math.min(b,n)),text=(e,s)=>{if(e)e.textContent=String(s??'');};
 function el(tag,cls,value){const e=document.createElement(tag);if(cls)e.className=cls;if(value!==undefined)text(e,value);return e;}
 function svg(tag){return document.createElementNS(NS,tag);}
@@ -15,12 +15,12 @@ function measure(){
  const screen=Number(cfg.motion.stepScreens);$('principal').style.setProperty('--p-beat-height',Math.max(260,innerHeight*screen)+'px');
  const line=innerWidth<=760?Math.min(innerHeight-22,header+$('principalStage').offsetHeight+18):Math.min(innerHeight*.43,header+186);
  $('principal').style.setProperty('--p-readline',line+'px');
- markers=[...document.querySelectorAll('#principalDetails [data-principal-beat]')].map(e=>Math.max(0,e.getBoundingClientRect().top+scrollY-line));
+ const steps=[...document.querySelectorAll('#principalDetails [data-principal-beat]')];markers=steps.map(e=>Math.max(0,e.getBoundingClientRect().top+scrollY-line));spans=steps.map(e=>Math.max(180,e.getBoundingClientRect().height));
  for(let i=1;i<markers.length;i++)markers[i]=Math.max(markers[i],markers[i-1]+1);
  markers.push(Math.max(markers[35]+180,document.documentElement.scrollHeight-innerHeight));
 }
-function fromScroll(){if(!markers.length||scrollY<=markers[0])return initial();let i=0;while(i<35&&scrollY>=markers[i+1])i++;return clamp((i+clamp((scrollY-markers[i])/(markers[i+1]-markers[i])))/36);}
-function target(value){const v=clamp(value)*36,i=Math.min(35,Math.floor(v)),t=v-i;return markers[i]+(markers[i+1]-markers[i])*t;}
+function fromScroll(){if(!markers.length||scrollY<=markers[0])return initial();let i=0;while(i<35&&scrollY>=markers[i+1])i++;const local=clamp((scrollY-markers[i])/Math.min(spans[i],markers[i+1]-markers[i]),0,.999999);return clamp((i+local)/36);}
+function target(value){if(value>=.999999)return Math.max(0,$('principalClosing').getBoundingClientRect().top+scrollY-$('principalHeader').getBoundingClientRect().height-18);const v=clamp(value)*36,i=Math.min(35,Math.floor(v)),t=v-i;return markers[i]+Math.min(spans[i],markers[i+1]-markers[i])*t;}
 function fit(v){
  const box=$('principalSvg').getBoundingClientRect(),aspect=(box.width||390)/(box.height||240),w=v[2],h=v[3],ww=Math.max(w,h*aspect),hh=Math.max(h,w/aspect);
  return[v[0]-(ww-w)/2,v[1]-(hh-h)/2,ww,hh];
