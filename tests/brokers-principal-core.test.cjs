@@ -191,3 +191,10 @@ test('criterion and adverse labels reserve centered non-overlapping columns',()=
  const doc=g.annotations.find(a=>a.index===31&&a.key==='documentation'),cash=g.annotations.find(a=>a.index===31&&a.key==='cashflow');
  assert.ok(doc.x+doc.maxWidth/2<cash.x-cash.maxWidth/2);
 });
+
+test('documentation, sale and cashflow remain in their frame until participation begins',()=>{
+ const g=C.build(source(),config()),expected=g.marks[31].focus;
+ for(const local of [.82,.95,.9999])assert.deepEqual(C.locate(g,(31+local)/36).focus,expected);
+ const entry=C.locate(g,32/36),settled=C.locate(g,32.4/36);
+ assert.deepEqual(entry.focus,expected);assert.deepEqual(settled.focus,g.marks[32].focus);
+});

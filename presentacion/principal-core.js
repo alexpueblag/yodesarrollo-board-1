@@ -372,7 +372,7 @@ function build(sourceMap,config){
  mark(8,0,()=>{
   tr.tag='capital-participation';tr.line(projectJoin);tr.line(junction);
   tr.line(point(junction.x,370));tr.line(point(roles.capital.x,370));roleNode('capital');
- },capitalFocus,'participation');
+ },capitalFocus,'participation',{enterFrom:{x:2070,y:240,width:1850,height:800},enterDelay:0,enterDuration:.35});
  mark(8,1,()=>{
   tr.tag='role-land';tr.line(point(junction.x,370));tr.line(point(junction.x,140));
   tr.line(point(3990,140));tr.line(point(3990,370));tr.line(point(roles.land.x,370));roleNode('land');
