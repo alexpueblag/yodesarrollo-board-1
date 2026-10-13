@@ -21,6 +21,7 @@ const synthetic={...require('./brokers-story.test.cjs').fullFixture(),...require
   }
   await page.setViewportSize({width:390,height:844});
   const pathAt=async()=>page.locator('#huntThread').getAttribute('d');await seek(page,.8);const original=await pathAt();await seek(page,.35);await seek(page,.8);assert.equal(await pathAt(),original);
+  for(const boundary of [.5,.625,.75,.875]){await seek(page,boundary-.0001);const before=await page.locator('#huntSvg').boundingBox();await seek(page,boundary+.0001);const after=await page.locator('#huntSvg').boundingBox();assert.ok(Math.abs(before.height-after.height)<5,'Diagram should not jump at '+boundary);}
   for(let stage=0;stage<8;stage++){const v=(stage+.4)/8;await page.evaluate(v=>{const el=document.querySelector('#hunt');scrollTo(0,scrollY+el.getBoundingClientRect().top+v*(el.offsetHeight-innerHeight));},v);await page.waitForFunction(s=>document.querySelector('#hunt').dataset.stage===String(s),stage);}
   await page.locator('#huntContinue').click();await page.waitForTimeout(120);assert.ok(await page.locator('#story').evaluate(e=>Math.abs(e.getBoundingClientRect().top)<2));
  }
