@@ -1,37 +1,18 @@
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow,noarchive"><meta name="referrer" content="strict-origin"><title>Presentación</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="story.css?v=story17-hunt1"><link rel="stylesheet" href="hunt.css?v=hunt1-1"></head><body>
+<link rel="stylesheet" href="story.css?v=story17-thread1"><link rel="stylesheet" href="hunt.css?v=thread1-1"></head><body>
 <div id="loading" class="loading" role="status"><span class="load-mark" aria-hidden="true">↗</span><p id="load-message">Preparando la presentación…</p><button id="retry" hidden>Volver a intentar</button></div>
 <main id="presentation" hidden>
 <header class="brandbar"><img id="brandLogo" alt="" width="184" height="38"><span id="brandText" hidden></span><span class="chapter-label" data-copy="kicker"></span><button id="share" class="share" data-copy="share_label"></button></header>
-<section id="hunt" class="hunt" hidden aria-label="Recorrido desde la ciudad a dos oportunidades">
-<div class="hunt-frame">
+<section id="hunt" class="hunt" hidden aria-label="Recorrido ilustrado por scroll"><div id="huntFrame" class="hunt-frame">
 <div class="hunt-heading"><p id="huntKicker" class="eyebrow"></p><h1 id="huntTitle"></h1><p id="huntBody"></p></div>
-<div class="hunt-world"><svg id="huntSvg" viewBox="0 0 1000 650" role="img" aria-labelledby="huntSvgTitle huntSvgDesc">
-<title id="huntSvgTitle"></title><desc id="huntSvgDesc"></desc>
-<defs><pattern id="huntGrid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" stroke="currentColor" stroke-opacity=".035" fill="none"/></pattern><filter id="huntShadow"><feGaussianBlur stdDeviation="12"/></filter></defs>
-<rect width="1000" height="650" fill="url(#huntGrid)"/>
-<g id="huntCamera"><g id="huntRoads"></g><g id="huntStreets"></g><g id="huntRoadLabels"></g><g id="huntSearchZones"></g><g id="huntEnvironment"></g><circle id="huntFocus" r="18" fill="none" stroke="var(--hunt-orange)" stroke-width="1.6" vector-effect="non-scaling-stroke"/></g>
-<g id="huntCitySign"><path d="M387 160V260M613 160V260" stroke="currentColor" stroke-width="3"/><rect x="292" y="70" width="416" height="116" rx="4" fill="var(--paper)" stroke="currentColor" stroke-width="2"/><text id="huntCityText" x="500" y="142" text-anchor="middle" font-size="44" letter-spacing="5"/></g>
-<g id="huntBlocks">
-<ellipse cx="500" cy="425" rx="340" ry="130" fill="currentColor" opacity=".055" filter="url(#huntShadow)"/>
-<g transform="translate(175 230) rotate(-17) skewX(17) scale(1 .75)">
-<path d="M-25-25H295V275H-25ZM360-25H680V275H360Z" fill="#dedbd2" stroke="#cdcac0" stroke-width="2"/>
-<path d="M0 0H270V250H0ZM385 0H655V250H385Z" fill="var(--paper)" stroke="currentColor" stroke-opacity=".18"/>
-<path d="M-25 290H695M320-25V300" fill="none" stroke="currentColor" stroke-opacity=".18" stroke-width="2" stroke-dasharray="8 9"/>
-<rect class="hunt-parcel" id="huntParcelA" x="10" y="10" width="125" height="115"/><rect class="hunt-parcel dim" x="145" y="10" width="115" height="115"/><rect class="hunt-parcel dim" x="10" y="140" width="250" height="100"/>
-<rect class="hunt-parcel dim" x="395" y="10" width="115" height="115"/><rect class="hunt-parcel" id="huntParcelB" x="520" y="10" width="125" height="115"/><rect class="hunt-parcel dim" x="395" y="140" width="250" height="100"/>
-<g id="huntPlotAUnits"></g><g id="huntPlotBUnits"></g>
-<text x="72" y="92" text-anchor="middle" font-size="34" id="huntPlotA">A</text><text x="582" y="92" text-anchor="middle" font-size="34" id="huntPlotB">B</text>
-</g></g>
-<g id="huntGuide" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"><circle cy="-24" r="5" fill="var(--paper)"/><path d="M0-17V0M0-14l-8 10M0-14l8 10M0 0l-6 14M0 0l6 14"/></g>
-</svg></div>
-<div id="huntCases" class="hunt-cases" hidden></div>
-<p id="huntLegend" class="hunt-note"></p><p id="huntContribution" class="hunt-note" hidden></p>
+<div class="hunt-world"><svg id="huntSvg" viewBox="0 0 1000 650" role="img" aria-labelledby="huntSvgTitle huntSvgDesc"></svg><div id="huntCriteriaWrap" class="hunt-criteria-wrap"><p id="huntCriteriaHeading" class="hunt-criteria-heading"></p><div id="huntCriteria" class="hunt-criteria"></div></div><div id="huntMiniMap" class="hunt-mini" hidden><b id="huntMiniCity"></b><span id="huntMiniNote"></span></div></div>
+<div id="huntCases" class="hunt-cases" hidden></div><div class="hunt-note-wrap"><p id="huntLegend" class="hunt-note"></p><p id="huntContribution" class="hunt-note" hidden></p></div>
 <div class="hunt-sources"><a id="huntSource" target="_blank" rel="noopener"></a><a id="huntZoning" target="_blank" rel="noopener"></a><span id="huntAttribution"></span></div>
-<nav id="huntStages" class="hunt-stages" aria-label="Momentos del recorrido"></nav>
-<div class="hunt-controls"><button id="huntPlay" class="primary" aria-pressed="false"></button><button id="huntRepeat"></button><button id="huntCompare"></button><button id="huntContinue"></button><progress id="huntProgress" max="1" value="0" aria-label="Avance de la búsqueda"></progress></div>
+<nav id="huntStages" class="hunt-stages" aria-label="Escenas de la apertura"><div id="huntActNav" class="hunt-act-nav"></div></nav>
+<div class="hunt-controls"><button id="huntPlay" class="primary" aria-pressed="false"></button><button id="huntRepeat"></button><button id="huntCompare"></button><button id="huntContinue"></button><progress id="huntProgress" max="1" value="0" aria-label="Avance del recorrido"></progress></div>
+<svg id="huntThreadOverlay" class="hunt-thread-overlay" aria-hidden="true"><path id="huntThread" class="hunt-thread"/><circle id="huntThreadTip" class="hunt-thread-tip" r="3.5"/></svg>
 </div></section>
 <section id="story" class="scroll-story" aria-label="Historia de inversión">
 <div class="sticky-scene">
@@ -71,4 +52,4 @@
 <section id="bridge" class="bridge"><div class="bridge-model" id="bridgeModel" aria-hidden="true"></div><div class="bridge-copy"><p class="eyebrow" data-copy="bridge_kicker"></p><h2 data-copy="bridge_title"></h2><p data-copy="bridge_body"></p><div class="criteria"><span data-copy="bridge_1"></span><span data-copy="bridge_2"></span><span data-copy="bridge_3"></span></div><button id="closeCta" class="primary" hidden></button><button id="replayEnd" class="primary" data-copy="replay_cta"></button></div></section>
 </main><dialog id="shareDialog"><form method="dialog"><button class="close" aria-label="Cerrar">×</button><h2>Enlace de la presentación</h2><p id="shareStatus"></p><label for="shareUrl">Copia este enlace</label><input id="shareUrl" readonly><button id="copyShare" type="button">Copiar enlace</button></form></dialog>
 <dialog id="closingDialog"><form method="dialog"><button id="closingClose" class="close" aria-label="Cerrar">×</button><h2 id="closingTitle"></h2><p id="closingBody"></p><div id="closingChoices" class="closing-choices"></div><label id="closingLabel" for="closingMessage"></label><textarea id="closingMessage" readonly rows="6"></textarea><p id="closingStatus" role="status"></p><button id="closingCopy" class="primary" type="button"></button></form></dialog>
-<script src="story-core.js?v=story17-hunt1"></script><script src="source.js?v=story17-hunt1"></script><script src="hunt-core.js?v=hunt1-1"></script><script src="hunt.js?v=hunt1-1"></script><script src="story.js?v=story17-hunt1"></script></body></html>
+<script src="story-core.js?v=story17-thread1"></script><script src="source.js?v=story17-thread1"></script><script src="hunt-core.js?v=thread1-1"></script><script src="thread-core.js?v=thread1-1"></script><script src="hunt.js?v=thread1-1"></script><script src="story.js?v=story17-thread1"></script></body></html>
