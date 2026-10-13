@@ -164,7 +164,7 @@ function build(sourceMap,config){
  }));
  const orderedPlaces=cfg.diagram.places.slice().sort((a,b)=>a.id.localeCompare(b.id));
  const places=Object.fromEntries(orderedPlaces.map((p,i)=>[p.id,{...p,x:1260+i*450,y:340,w:250,h:170,schematic:true,access:point(1260+i*450,620),measure:{x:1225+i*450,y:340,h:170}}]));
- const pair={x:1120,y:230,width:970,height:720};
+ const pair={x:1120,y:120,width:970,height:830};
  const projectBox={x:2260,y:340,w:340,h:220},projectFocus={x:2070,y:150,width:780,height:720};
  const participantFocus={x:2790,y:170,width:920,height:820};
  const annotations=[],marks=[],scenes=[];
@@ -274,7 +274,7 @@ function build(sourceMap,config){
  };
  s=newScene(5,'properties',pair);
  mark(5,0,()=>{propertyOrigin('P1');propertyOrigin('P2');goStreet();},{x:0,y:0,width:2120,height:960},'properties',{enterFrom:city,enterDelay:0,enterDuration:.15});
- mark(5,1,()=>{for(const p of Object.values(places))survey(p);annotate('constructionFootprint',1605,265,{schematic:true});},pair,'properties');
+ mark(5,1,()=>{for(const p of Object.values(places))survey(p);annotate('constructionFootprint',1605,185,{schematic:true,maxWidth:450});},pair,'properties');
  mark(5,2,()=>{
   for(const p of Object.values(places)){
    tr.tag='participation-route';tr.retrace(()=>{
@@ -291,7 +291,7 @@ function build(sourceMap,config){
   for(const p of Object.values(places)){
    tr.tag='possible-product';tr.retrace(()=>{tr.line(p.access);tr.box(p);});
   }
-  annotate('departments',1605,265,{schematic:true,conditional:true});
+  annotate('departments',1605,185,{schematic:true,conditional:true,maxWidth:450});
  },pair,'comparison');
  mark(6,1,()=>stream('project-account',['income','investment','profit']),{x:1090,y:230,width:1030,height:720},'comparison');
  mark(6,2,()=>stream('adverse-conditions',['adverseCost','adversePrice','adverseTime']),{x:1090,y:230,width:1030,height:720},'comparison');
