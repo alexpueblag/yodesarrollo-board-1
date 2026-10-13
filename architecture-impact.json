@@ -13,7 +13,8 @@
     "node --test tests/brokers*.test.cjs",
     "node tests/brokers-story-browser.cjs",
     "node scripts/prepare-hunt-map.cjs",
-    "Pruebas de ocho momentos de zoom, símbolos, sumatorias y continuación; publicación real por comprobar."
+    "Pruebas de ocho momentos de zoom, símbolos, sumatorias y continuación; publicación real por comprobar.",
+    "Producción: zoom por scroll nativo, ocho momentos, comparación calculada, códigos públicos exactos, 320/390/1440, continuación al borrador y capturas reales."
   ],
   "rollback": "Revertir frontend por PR sin borrar contenido de Sheets, láminas originales o permisos Masterbroker."
 }
