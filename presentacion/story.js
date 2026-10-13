@@ -83,7 +83,7 @@ async function load(){
   $('closeCta').hidden=final.number!==7;$('closeCta').textContent=final.close_label||'';
   phase=-1;chapter=-1;
   if(!$('bridgeModel').children.length){const clone=document.querySelector('.diagram').cloneNode(true);clone.removeAttribute('aria-labelledby');clone.setAttribute('aria-hidden','true');clone.querySelectorAll('[id]').forEach(el=>el.removeAttribute('id'));$('bridgeModel').append(clone);}
-  $('loading').hidden=true;$('presentation').hidden=false;bind();resize();render(reduce.matches?1:0);onScroll();
+  $('loading').hidden=true;$('presentation').hidden=false;bind();resize();render(reduce.matches?1:0);onScroll();window.YodHunt.refresh();
  }catch(e){content=null;$('presentation').hidden=true;$('loading').hidden=false;$('load-message').textContent=e.name==='AbortError'?'La conexión tardó. Vuelve a intentar.':'No se pudo cargar la presentación. Vuelve a intentar.';$('retry').hidden=false;console.warn('Presentation content unavailable');}
 }
 window.YodStoryStart=()=>{window.YodHunt.stop();stop();chapter=-1;phase=-1;moveTo(0);};$('retry').onclick=load;load();

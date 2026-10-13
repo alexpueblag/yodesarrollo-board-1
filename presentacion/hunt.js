@@ -9,9 +9,9 @@ function icons(kind,count){const r=document.createElement('span');r.className='s
 function row(parent,label,kind,count){const r=document.createElement('p'),s=document.createElement('span');s.textContent=label;r.append(s,icons(kind,count));parent.append(r);}
 function paintCases(stage){$('huntCases').replaceChildren();for(const[key,v]of [['A',c.caseA],['B',c.caseB]]){const card=document.createElement('section');card.className='hunt-case';card.dataset.case=key;const h=document.createElement('h3');h.textContent=c['case'+key+'_label'];card.append(h);
  if(stage===4){row(card,c.land_label,'home',1);}
- if(stage===5){row(card,c['case'+key+'_land_label'],'coin',v.land);row(card,c.build_label,'coin',v.build);row(card,c.cost_label,'coin',v.cost);}
+ if(stage===5){row(card,c['case'+key+'_land_label'],'coin',v.land);row(card,c.build_label,'coin',v.build);const eq=document.createElement('div');eq.className='equation';const math=document.createElement('b');math.textContent=v.land+' + '+v.build+' = '+v.cost;eq.append(math,icons('coin',v.cost));card.append(eq);}
  if(stage===6){row(card,c.units_label,'home',v.units);row(card,c.cost_label,'coin',v.cost);}
- if(stage===7){row(card,c.sale_label,'coin',v.sale);row(card,c.cost_label,'coin',v.cost);const eq=document.createElement('div');eq.className='equation';const math=document.createElement('b');math.textContent=v.sale+' − '+v.cost+' = '+(v.balance>0?'+':'')+v.balance;eq.append(math,icons('coin',Math.abs(v.balance)));const label=document.createElement('p');label.textContent=c.balance_label;card.append(eq,label);card.dataset.balance=String(v.balance);}
+ if(stage===7){row(card,c.units_label,'home',v.units);row(card,c.sale_label,'coin',v.sale);row(card,c.cost_label,'coin',v.cost);const eq=document.createElement('div');eq.className='equation';const math=document.createElement('b');math.textContent=v.sale+' − '+v.cost+' = '+(v.balance>0?'+':'')+v.balance;eq.append(math,icons('coin',Math.abs(v.balance)));const label=document.createElement('p');label.textContent=c.balance_label;card.append(eq,label);card.dataset.balance=String(v.balance);}
  $('huntCases').append(card);}}
 function buildMap(){
  for(const[id,roads,local]of [['huntRoads',c.map.roads,false],['huntStreets',c.map.streets,true]]){$(id).replaceChildren();for(const r of roads)$(id).append(svg('path',{d:r.d,fill:'none',stroke:'currentColor','stroke-width':local?1:2.5,'stroke-opacity':local?.14:.38,'vector-effect':'non-scaling-stroke'}));}
@@ -45,5 +45,5 @@ function mount(raw){c=H.normalize(raw);if(!c){section.hidden=true;return false;}
  if(!bound){bound=true;$('huntPlay').onclick=play;$('huntRepeat').onclick=()=>{stop();move(0);};$('huntCompare').onclick=()=>{stop();move(1);};$('huntContinue').onclick=()=>{stop();window.YodStoryStart();};addEventListener('scroll',onScroll,{passive:true});addEventListener('resize',()=>{stop();resize();});for(const type of ['wheel','touchstart','pointerdown'])addEventListener(type,e=>{if(playing&&!e.target.closest('.hunt-controls'))stop();},{passive:true});document.addEventListener('visibilitychange',()=>{if(document.hidden)stop();});reduce.addEventListener('change',()=>{stop();resize();render(reduce.matches?1:p);});}
  resize();render(reduce.matches?1:0);return true;
 }
-window.YodHunt={mount,stop};
+window.YodHunt={mount,stop,refresh:()=>render(p)};
 })();
