@@ -161,3 +161,33 @@ test('roles have three named nodes and one shared agreement, not extra circles',
  const final=C.locate(g,35.4/36).viewBox;
  for(const n of [...Object.values(g.roles),g.agreement]){assert.ok(n.x>=final[0]&&n.x+n.w<=final[0]+final[2]);assert.ok(n.y>=final[1]&&n.y+n.h<=final[1]+final[3]);}
 });
+
+test('agreement camera preserves all three actors and the pact throughout the beat',()=>{
+ const g=C.build(source(),config());
+ for(const index of [34,35])for(const local of [.05,.4,.75,.99]){
+  const v=C.locate(g,(index+local)/36).viewBox;
+  for(const n of [...Object.values(g.roles),g.agreement]){
+   assert.ok(n.x>=v[0]&&n.x+n.w<=v[0]+v[2]);
+   assert.ok(n.y>=v[1]&&n.y+n.h<=v[1]+v[3]);
+  }
+  for(const n of Object.values(g.roles))assert.ok(n.w/v[2]*288>=120,'role words need real room on a 320 px phone');
+ }
+ const land=g.roles.land;
+ assert.ok(land.h/C.locate(g,34.4/36).viewBox[2]*288>=50.4,'land role must fit three 14 px lines');
+ assert.equal(g.annotations.find(a=>a.key==='land'&&a.scene===8).maxChars,18);
+});
+test('criterion and adverse labels reserve centered non-overlapping columns',()=>{
+ const g=C.build(source(),config());
+ for(const index of [9,10,13,14,17,18]){
+  const slots=g.annotations.filter(a=>a.index===index).sort((a,b)=>a.x-b.x);
+  assert.equal(slots.length,3);
+  for(const a of slots){assert.equal(a.centered,true);assert.equal(a.maxChars,10);assert.ok(a.maxWidth>0);}
+  for(let i=1;i<slots.length;i++)assert.ok(slots[i-1].x+slots[i-1].maxWidth/2<slots[i].x-slots[i].maxWidth/2);
+ }
+ const adverse=g.annotations.filter(a=>a.index===26);
+ assert.ok(adverse.every(a=>a.centered&&a.maxChars===10&&a.maxWidth>0));
+ const overview=g.annotations.find(a=>a.index===7&&a.key==='references');
+ assert.equal(overview.captionOnly,true);
+ const doc=g.annotations.find(a=>a.index===31&&a.key==='documentation'),cash=g.annotations.find(a=>a.index===31&&a.key==='cashflow');
+ assert.ok(doc.x+doc.maxWidth/2<cash.x-cash.maxWidth/2);
+});

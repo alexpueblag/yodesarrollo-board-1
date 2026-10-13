@@ -2,6 +2,7 @@
 const {read:readPublicStory}=require('./public-story-copy.cjs');
 const {chromium}=require('playwright');
 const fs=require('node:fs'),http=require('node:http'),path=require('node:path'),assert=require('node:assert/strict');
+const PrincipalCore=require('../presentacion/principal-core.js'),HuntCore=require('../presentacion/hunt-core.js');
 const ROOT=process.cwd(),PUBLIC='https://yodesarrollomx.github.io/yodesarrollo-board/presentacion/';
 const LEGACY={...require('./brokers-story.test.cjs').fullFixture(),...require('./brokers-hunt.test.cjs').fixture()};
 function betaFixture(){
@@ -15,7 +16,9 @@ function betaFixture(){
 }
 
 function configFixture(){
- const labels={};for(const key of ["city","zoneA","zoneB","zoneC","property1","property2","purchase","contribution","capital","land","coordination","source","measure","account","legal","agreement","formalize","project","permits","construction","sale","distribution","illustrative","mapCaption","propertyCaption","cityContext","zoneContext","propertyContext","context","buyer","demand","sizes","prices","priceM2","competition","employment","services","population","access","compatibleUse","references","purchaseContribution","physicalMeasure","constructionFootprint","adverseCost","adversePrice","adverseTime","adverse","income","investment","profit","cashflow","review","conditions","formalization","documentation","capitalContribution","landContribution","return","projectVsInvestor","start","scope","departments"])labels[key]='Synthetic '+key;
+ const labels={};for(const key of ["city","zoneA","zoneB","zoneC","property1","property2","purchase","contribution","capital","land","coordination","source","measure","account","legal","agreement","formalize","project","permits","construction","sale","distribution","illustrative","mapCaption","propertyCaption","cityContext","zoneContext","propertyContext","context","buyer","demand","sizes","prices","priceM2","competition","employment","services","population","access","compatibleUse","references","purchaseContribution","physicalMeasure","constructionFootprint","adverseCost","adversePrice","adverseTime","adverse","income","investment","profit","cashflow","review","conditions","formalization","documentation","capitalContribution","landContribution","return","projectVsInvestor","start","scope","departments"])labels[key]='Synthetic '+key.replace(/([a-z])([A-Z])/g,'$1 $2').toLowerCase();
+ labels.compatibleUse='Synthetic use study';labels.adverseCost='Synthetic cost increase';labels.adversePrice='Synthetic price decrease';labels.adverseTime='Synthetic slower sales';labels.documentation='Synthetic unit documents';labels.cashflow='Synthetic payments schedule';
+ labels.capital='Synthetic capital contributors';labels.land='Synthetic land contributor';labels.coordination='Synthetic development team';
  labels.zoneA='A · Synthetic zone';labels.zoneB='B · Synthetic zone';labels.zoneC='C · Synthetic zone';labels.property1='P1 · Synthetic property';labels.property2='P2 · Synthetic property';
  labels.equation={income:'Synthetic income',investment:'Synthetic investment',profit:'Synthetic project profit'};labels.decision=['Synthetic continue','Synthetic revise','Synthetic decline'];labels.market=Array.from({length:6},(_,i)=>'Synthetic market criterion '+(i+1));
  const config={version:'principal-1r2',brand:'Synthetic Studio',headline:'Understand the example before considering participation.',lead:'A synthetic narrative with no property, price, person or investment promise.',theme:{ink:'#AD451C',paper:'#FFF9F1'},labels,scenes:[],navigation:[{title:'What we do',scene:0},{title:'How we decide',scene:5},{title:'How to participate',scene:8}],cta:[{label:'Discuss a property',message:'Synthetic request to discuss a property.'},{label:'Discuss capital participation',message:'Synthetic request about capital participation.'}],controls:{play:'Play',pause:'Pause',replay:'Replay',share:'Share',details:'Read details',previous:'Previous',next:'Next',copy:'Copy',copied:'Copied',manual:'Manual',back:'Back',legacy:'Original',close:'Close',loading:'Loading',error:'Error',beta:'View beta',returnPrincipal:'Return to main',copyFailed:'Copy failed',retry:'Retry',sceneLabel:'Scene',stepLabel:'Step',progress:'Progress',dialogTitle:'Prepared message',shareTitle:'Public story',reducedMotion:'Motion reduced',source:'Source',phase:'Phase',zone:'Zone',property:'Property',openDetails:'Read details'},footnotes:['Synthetic public marketing copy. Not an evaluated property.']};
@@ -70,8 +73,56 @@ async function assertCurrentBodyReadable(page,config,index){
  },expected);
  assert.ok(result.some(r=>!r.hidden&&r.display!=='none'&&r.visibility!=='hidden'&&r.opacity>0&&r.clip==='auto'&&r.clipPath==='none'&&r.font>=16&&r.width>=100&&r.height>=16&&r.visibleHeight>=r.height*.5&&r.visibleWidth>=r.width*.9),'Current explanation must be readable below the diagram, without an extra scroll or opening hidden content: '+JSON.stringify({index,viewport:page.viewportSize(),measurements:result}));
 }
-async function verify(page,config){
- await ready(page);await page.evaluate(()=>window.YodPrincipal.api.pause());
+
+async function requireCorporateFonts(page){
+ await page.evaluate(()=>document.fonts.ready);
+ const fonts=await page.evaluate(()=>[...document.fonts].map(face=>({family:face.family.replace(/["']/g,''),status:face.status})));
+ for(const family of ['Instrument Sans','Instrument Serif'])assert.ok(fonts.some(face=>face.family===family&&face.status==='loaded'),'Screenshots must use the actual corporate typeface, not a synthetic fallback: '+JSON.stringify({family,fonts}));
+}
+async function assertLabelSeparation(page){
+ const labels=await page.evaluate(()=>{
+  const svg=document.querySelector('#principalSvg').getBoundingClientRect();
+  return [...document.querySelectorAll('#principalAnnotations text')].filter(e=>{
+   const style=getComputedStyle(e),r=e.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
+   return style.display!=='none'&&style.visibility!=='hidden'&&Number(style.opacity)>0&&r.width>2&&r.height>2&&cx>=Math.max(0,svg.left)&&cx<=Math.min(innerWidth,svg.right)&&cy>=Math.max(0,svg.top)&&cy<=Math.min(innerHeight,svg.bottom);
+  }).map(e=>{const r=e.getBoundingClientRect();return{key:e.dataset.key,text:e.textContent,left:r.left,right:r.right,top:r.top,bottom:r.bottom};});
+ });
+ for(let i=0;i<labels.length;i++)for(let j=i+1;j<labels.length;j++){
+  const a=labels[i],b=labels[j],width=Math.min(a.right,b.right)-Math.max(a.left,b.left),height=Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top);
+  assert.ok(width<=2||height<=2,'Labels must remain visually separate; overlapping semantic labels obscure the explanation: '+JSON.stringify({state:await state(page),viewport:page.viewportSize(),a,b,overlap:{width,height}}));
+ }
+}
+async function assertRolesStayLegible(page,diagram,index,keys){
+ await seek(page,index);
+ const checks=await page.evaluate(({nodes,keys})=>{
+  const svg=document.querySelector('#principalSvg'),viewport=svg.getBoundingClientRect(),matrix=svg.getScreenCTM();
+  const convert=(x,y)=>{const p=svg.createSVGPoint();p.x=x;p.y=y;return p.matrixTransform(matrix);};
+  return keys.map(key=>{
+   const node=nodes[key],a=convert(node.x,node.y),b=convert(node.x+node.w,node.y+node.h),box={left:Math.min(a.x,b.x),right:Math.max(a.x,b.x),top:Math.min(a.y,b.y),bottom:Math.max(a.y,b.y)};
+   const candidates=[...document.querySelectorAll('#principalAnnotations text')].filter(e=>e.dataset.key===key&&getComputedStyle(e).display!=='none'&&getComputedStyle(e).visibility!=='hidden');
+   const label=candidates.map(e=>{const r=e.getBoundingClientRect();return{left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height,text:e.textContent};}).find(r=>r.width>2&&r.height>2);
+   const width=Math.max(0,Math.min(innerWidth,viewport.right,box.right)-Math.max(0,viewport.left,box.left)),height=Math.max(0,Math.min(innerHeight,viewport.bottom,box.bottom)-Math.max(0,viewport.top,box.top)),area=(box.right-box.left)*(box.bottom-box.top);
+   return{key,label,node:box,nodeVisible:area?width*height/area:0};
+  });
+ },{nodes:{...diagram.roles,agreement:diagram.agreement},keys});
+ for(const check of checks){assert.ok(check.label,'Every participant must have a visible name at beat '+index+': '+JSON.stringify(check));const r=check.label,n=check.node;assert.ok(r.left>=n.left-2&&r.right<=n.right+2&&r.top>=n.top-2&&r.bottom<=n.bottom+2,'Participant names must fit inside their own nodes, rather than cross another role or connector: '+JSON.stringify({index,viewport:page.viewportSize(),check}));assert.ok(check.nodeVisible>=.9,'The agreement scene must keep its participants in view: '+JSON.stringify({index,viewport:page.viewportSize(),check}));}
+ await assertLabelSeparation(page);
+}
+
+async function assertContinuousZoneTransition(page,index){
+ await seek(page,index);const before=await state(page),scrollBefore=await page.evaluate(()=>scrollY),path=await page.locator('#principalPath').elementHandle(),geometry=await page.locator('#principalPath').getAttribute('d'),samples=[];
+ await page.locator('#principalPlay').click();
+ for(let i=0;i<24;i++){await page.waitForTimeout(100);samples.push(await page.evaluate(()=>({p:window.YodPrincipal.api.state().p,view:document.querySelector('#principalSvg').getAttribute('viewBox').split(/\s+/).map(Number),offset:parseFloat(getComputedStyle(document.querySelector('#principalPath')).strokeDashoffset)})));assert.ok(await path.evaluate(e=>e.isConnected&&e===document.querySelector('#principalPath')),'Transition must keep the same drawing node');}
+ await page.locator('#principalPlay').click();await settle(page);const paused=(await state(page)).p;await page.waitForTimeout(180);assert.ok(Math.abs((await state(page)).p-paused)<.00001,'Pausing the zone transition must freeze progress');
+ assert.ok(samples.every(sample=>Number.isFinite(sample.p)&&Number.isFinite(sample.offset)&&sample.view.length===4&&sample.view.every(Number.isFinite)&&sample.view[2]>0&&sample.view[3]>0),'Every transition frame needs a finite camera and trace');
+ assert.ok(samples.at(-1).p>before.p&&samples.at(-1).offset<samples[0].offset,'Playback must advance the trace through the zone exit');
+ assert.ok(new Set(samples.map(sample=>sample.view.join(','))).size>1,'The zone exit must move its camera rather than snap to an independent drawing');
+ assert.equal(await page.locator('#principalPath').getAttribute('d'),geometry,'Playback must preserve geometry across the transition');
+ await page.evaluate(top=>scrollTo({top,behavior:'instant'}),scrollBefore);await settle(page);const reversed=await state(page);assert.equal(reversed.scene,before.scene,'Native reverse must recover the prior zone context');assert.ok(Math.abs(reversed.p-before.p)<.003,'Native reverse must recover the prior transition progress');
+}
+async function verify(page,config,sourcePayload){
+ await ready(page);await requireCorporateFonts(page);await page.evaluate(()=>window.YodPrincipal.api.pause());
+ const diagram=PrincipalCore.build(HuntCore.normalize(sourcePayload).map,config);
  assert.equal(await page.locator('#principalPath').evaluate(e=>getComputedStyle(e).vectorEffect),'none','Stroke reveal must use the same coordinate system as geometric prefix lengths');assert.equal(await page.locator('#principalSvg').count(),1);assert.equal(await page.locator('#principalSvg path').count(),1,'The drawing must be one path, not an overlay connecting independent illustrations');
  const pathHandle=await page.locator('#principalPath').elementHandle(),original=await page.locator('#principalPath').getAttribute('d');assert.equal((original.match(/[Mm]/g)||[]).length,1,'One uninterrupted path origin');assert.ok(original.length>100);
  assert.equal(await page.locator('#principalNav [data-principal-group]').count(),3);
@@ -84,7 +135,7 @@ async function verify(page,config){
   await seek(page,beat);const value=await state(page);assert.equal(value.beat,beat);assert.equal(value.scene,Math.floor(beat/4));assert.equal(await page.locator('#principalBeatTitle').textContent(),config.scenes[value.scene].beats[beat%4].title);assert.equal(await page.locator('#principalBeatBody').textContent(),config.scenes[value.scene].beats[beat%4].body);
   const offset=await page.locator('#principalPath').evaluate(e=>parseFloat(getComputedStyle(e).strokeDashoffset));assert.ok(Number.isFinite(offset));assert.ok(offset<=lastOffset+.1,'Drawing must accumulate instead of replacing a scene');lastOffset=offset;
   assert.equal(await pathHandle.evaluate(e=>e.isConnected&&e===document.querySelector('#principalPath')),true,'The same path persists');
-  assert.equal(await page.locator('#principalPath').getAttribute('d'),original,'Narrative progress must not change the source geometry');
+  assert.equal(await page.locator('#principalPath').getAttribute('d'),original,'Narrative progress must not change the source geometry');await assertLabelSeparation(page);
  }
  await seek(page,7);const zoneLabels=await page.locator('#principalAnnotations').textContent();for(const id of ['A','B','C'])assert.ok(new RegExp('\\b'+id+'\\b').test(zoneLabels),'Zone overview must preserve distinct zone '+id);
  await seek(page,23);const propertyLabels=await page.locator('#principalAnnotations').textContent();for(const id of ['P1','P2'])assert.ok(new RegExp('\\b'+id+'\\b').test(propertyLabels),'Property options must use property identities, not zone identities: '+id);
@@ -108,10 +159,12 @@ async function verify(page,config){
  // Verify meaning as rendered pixels: hidden annotation nodes do not satisfy these checks.
  for(const viewport of [{width:320,height:640},{width:390,height:844}]){
   await page.setViewportSize(viewport);await settle(page);
-  for(const[index,keys]of [[6,['zoneC']],[22,['purchase','contribution']],[26,['adverseCost','adversePrice','adverseTime']],[29,['departments','permits']],[30,['construction']],[31,['documentation','sale','cashflow']],[34,['agreement','return','projectVsInvestor']],[35,['start','scope']]]){
-   await assertStageMeaning(page,config,index,keys);await assertCurrentBodyReadable(page,config,index);
+  for(const[index,keys]of [[7,['zoneA','zoneB','zoneC']],[6,['zoneC']],[22,['purchase','contribution']],[26,['adverseCost','adversePrice','adverseTime']],[29,['departments','permits']],[30,['construction']],[31,['documentation','sale','cashflow']],[34,['agreement','return','projectVsInvestor']],[35,['start','scope']]]){
+   await assertStageMeaning(page,config,index,keys);await assertCurrentBodyReadable(page,config,index);await assertLabelSeparation(page);
   }
+  for(const[index,keys]of [[32,['capital']],[33,['land','coordination']],[34,['capital','land','coordination','agreement']],[35,['capital','land','coordination','agreement']]])await assertRolesStayLegible(page,diagram,index,keys);
  }
+ await page.setViewportSize({width:390,height:844});await settle(page);for(const index of [11,15])await assertContinuousZoneTransition(page,index);
  await page.setViewportSize({width:390,height:844});await seek(page,19);const preserved=(await state(page)).p;
  await page.setViewportSize({width:400,height:850});await settle(page);assert.ok(Math.abs((await state(page)).p-preserved)<.003,'Resize must preserve narrative progress');
  await page.setViewportSize({width:390,height:844});await settle(page);assert.ok(Math.abs((await state(page)).p-preserved)<.003);
@@ -131,6 +184,7 @@ async function verify(page,config){
  await page.locator('#principalShare').click();await settle(page);const shared=await page.evaluate(()=>navigator.clipboard.readText());assert.ok(shared.startsWith(new URL(page.url()).origin),'Share must produce a usable same-site URL');assert.ok(!/[?&](?:k|token|masterbroker)=/i.test(shared),'Sharing must remove credential and profile query parameters');
 }
 async function capture(page,prefix){
+ await requireCorporateFonts(page);
  await page.setViewportSize({width:390,height:844});await page.evaluate(()=>window.YodPrincipal.api.reset());await page.waitForTimeout(100);await shot(page,prefix+'-opening-mobile390');
  for(let scene=0;scene<9;scene++){await seek(page,scene*4+2);await page.waitForTimeout(100);await shot(page,prefix+'-scene'+(scene+1)+'-mobile390');}
  for(const[name,beat]of [['zones-overview',7],['zoneA-end',11],['zoneB-end',15],['zoneC-end',19],['property-options',23],['comparison-end',27],['project-review',29],['project-end',31],['roles-end',35]]){await seek(page,beat);await page.waitForTimeout(100);await shot(page,prefix+'-'+name+'-mobile390');}
@@ -144,11 +198,11 @@ async function shot(page,id){const pixels=await page.screenshot({path:'principal
  await new Promise(resolve=>server.once('listening',resolve));
  const browser=await chromium.launch({headless:true}),context=await browser.newContext({viewport:{width:390,height:844},permissions:['clipboard-read','clipboard-write']}),errors=[];let writes=0,copyReads=0;
  let payload={textos:{...LEGACY,mono_config:JSON.stringify(betaFixture()),principal_config:JSON.stringify(configFixture())}};
- await context.route('https://**/*',route=>{if(route.request().method()!=='GET'){writes++;return route.abort('blockedbyclient');}if(route.request().url().includes('recurso=textos')){copyReads++;return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(payload)});}return route.fulfill({status:200,body:'',contentType:'application/javascript'});});
+ await context.route('https://**/*',route=>{if(route.request().method()!=='GET'){writes++;return route.abort('blockedbyclient');}if(['fonts.googleapis.com','fonts.gstatic.com'].includes(new URL(route.request().url()).hostname))return route.continue();if(route.request().url().includes('recurso=textos')){copyReads++;return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(payload)});}return route.fulfill({status:200,body:'',contentType:'application/javascript'});});
  await context.addInitScript(()=>localStorage.setItem('pyod_clave_v1','synthetic-shared-credential'));
  const page=await context.newPage();page.on('pageerror',error=>errors.push(error.message));
  const base='http://127.0.0.1:'+server.address().port+'/presentacion/';
- await page.goto(base+'?k=synthetic-do-not-share&masterbroker=synthetic-profile');try{await verify(page,readConfig(payload));}catch(error){console.log('PRINCIPAL_FAILURE_LAYOUT '+JSON.stringify(await page.evaluate(()=>({width:innerWidth,doc:document.documentElement.scrollWidth,intrinsic:[...document.querySelectorAll('body *')].filter(e=>e.clientWidth>0&&e.scrollWidth>e.clientWidth+1).slice(0,20).map(e=>({tag:e.tagName,id:e.id,cls:e.className?.baseVal??e.className,client:e.clientWidth,scroll:e.scrollWidth,text:e.tagName==='LI'?e.textContent.slice(0,100):''})),overflow:[...document.querySelectorAll('#principal *')].map(e=>({tag:e.tagName,id:e.id,rect:e.getBoundingClientRect()})).filter(x=>x.rect.width&&x.rect.right>innerWidth+1).slice(0,12).map(x=>({tag:x.tag,id:x.id,left:x.rect.left,right:x.rect.right,width:x.rect.width}))}))));await shot(page,'synthetic-failure');throw error;}assert.notEqual(await page.evaluate(()=>window.principalInjected),true);assert.equal(await page.locator('#principalDetails img').count(),0,'Remote text must be rendered as text, never trusted markup');
+ await page.goto(base+'?k=synthetic-do-not-share&masterbroker=synthetic-profile');try{await verify(page,readConfig(payload),payload);}catch(error){console.log('PRINCIPAL_FAILURE_LAYOUT '+JSON.stringify(await page.evaluate(()=>({width:innerWidth,doc:document.documentElement.scrollWidth,intrinsic:[...document.querySelectorAll('body *')].filter(e=>e.clientWidth>0&&e.scrollWidth>e.clientWidth+1).slice(0,20).map(e=>({tag:e.tagName,id:e.id,cls:e.className?.baseVal??e.className,client:e.clientWidth,scroll:e.scrollWidth,text:e.tagName==='LI'?e.textContent.slice(0,100):''})),overflow:[...document.querySelectorAll('#principal *')].map(e=>({tag:e.tagName,id:e.id,rect:e.getBoundingClientRect()})).filter(x=>x.rect.width&&x.rect.right>innerWidth+1).slice(0,12).map(x=>({tag:x.tag,id:x.id,left:x.rect.left,right:x.rect.right,width:x.rect.width}))}))));await shot(page,'synthetic-failure');throw error;}assert.notEqual(await page.evaluate(()=>window.principalInjected),true);assert.equal(await page.locator('#principalDetails img').count(),0,'Remote text must be rendered as text, never trusted markup');
  const readsBefore=copyReads;await seek(page,24);const principalPath=await page.locator('#principalPath').getAttribute('d');
  await page.locator('#principalBeta').click();await page.locator('#monoline:not([hidden])').waitFor();assert.equal(copyReads,readsBefore,'Opening beta must reuse the public payload');assert.equal(await page.locator('#principal').isVisible(),false);
  await page.locator('#monoLegacy').click();await page.locator('#story:not([hidden])').waitFor();await page.locator('#hunt:not([hidden])').waitFor();assert.equal(copyReads,readsBefore,'Opening original chapters must reuse the public payload');assert.equal(await page.locator('button[data-chapter]').count(),7);
@@ -157,15 +211,15 @@ async function shot(page,id){const pixels=await page.screenshot({path:'principal
  assert.notEqual(await page.locator('#principalStage').evaluate(e=>getComputedStyle(e).position),'fixed');assert.notEqual(await page.locator('#principalStage').evaluate(e=>getComputedStyle(e).position),'sticky');await visibleDetails(page,readConfig(payload));
  await page.locator('#principalPlay').click();await page.waitForTimeout(150);assert.equal((await state(page)).playing,false,'Reduced motion must not start automated camera movement');await page.locator('#principalNav [data-principal-group="2"]').click();await settle(page);assert.equal((await state(page)).scene,readConfig(payload).navigation[2].scene);assert.equal(await page.locator('#principalPath').getAttribute('d'),stable);assert.ok(Math.abs(await page.locator('#principalPath').evaluate(e=>parseFloat(getComputedStyle(e).strokeDashoffset)))<.1,'Reduced navigation must not hide the static path');await page.emulateMedia({reducedMotion:'no-preference'});
  assert.equal(writes,0);assert.deepEqual(errors,[]);assert.equal(await page.evaluate(()=>localStorage.getItem('pyod_clave_v1')),'synthetic-shared-credential','The presentation must never clear the shared Portero credential');
- console.log(JSON.stringify({syntheticPrincipal:true,onePath:true,oneOrigin:true,beats:36,chapters:9,persistentCases:true,nativeReverse:true,replay:true,pause:true,groupNavigation:true,visibleDetails:true,visibleStageMeaning:true,currentBodyReadable:true,textIsNotMarkup:true,resizePreservesProgress:true,mobile320:true,mobile390:true,desktop1440:true,reducedMotion:true,retainedDraft:true,noExtraLegacyFetch:true,businessWrites:writes}));
+ console.log(JSON.stringify({syntheticPrincipal:true,onePath:true,oneOrigin:true,beats:36,chapters:9,persistentCases:true,nativeReverse:true,replay:true,pause:true,groupNavigation:true,visibleDetails:true,visibleStageMeaning:true,corporateFontsLoaded:true,labelsSeparate:true,participantsInsideNodes:true,agreementShowsThreeRoles:true,zoneTransitionsSampled:true,currentBodyReadable:true,textIsNotMarkup:true,resizePreservesProgress:true,mobile320:true,mobile390:true,desktop1440:true,reducedMotion:true,retainedDraft:true,noExtraLegacyFetch:true,businessWrites:writes}));
  // Fetch only public marketing copy. It is neither persisted in Git nor printed in logs.
- const url=fs.readFileSync('presentacion/source.js','utf8').match(/url:'([^']+)'/)[1];payload=await readPublicStory(url);const real=readConfig(payload);assert.equal(real.scenes.length,9);assert.equal(real.scenes.reduce((n,s)=>n+s.beats.length,0),36);await page.goto(base);try{await verify(page,real);}catch(error){await shot(page,'public-copy-failure');throw error;}assert.deepEqual(errors,[]);
+ const url=fs.readFileSync('presentacion/source.js','utf8').match(/url:'([^']+)'/)[1];payload=await readPublicStory(url);const real=readConfig(payload);assert.equal(real.scenes.length,9);assert.equal(real.scenes.reduce((n,s)=>n+s.beats.length,0),36);await page.goto(base);try{await verify(page,real,payload);}catch(error){await shot(page,'public-copy-failure');throw error;}assert.deepEqual(errors,[]);
  if(process.env.VERIFY_PUBLISHED_STORY!=='1')await capture(page,'preview');
  if(process.env.VERIFY_PUBLISHED_STORY==='1'){
   const files=['principal.js','principal-core.js','principal.css'],publicContext=await browser.newContext({viewport:{width:390,height:844},permissions:['clipboard-read','clipboard-write']}),published=await publicContext.newPage(),publicErrors=[];published.on('pageerror',error=>publicErrors.push(error.message));let readyFlag=false,productionWrites=0;
   await publicContext.route('**/*',route=>{if(route.request().method()!=='GET'){productionWrites++;return route.abort('blockedbyclient');}return route.continue();});
   for(let attempt=0;attempt<15&&!readyFlag;attempt++){try{let match=true;for(const file of files){const r=await fetch(PUBLIC+file+'?v='+Date.now(),{signal:AbortSignal.timeout(20000)});if(!r.ok||(await r.text()).trim()!==fs.readFileSync('presentacion/'+file,'utf8').trim()){match=false;break;}}if(match){await published.goto(PUBLIC,{waitUntil:'domcontentloaded',timeout:30000});await ready(published);readyFlag=true;}}catch(_){}if(!readyFlag)await new Promise(resolve=>setTimeout(resolve,8000));}
-  assert.ok(readyFlag,'The anonymous published page must serve the exact candidate files');await verify(published,real);await capture(published,'public');assert.equal(productionWrites,0);assert.deepEqual(publicErrors,[]);assert.deepEqual(await published.evaluate(()=>Object.keys(localStorage)),[]);console.log(JSON.stringify({productionPrincipal:true,anonymous:true,exactPublishedCode:true,publicMarketingCopy:true,actualProductionScreenshots:26,businessWrites:0}));await publicContext.close();
+  assert.ok(readyFlag,'The anonymous published page must serve the exact candidate files');await verify(published,real,payload);await capture(published,'public');assert.equal(productionWrites,0);assert.deepEqual(publicErrors,[]);assert.deepEqual(await published.evaluate(()=>Object.keys(localStorage)),[]);console.log(JSON.stringify({productionPrincipal:true,anonymous:true,exactPublishedCode:true,publicMarketingCopy:true,actualProductionScreenshots:26,businessWrites:0}));await publicContext.close();
  }
  await browser.close();await new Promise(resolve=>server.close(resolve));
 })().catch(error=>{console.error(error);process.exit(1)});

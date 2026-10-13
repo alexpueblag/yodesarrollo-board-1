@@ -205,9 +205,9 @@ function build(sourceMap,config){
  s=newScene(1,'zones',city);
  for(let b=0;b<3;b++){
   const id=['A','B','C'][b];
-  mark(1,b,()=>atZone(id,z=>{tr.circle(z.center,z.radius);annotate('zone'+id,z.center.x,z.center.y-z.radius-18,{identity:id,schematic:true});}),city,'zones');
+  mark(1,b,()=>atZone(id,z=>{tr.circle(z.center,z.radius);annotate('zone'+id,z.center.x,z.center.y-z.radius-18,{identity:id,schematic:true,persistent:true});}),city,'zones');
  }
- mark(1,3,()=>{goNode(hubKey);tr.tag='common-criteria';tr.retrace(()=>{tr.line(point(100,690));tr.line(point(870,690));});annotate('references',480,663);},city,'zones');
+ mark(1,3,()=>{goNode(hubKey);tr.tag='common-criteria';tr.retrace(()=>{tr.line(point(100,690));tr.line(point(870,690));});annotate('references',480,663,{captionOnly:true});},city,'zones');
  done(s);
  const zoneCriteria=[
   [['buyer','demand','prices'],['sizes','priceM2','competition']],
@@ -221,12 +221,12 @@ function build(sourceMap,config){
   for(let b=1;b<=2;b++){
    mark(scene,b,()=>atZone(id,zone=>{
     tr.tag='zone-research-criteria';
-    const railX=zone.center.x-zone.radius*1.85,railY=zone.center.y+(b===1?-1:1)*zone.radius*1.65;
+    const railX=zone.center.x-zone.radius*2.2,railY=zone.center.y+(b===1?-1:1)*zone.radius*1.65;
     tr.line(point(railX,zone.center.y));tr.line(point(railX,railY));
     for(let j=0;j<3;j++){
-     const x=zone.center.x+(j-1)*zone.radius*1.7;
+     const x=zone.center.x+(j-1)*zone.radius*1.95;
      tr.line(point(x,railY));tr.retrace(()=>tr.line(point(x,railY+(b===1?-8:8))));
-     annotate(zoneCriteria[zi][b-1][j],x,railY+(b===1?-22:22),{zoneId:id,criterion:true});
+     annotate(zoneCriteria[zi][b-1][j],x,railY+(b===1?-14:14),{zoneId:id,criterion:true,centered:true,maxChars:10,maxWidth:zone.radius*1.7-12});
     }
     tr.line(point(railX,railY));tr.line(point(railX,zone.center.y));tr.line(point(zone.center.x-zone.radius,zone.center.y));
    }),z.focus,'zone-'+id);
@@ -268,7 +268,7 @@ function build(sourceMap,config){
     const x=[1270,1605,1940][i];
     tr.line(point(x,900));
     tr.retrace(()=>{tr.line(point(x,870));tr.box({x:x-36,y:814,w:72,h:56});});
-    annotate(keys[i],x,778);
+    annotate(keys[i],x,765,{centered:true,maxChars:tag==='adverse-conditions'?10:12,maxWidth:265});
    }
   });
  };
@@ -342,48 +342,47 @@ function build(sourceMap,config){
   });
   tr.line(point(2860,620));
   tr.tag='sale-direction-arrow';tr.retrace(()=>{tr.line(point(2845,610));tr.line(point(2860,620));tr.line(point(2845,630));});
-  annotate('documentation',2750,760);annotate('sale',2910,690);annotate('cashflow',2910,820);
+  annotate('documentation',2570,760,{centered:true,maxChars:12,maxWidth:250});annotate('sale',2910,685,{centered:true,maxChars:10,maxWidth:250});annotate('cashflow',2950,810,{centered:true,maxChars:10,maxWidth:250});
  },{x:2120,y:240,width:1020,height:650},'development');
  done(s);
  const projectJoin=point(2860,620),junction=point(2920,620);
  const roles={
-  capital:{x:3020,y:230,w:650,h:210},
-  land:{x:3950,y:230,w:650,h:210},
-  coordination:{x:3720,y:540,w:650,h:210}
+  capital:{x:3020,y:230,w:950,h:280},
+  land:{x:4050,y:170,w:950,h:400},
+  coordination:{x:3535,y:640,w:950,h:280}
  };
- const agreement={x:3380,y:850,w:750,h:200};
- const capitalFocus={x:2880,y:140,width:900,height:560};
- const landCoordFocus={x:3680,y:140,width:1080,height:740};
- const agreementFocus={x:3240,y:760,width:1200,height:560};
- const wholeRoles={x:2900,y:130,width:1870,height:1030};
+ const agreement={x:3435,y:990,w:1150,h:300};
+ const capitalFocus={x:2920,y:160,width:1120,height:550};
+ const rolesFocus={x:2955,y:110,width:2110,height:970};
+ const wholeRoles={x:2955,y:110,width:2110,height:1290};
  const roleNode=key=>{
   const node=roles[key],cy=node.y+node.h/2;
   tr.tag='role-'+key;tr.box(node);
-  annotate(key,node.x+node.w/2,cy,{persistent:true,node:true,centered:true,maxChars:24});
+  annotate(key,node.x+node.w/2,cy,{persistent:true,node:true,centered:true,maxChars:18,maxWidth:930});
  };
  s=newScene(8,'participation',wholeRoles);
  mark(8,0,()=>{
   tr.tag='capital-participation';tr.line(projectJoin);tr.line(junction);
-  tr.line(point(junction.x,335));tr.line(point(roles.capital.x,335));roleNode('capital');
+  tr.line(point(junction.x,370));tr.line(point(roles.capital.x,370));roleNode('capital');
  },capitalFocus,'participation');
  mark(8,1,()=>{
-  tr.tag='role-land';tr.line(point(junction.x,335));tr.line(point(junction.x,170));
-  tr.line(point(3890,170));tr.line(point(3890,335));tr.line(point(roles.land.x,335));roleNode('land');
-  tr.tag='role-coordination';tr.line(point(3890,335));tr.line(point(3890,170));tr.line(point(3710,170));
-  tr.line(point(3710,645));tr.line(point(roles.coordination.x,645));roleNode('coordination');
- },landCoordFocus,'participation',{enterFrom:capitalFocus,enterDelay:0,enterDuration:.35});
+  tr.tag='role-land';tr.line(point(junction.x,370));tr.line(point(junction.x,140));
+  tr.line(point(3990,140));tr.line(point(3990,370));tr.line(point(roles.land.x,370));roleNode('land');
+  tr.tag='role-coordination';tr.line(point(3990,370));tr.line(point(3990,140));tr.line(point(3990,610));
+  tr.line(point(3495,610));tr.line(point(3495,780));tr.line(point(roles.coordination.x,780));roleNode('coordination');
+ },rolesFocus,'participation',{enterFrom:capitalFocus,enterDelay:0,enterDuration:.35});
  mark(8,2,()=>{
   tr.tag='participation-agreement';
-  tr.line(point(3300,645));tr.line(point(3300,950));tr.line(point(agreement.x,950));tr.box(agreement);
-  annotate('agreement',agreement.x+agreement.w/2,agreement.y+agreement.h/2,{persistent:true,node:true,centered:true,maxChars:24});
-  annotate('return',agreement.x+agreement.w/2,1110,{captionOnly:true});
-  annotate('projectVsInvestor',agreement.x+agreement.w/2,1170,{captionOnly:true});
- },agreementFocus,'participation',{enterFrom:landCoordFocus,enterDelay:0,enterDuration:.2});
+  tr.line(point(3300,780));tr.line(point(3300,1140));tr.line(point(agreement.x,1140));tr.box(agreement);
+  annotate('agreement',agreement.x+agreement.w/2,agreement.y+agreement.h/2,{persistent:true,node:true,centered:true,maxChars:18,maxWidth:1100});
+  annotate('return',agreement.x+agreement.w/2,1320,{captionOnly:true});
+  annotate('projectVsInvestor',agreement.x+agreement.w/2,1380,{captionOnly:true});
+ },wholeRoles,'participation');
  mark(8,3,()=>{
   tr.tag='open-conversation';
-  tr.line(point(3300,950));tr.line(point(3300,1110));tr.line(point(3380,1110));tr.line(point(3380,1140));tr.line(point(3600,1140));
-  annotate('start',3755,1160,{captionOnly:true});annotate('scope',3755,1220,{captionOnly:true});
- },wholeRoles,'participation',{enterFrom:agreementFocus,enterDelay:0,enterDuration:.35});
+  tr.line(point(3300,1140));tr.line(point(3300,1320));tr.line(point(3435,1320));tr.line(point(3655,1320));
+  annotate('start',4010,1320,{captionOnly:true});annotate('scope',4010,1380,{captionOnly:true});
+ },wholeRoles,'participation');
  done(s);
  const all=tr.points.concat(annotations.map(a=>point(a.x,a.y))).reduce((b,p)=>({minX:Math.min(b.minX,p.x),minY:Math.min(b.minY,p.y),maxX:Math.max(b.maxX,p.x),maxY:Math.max(b.maxY,p.y)}),{minX:Infinity,minY:Infinity,maxX:-Infinity,maxY:-Infinity});
  const d='M'+tr.points[0].x+' '+tr.points[0].y+tr.points.slice(1).map(p=>' L'+p.x+' '+p.y).join('');
