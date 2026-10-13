@@ -11,11 +11,11 @@ async function fit(page){
   const stage=document.querySelector('#simpleStage').getBoundingClientRect(),fields=['#simpleTitle','#simpleLead','#simpleCaptionBody','#simpleLabels span','#simpleControls button:not([hidden])','#simpleHeader button'];
   const items=fields.flatMap(sel=>[...document.querySelectorAll(sel)]).filter(e=>!e.closest('[hidden]')).map(e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e);return{tag:e.tagName,id:e.id,left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height,font:parseFloat(s.fontSize),display:s.display};});
   const svg=document.querySelector('#simpleDiagram svg'),m=svg.getScreenCTM(),stroke=[...svg.querySelectorAll('path')].map(e=>parseFloat(getComputedStyle(e).strokeWidth)*Math.hypot(m.a,m.b));
-  return{stage:{top:stage.top,bottom:stage.bottom},items,stroke,doc:document.documentElement.scrollWidth,width:innerWidth,height:innerHeight};
+  const artBottom=Math.max(...[...svg.querySelectorAll('path')].map(e=>e.getBoundingClientRect().bottom)),labelTop=document.querySelector('#simpleLabels').getBoundingClientRect().top;return{stage:{top:stage.top,bottom:stage.bottom},items,stroke,labelGap:labelTop-artBottom,doc:document.documentElement.scrollWidth,width:innerWidth,height:innerHeight};
  });
  assert.ok(r.doc<=r.width+1,'No horizontal overflow: '+JSON.stringify(r));
  for(const x of r.items){assert.ok(x.left>=-1&&x.right<=r.width+1&&x.top>=-1&&x.bottom<=r.height+1,'All visible explanation and controls fit one screen: '+JSON.stringify({x,r}));if(x.tag==='BUTTON')assert.ok(x.width>=43&&x.height>=43,'Touch target');if(['simpleLead','simpleCaptionBody'].includes(x.id))assert.ok(x.font>=16);}
- assert.ok(r.stroke.every(v=>v>=6.9&&v<=7.1),'Responsive physical strokes stay bold');
+ assert.ok(r.stroke.every(v=>v>=6.9&&v<=7.1),'Responsive physical strokes stay bold');assert.ok(r.labelGap>=-1&&r.labelGap<=(r.width<=600?65:120),'Labels stay with their illustration: '+JSON.stringify(r));
 }
 async function verify(page,c){
  await ready(page);

@@ -6,7 +6,7 @@ function node(tag,value){const e=document.createElement(tag);if(value!==undefine
 function cleanURL(){const u=new URL(location.href);u.search='';u.hash='';return u.href;}
 function measure(){const h=$('simpleHeader').getBoundingClientRect().height;document.documentElement.style.setProperty('--s-header',h+'px');range=Math.max(1,document.documentElement.scrollHeight-innerHeight);}
 function progress(){return clamp(scrollY/range);}
-function reveal(local){const paths=activeSvg?.querySelectorAll('[data-stage]')||[],rect=activeSvg?.getBoundingClientRect(),vb=activeSvg?.viewBox.baseVal,scale=rect&&vb?Math.min(rect.width/vb.width,rect.height/vb.height):1;for(const path of paths){path.style.strokeWidth=String(7/Math.max(.001,scale));const stage=Number(path.dataset.stage),v=reduce.matches||(scene===0&&stage===0)?1:clamp(local*3-stage);path.style.strokeDashoffset=String((1-v)*100);}}
+function reveal(local){const paths=activeSvg?.querySelectorAll('[data-stage]')||[],rect=activeSvg?.getBoundingClientRect(),vb=activeSvg?.viewBox.baseVal,scale=rect&&vb?Math.min(rect.width/vb.width,rect.height/vb.height):1;for(const path of paths){path.style.strokeWidth=String(7/Math.max(.001,scale));const stage=Number(path.dataset.stage),v=reduce.matches||(scene===0&&stage===0)?1:clamp((local*3-stage)/.85);path.style.strokeDashoffset=String((1-v)*100);}}
 function drawScene(s,local){
  $('simpleDiagram').innerHTML=window.YodSimpleDiagrams.renderSVG(s.id,local);
  activeSvg=$('simpleDiagram').querySelector('svg');
