@@ -23,7 +23,7 @@ for(const [name,engine]of [['webkit',webkit],['chromium',chromium]]){
   await p.locator('#next').tap();await p.waitForTimeout(750);assert.equal(await p.evaluate(()=>YodSlider.api.state().p),7);
   await p.locator('#prev').tap();await p.waitForTimeout(750);assert.equal(await p.evaluate(()=>YodSlider.api.state().p),6);
   const layout=await p.evaluate(()=>({font:parseFloat(getComputedStyle(document.querySelector('.mobile-body')).fontSize),buttons:[...document.querySelectorAll('.transport button')].map(n=>{const r=n.getBoundingClientRect();return[r.width,r.height,r.right,r.bottom];})}));assert.ok(layout.font>=16);assert.ok(layout.buttons.every(b=>b[0]>=44&&b[1]>=44&&b[2]<=size.width+1&&b[3]<=size.height+1));
-  await p.evaluate(()=>YodSlider.api.seek(26));await p.locator('#actions').scrollIntoViewIfNeeded();const actions=await p.locator('#actions').boundingBox(),dock=await p.locator('.dock').boundingBox();assert.ok(actions.y+actions.height<=dock.y+1,'Closing is reachable above safe controls');assert.ok(await p.locator('#actions a').isVisible());
+  await p.evaluate(()=>YodSlider.api.seek(26));await p.locator('#actions').evaluate(e=>e.scrollIntoView({block:'end',behavior:'instant'}));await p.waitForTimeout(80);const actions=await p.locator('#actions').boundingBox(),dock=await p.locator('.dock').boundingBox();assert.ok(actions.y+actions.height<=dock.y+1,'Closing is reachable above safe controls');assert.ok(await p.locator('#actions a').isVisible());
   if(name==='webkit'&&size.width===390){await shot(p,'iphone-close');await p.evaluate(()=>YodSlider.api.seek(0));await shot(p,'iphone-open');await p.evaluate(()=>YodSlider.api.seek(13));await shot(p,'iphone-account');}
   if(name==='webkit'&&size.width===375)await shot(p,'iphone-small-close');
  }
@@ -32,7 +32,7 @@ for(const [name,engine]of [['webkit',webkit],['chromium',chromium]]){
  await p.setViewportSize({width:390,height:844});await p.waitForTimeout(100);await p.emulateMedia({reducedMotion:'reduce'});await p.evaluate(()=>YodSlider.api.seek(0));await p.locator('#next').tap();assert.equal(await p.locator('#progress').inputValue(),'1');
  await p.locator('#contents').tap();assert.ok(await p.locator('#reader').isVisible());await p.locator('[data-close="reader"]').tap();assert.deepEqual(errors,[]);
  console.log(JSON.stringify({mobileJourney:true,engine:name,nativeScroll:true,verticalRail:true,noSnap:true,orientation:true,shortPhone:true,landscape:true,closingReachable:true,touchButtons:true,reducedMotion:true}));
- }catch(e){console.log('MOBILE_DIAGNOSTIC '+JSON.stringify(await p.evaluate(()=>({state:YodSlider.api.state(),y:scrollY,trace:window.scrollTrace,events:window.scrollEvents,errors:window.mobileErrors,visibility:document.visibilityState}))));await shot(p,name+'-failure');throw e;}finally{await browser.close();}
+ }catch(e){console.log('MOBILE_DIAGNOSTIC '+JSON.stringify(await p.evaluate(()=>({state:YodSlider.api.state(),y:scrollY,trace:window.scrollTrace?.slice(-5),events:window.scrollEvents?.slice(-5),errors:window.mobileErrors,visibility:document.visibilityState}))));await shot(p,name+'-failure');throw e;}finally{await browser.close();}
 }
 await new Promise(r=>server.close(r));
 })().catch(e=>{console.error(e);process.exit(1);});
