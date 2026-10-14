@@ -45,7 +45,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: yodesarrollomx/yod-portal
-          ref: 6a0fc607db4dfe6c2f63c0dc2f47424d412fbf79
+          ref: eea887a417e4e7f10a5d3184efc08f5e01f8ffe6
           path: .yod-atlas
           persist-credentials: false
           sparse-checkout-cone-mode: false
@@ -71,6 +71,9 @@ jobs:
           node --check presentacion/monoline.js
           node --check presentacion/principal-core.js
           node --check presentacion/principal.js
+          node --check presentacion/slider-core.js
+          node --check presentacion/slider-art.js
+          node --check presentacion/slider.js
           node --check presentacion/simple.js
           node --check presentacion/simple-diagrams.js
           git diff --check HEAD^ HEAD
@@ -80,6 +83,7 @@ jobs:
         run: |
           npm install --no-save --ignore-scripts --no-audit --no-fund playwright@1.58.2
           npx playwright install --with-deps chromium
+          node tests/brokers-slider-browser.cjs
           node tests/brokers-simple-browser.cjs
           node tests/brokers-principal-browser.cjs
           node tests/brokers-evaluator-browser.cjs
@@ -87,6 +91,7 @@ jobs:
           node tests/brokers-hunt-browser.cjs
           node tests/brokers-monoline-browser.cjs
       - name: Vistas reales principal y beta
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: investor-scene1-mobile
@@ -96,6 +101,7 @@ jobs:
             mono-*.jpg
             principal-*.jpg
             simple-*.jpg
+            slider-*.jpg
           retention-days: 7
       - name: Resolver comparación
         id: refs

@@ -1,7 +1,7 @@
 {
-  "model_revision": "2026-10-13.investor-simple-story.1",
-  "proposal_id": "CHG-INVESTOR-SIMPLE-STORY",
-  "summary": "Presentación nueva de siete escenas independientes y trazos grandes. Lectura opcional conserva la fuente completa; anteriores se archivan dentro del mismo sitio. Todo el contenido simple_* en Sheets, sin backend/ACL/reglas financieras.",
+  "model_revision": "2026-10-14.investor-slider.1",
+  "proposal_id": "CHG-INVESTOR-SLIDER",
+  "summary": "Recorrido comercial de nueve paradas con slider manual, inmueble persistente y 27 momentos. Contenido editorial en Sheets mediante GET existente; originales y beta conservados. Sin cambios al evaluador, backend, ACL o cálculos de negocio.",
   "components": [
     "SYS-INVERSION",
     "GAS-PLAN-POTENCIAL",
@@ -11,10 +11,10 @@
   ],
   "tests": [
     "node --test tests/brokers*.test.cjs",
-    "node --check presentacion/simple.js; node --check presentacion/simple-diagrams.js",
-    "Chromium320/390/1440: siete escenas, tres revelados, texto y controles44 dentro de pantalla, trazo físico7px, scroll/reversa, play/pausa, reset y reduced-motion.",
-    "Lector mantiene todos los bloques originales. Transporte público y mensajes seguros, credencial Portero intacta, cero escrituras de negocio.",
-    "Pruebas anteriores sobre archive.html, sin eliminar contratos; verificación pública anónima de código exacto, fuente viva, controles y capturas tras integración."
+    "node --check presentacion/slider-core.js; node --check presentacion/slider-art.js; node --check presentacion/slider.js; git diff --check",
+    "Chromium320/390/1440: 27 momentos, arrastre nativo, teclado, reversa exacta, identidad del inmueble, reduced-motion, contenido vivo y cierre doble.",
+    "Regresiones de versiones previas, transporte público sin credencial, Portero intacto, cero escrituras de prueba.",
+    "Frontend público exacto, carga anónima y captura móvil después de integrar."
   ],
-  "rollback": "Revertir sólo frontend a la principal anterior en la misma URL. Conservar simple_*, principal_*, mono_*, originales, permisos y expedientes."
+  "rollback": "Restaurar index desde simple.html, conservar todos los archivos/configs/editoriales y registros de negocio."
 }
