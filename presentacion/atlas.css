@@ -30,3 +30,5 @@ html[data-beat="26"] .eyebrow{display:none}html[data-beat="26"] h1{font-size:30p
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
 .map-source{display:none;font-size:10px;color:var(--muted);padding:0 3px;text-underline-offset:2px}html[data-scene="0"] .map-source,html[data-scene="1"] .map-source{display:inline-block}
+
+.wordmark img{mix-blend-mode:multiply}html[data-scene="0"] figcaption,html[data-scene="1"] figcaption{display:inline;min-height:0;padding-right:4px}html[data-scene="0"] .map-source,html[data-scene="1"] .map-source{font-size:9px}
