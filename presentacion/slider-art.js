@@ -28,6 +28,7 @@ const participants=group('participants',[circle(113,195,40),circle(527,195,40),c
 participants.append(path('M100 195 L113 183 L127 195 L127 212 L100 212 Z M511 193 Q527 178 543 193 Q527 209 511 193 M527 177 L527 212 M308 351 L320 333 L332 351','ink accent'));
 const timeline=group('execution-controls',[path('M115 353 L525 353','ink ghost'),circle(135,353,9,'ink accent wash'),circle(320,353,9,'ink accent wash'),circle(505,353,9,'ink accent wash')]);
 const flow=group('recovery-flow',[arrow(320,170,320,209),rect(229,216,182,64,'ink accent active-fill'),arrow(320,282,320,309),path('M141 327 L141 310 L499 310 L499 327','ink accent'),rect(57,330,170,63),rect(414,330,170,63)]);
+const reviewLabels=[txt(166,53,''),txt(474,53,''),txt(320,408,'')],partyLabels=[txt(113,136,''),txt(527,136,''),txt(320,405,'')];reviewLabels.forEach(n=>review.append(n));partyLabels.forEach(n=>participants.append(n));
 const titleNodes=[txt(320,257,''),txt(142,369,''),txt(499,369,'')];titleNodes.forEach(n=>flow.append(n));
 const badges=group('badges',[txt(165,380,'P1'),txt(466,380,'P2')]);
 svg.append(city,streets,second.g,main.g,product,ledger,review,participants,timeline,flow,badges);
@@ -39,7 +40,7 @@ main.g.setAttribute('transform','translate('+v.x+' '+v.y+') scale('+v.z+')');mai
 second.g.setAttribute('transform','translate(464 262) scale(.79)');second.g.style.opacity=v.second;second.house.style.opacity=1;second.building.style.opacity=0;second.footprint.style.opacity=0;second.access.style.opacity=0;
 const vals=[v.city,v.streets,v.product,v.ledger,v.review,v.participants,v.timeline,v.flow,v.badges];aux.forEach((g,i)=>g.style.opacity=vals[i]);ledgerOps[0].textContent=a===13?'−':a===14?'↓':'+';ledgerOps[1].textContent=a===13?'=':a===14?'↑':'+';svg.dataset.frame=p.toFixed(3);
 }
-return{draw,labels(values){titleNodes.forEach((n,i)=>n.textContent=values[i]);ledgerLabels.forEach((n,i)=>n.textContent=values[i]);}};
+return{draw,labels(values,diagrams){titleNodes.forEach((n,i)=>n.textContent=values[i]);ledgerLabels.forEach((n,i)=>n.textContent=values[i]);reviewLabels.forEach((n,i)=>n.textContent=diagrams?.review?.[i]||'');partyLabels.forEach((n,i)=>n.textContent=diagrams?.participants?.[i]||'');}};
 }
 root.YodSliderArt={mount};
 })(window);

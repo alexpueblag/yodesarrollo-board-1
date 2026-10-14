@@ -7,7 +7,7 @@ $('progress').setAttribute('aria-valuetext',scene.label+', '+(s.step+1)+' de 3: 
 if(active!==s.beat){active=s.beat;put('chapterCount',String(s.scene+1).padStart(2,'0')+' / 09');put('chapterLabel',scene.label);put('title',scene.title);put('stepHeading',step.heading);put('body',step.body);put('moment',scene.label+' · '+(s.step+1)+' / 3');put('position',(s.beat+1)+' / 27');put('artTitle',scene.title);put('artDesc',step.heading+' '+step.body);put('figureNote',s.scene===1?cfg.mapNote:cfg.notice);
 $('labels').replaceChildren(...step.labels.map(x=>node('span',x)));[...$('beats').children].forEach((n,i)=>n.classList.toggle('on',i<=s.step));
 [...$('chapters').children].forEach((b,i)=>{if(i===s.scene)b.setAttribute('aria-current','step');else b.removeAttribute('aria-current');});const tab=$('chapters').children[s.scene];$('chapters').scrollTo({left:Math.max(0,tab.offsetLeft-$('chapters').offsetLeft-30),behavior:'instant'});
-$('actions').hidden=s.beat!==26;art.labels(step.labels);document.documentElement.dataset.scene=String(s.scene);document.documentElement.dataset.beat=String(s.beat);
+$('actions').hidden=s.beat!==26;art.labels(step.labels,cfg.diagrams);document.documentElement.dataset.scene=String(s.scene);document.documentElement.dataset.beat=String(s.beat);
 }}
 function seek(target,animate=false){cancelAnimationFrame(frame);target=C.clamp(target);if(!animate||reduce.matches){render(target);return;}const from=p,duration=Math.min(650,240+Math.abs(target-from)*45),start=performance.now();function tick(now){const t=Math.min(1,(now-start)/duration),e=t*t*(3-2*t);render(from+(target-from)*e);if(t<1)frame=requestAnimationFrame(tick);else render(target);}frame=requestAnimationFrame(tick);}
 function clean(){return C.cleanURL(location.href);}
