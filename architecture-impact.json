@@ -1,20 +1,20 @@
 {
-  "model_revision": "2026-10-14.investor-slider.1",
-  "proposal_id": "CHG-INVESTOR-SLIDER",
-  "summary": "Recorrido comercial de nueve paradas con slider manual, inmueble persistente y 27 momentos. Contenido editorial en Sheets mediante GET existente; originales y beta conservados. Sin cambios al evaluador, backend, ACL o cálculos de negocio.",
+  "model_revision": "2026-10-14.investor-atlas.2",
+  "proposal_id": "CHG-INVESTOR-ATLAS-2",
+  "summary": "Professional investor presentation: existing official logo, real map from Sheets, architectural diagrams and literal development-for-sale narrative. Final action navigates to existing evaluator without session transfer. Original slider archived.",
   "components": [
     "SYS-INVERSION",
     "GAS-PLAN-POTENCIAL",
     "SHEET-PLAN-POTENCIAL",
-    "SYS-YOD-OS",
+    "GAS-PORTERO",
     "SYS-CONTROL"
   ],
   "tests": [
     "node --test tests/brokers*.test.cjs",
-    "node --check presentacion/slider-core.js; node --check presentacion/slider-art.js; node --check presentacion/slider.js; git diff --check",
-    "Chromium320/390/1440: 27 momentos, arrastre nativo, teclado, reversa exacta, identidad del inmueble, reduced-motion, contenido vivo y cierre doble.",
-    "Regresiones de versiones previas, transporte público sin credencial, Portero intacto, cero escrituras de prueba.",
-    "Frontend público exacto, carga anónima y captura móvil después de integrar."
+    "Syntax and git diff --check",
+    "Chromium320/390/1440:27 moments, reversibility, native slider, keyboard, reduced-motion, official logo, real map, evaluator CTA, live editorial.",
+    "Existing evaluator anonymous GET; zero business writes; prior versions retained.",
+    "Exact public frontend and anonymous browser after deployment."
   ],
-  "rollback": "Restaurar index desde simple.html, conservar todos los archivos/configs/editoriales y registros de negocio."
+  "rollback": "Restore index from slider.html. Keep editorials, history, permissions and records."
 }
