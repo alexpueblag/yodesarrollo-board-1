@@ -38,15 +38,16 @@ let x=ps===2?160:ps===7?250:320,y=ps===7?285:ps===2?220:205,z=ps===2?.66:ps===7?
 primary.node.setAttribute('transform','translate('+x+' '+y+') scale('+z+')');
 primary.floors.forEach((el,i)=>{let a=ps===2?(i===0?1:0):ps===7?.2+.8*clamp((pj+pt)*1.6-i):i===0?1:clamp((pj+pt)*1.2-i+.2);el.style.opacity=String(a);el.setAttribute('transform','translate(0 '+((1-a)*-20).toFixed(3)+')');});
 context.style.opacity=String(.18*(1-clamp((j+t)/2)));
-if(map){let zoom=1+.2*(j+t),fx=map.focus[0],fy=map.focus[1];mapCamera.setAttribute('transform','translate('+(320-fx*.61*zoom).toFixed(3)+' '+(175-fy*.47*zoom).toFixed(3)+') scale('+(.61*zoom).toFixed(4)+' '+(.47*zoom).toFixed(4)+')');streets.style.opacity=String(clamp((j+t)/2));}
-scan.style.opacity=String(.55+clamp(j+t)*.45);
-scenes[2].querySelectorAll('.parcel-id').forEach((el,i)=>el.setAttribute('class','parcel-id '+(j===i?'accent-text':'')));
-units.forEach((el,i)=>{el.style.opacity=String(clamp((j+t)*2-i*.35));});
-ops[0].textContent=j===0?'+':j===1?'−':'';ops[1].textContent=j===0?'+':j===1?'=':'';
-symbols.forEach((el,i)=>el.textContent=j===0?['▱','▥','＋'][i]:j===1?' ':['↓','↑','→'][i]);
-accountBoxes.forEach((el,i)=>el.setAttribute('class','line account-box '+(j===1&&i===2?'highlight':'')));
-checks.querySelectorAll('.condition-card').forEach((el,i)=>el.setAttribute('class','line condition-card '+(j<2&&i===j?'highlight':'')));
-party.querySelectorAll('rect').forEach((el,i)=>el.setAttribute('class','line slab '+(i===j?'highlight':'')));
+const marketPhase=s===1?j+t:0,productPhase=s===3?j+t:0,accountStep=s===4?j:0,conditionStep=s===5?j:0,partyStep=s===6?j:0,propertyStep=s===2?j:0;
+if(map){let zoom=1+.2*marketPhase,fx=map.focus[0],fy=map.focus[1];mapCamera.setAttribute('transform','translate('+(320-fx*.61*zoom).toFixed(3)+' '+(175-fy*.47*zoom).toFixed(3)+') scale('+(.61*zoom).toFixed(4)+' '+(.47*zoom).toFixed(4)+')');streets.style.opacity=String(clamp(marketPhase/2));}
+scan.style.opacity=String(.55+clamp(marketPhase)*.45);
+scenes[2].querySelectorAll('.parcel-id').forEach((el,i)=>el.setAttribute('class','parcel-id '+(propertyStep===i?'accent-text':'')));
+units.forEach((el,i)=>{el.style.opacity=String(clamp(productPhase*2-i*.35));});
+ops[0].textContent=accountStep===0?'+':accountStep===1?'−':'';ops[1].textContent=accountStep===0?'+':accountStep===1?'=':'';
+symbols.forEach((el,i)=>el.textContent=accountStep===0?['▱','▥','＋'][i]:accountStep===1?' ':['↓','↑','→'][i]);
+accountBoxes.forEach((el,i)=>el.setAttribute('class','line account-box '+(accountStep===1&&i===2?'highlight':'')));
+checks.querySelectorAll('.condition-card').forEach((el,i)=>el.setAttribute('class','line condition-card '+(conditionStep<2&&i===conditionStep?'highlight':'')));
+party.querySelectorAll('rect').forEach((el,i)=>el.setAttribute('class','line slab '+(i===partyStep?'highlight':'')));
 final.style.opacity=s===8&&j===2?'0':'1';miniMap.style.opacity=s===8&&j===2?'1':'0';
 const positions=s===6?[[140,128],[500,128],[320,313]]:s===8&&j<2?[[320,108],[170,285],[470,285]]:s===4?[[140,j===1?190:239],[320,j===1?190:239],[500,j===1?190:239]]:s===5?[[140,310],[320,310],[500,310]]:[[120,374],[320,374],[520,374]];
 const texts=s===2?diagrams.properties:s===3?diagrams.product:s===6?diagrams.participants:s===8&&j<2?diagrams.recovery:words;
