@@ -28,3 +28,5 @@ html[data-beat="26"] .eyebrow{display:none}html[data-beat="26"] h1{font-size:30p
 }
 @media(max-width:360px){.masthead{padding:0 14px}.wordmark img{width:155px}.workspace{padding-left:14px;padding-right:14px}h1{font-size:31px}.drawing-head>span:last-child{display:none}.art-label{font-size:14px}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+.map-source{display:none;font-size:10px;color:var(--muted);padding:0 3px;text-underline-offset:2px}html[data-scene="0"] .map-source,html[data-scene="1"] .map-source{display:inline-block}

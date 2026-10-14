@@ -11,7 +11,7 @@ path('M-106 '+(y-48)+'L12 '+(y+9)+' 123 '+(y-48)+'M12 '+(y+9)+'V'+(y+57),'line')
 path('M-83 '+(y-25)+'v23l25 12v-23ZM-41 '+(y-5)+'v23l25 12v-23ZM34 '+(y+8)+'v22l25-13v-22ZM78 '+(y-14)+'v22l25-13v-22Z','line glazing'));floors.push(level);b.append(level);}
 b.append(path('M-150 60L0 132 175 43M-155 55v10M175 38v10','line dimension'));return {node:b,floors};}
 function mount(svg,overlay,map){
-const defs=n('defs',{},[n('pattern',{id:'drawing-grid',width:32,height:32,patternUnits:'userSpaceOnUse'},[path('M32 0H0V32','grid-line')]),n('clipPath',{id:'map-window'},[rect(14,22,612,330)])]);svg.append(defs,rect(0,0,640,420,'drawing-bg'),rect(0,0,640,420,'drawing-grid'));
+const defs=n('defs',{},[n('pattern',{id:'drawing-grid',width:32,height:32,patternUnits:'userSpaceOnUse'},[path('M32 0H0V32','grid-line')]),n('clipPath',{id:'map-window'},[rect(14,22,612,290)])]);svg.append(defs,rect(0,0,640,420,'drawing-bg'),rect(0,0,640,420,'drawing-grid'));
 const scenes=Array.from({length:9},(_,i)=>g('scene-'+i));svg.append(...scenes);
 const city=g('real-city'),streets=g('real-streets'),mapCamera=g('map-camera',[city,streets]),mapClip=g('map-clip',[mapCamera]);mapClip.setAttribute('clip-path','url(#map-window)');
 if(map){map.roads.forEach(r=>city.append(path(r[2],'road '+(/primary|trunk/.test(r[1])?'major':''))));map.streets.forEach(r=>streets.append(path(r[2],'road local')));}
@@ -34,7 +34,7 @@ let words=[],diagrams={},labelScene=0,labelStep=0;
 function draw(p,reduced){const beat=Math.min(26,Math.floor(p+.00001)),s=Math.floor(beat/3),j=beat%3,t=p-beat,blend=reduced?0:ease(clamp((t-.65)/.35));
 scenes.forEach((el,i)=>el.style.opacity=i===s?String(s<8&&j===2?1-blend:1):i===s+1&&j===2?String(blend):'0');
 const show=[0,2,7].includes(s),incoming=j===2&&[2,7].includes(s+1),ps=show?s:incoming?s+1:s,pj=incoming?0:j,pt=incoming?0:t;primary.node.style.opacity=show?String(j===2&&s<8?1-blend:1):incoming?String(blend):'0';
-let x=ps===2?160:ps===7?250:320,y=ps===7?285:ps===2?235:255,z=ps===2?.66:ps===7?.95:1.03;
+let x=ps===2?160:ps===7?250:320,y=ps===7?285:ps===2?220:205,z=ps===2?.66:ps===7?.95:.90;
 primary.node.setAttribute('transform','translate('+x+' '+y+') scale('+z+')');
 primary.floors.forEach((el,i)=>{let a=ps===2?(i===0?1:0):ps===7?.2+.8*clamp((pj+pt)*1.6-i):i===0?1:clamp((pj+pt)*1.2-i+.2);el.style.opacity=String(a);el.setAttribute('transform','translate(0 '+((1-a)*-20).toFixed(3)+')');});
 context.style.opacity=String(.18*(1-clamp((j+t)/2)));
@@ -48,7 +48,7 @@ accountBoxes.forEach((el,i)=>el.setAttribute('class','line account-box '+(j===1&
 checks.querySelectorAll('.condition-card').forEach((el,i)=>el.setAttribute('class','line condition-card '+(j<2&&i===j?'highlight':'')));
 party.querySelectorAll('rect').forEach((el,i)=>el.setAttribute('class','line slab '+(i===j?'highlight':'')));
 final.style.opacity=s===8&&j===2?'0':'1';miniMap.style.opacity=s===8&&j===2?'1':'0';
-const positions=s===6?[[140,128],[500,128],[320,313]]:s===8&&j<2?[[320,108],[170,285],[470,285]]:s===4?[[140,j===1?190:239],[320,j===1?190:239],[500,j===1?190:239]]:s===5?[[140,310],[320,310],[500,310]]:[[120,357],[320,357],[520,357]];
+const positions=s===6?[[140,128],[500,128],[320,313]]:s===8&&j<2?[[320,108],[170,285],[470,285]]:s===4?[[140,j===1?190:239],[320,j===1?190:239],[500,j===1?190:239]]:s===5?[[140,310],[320,310],[500,310]]:[[120,374],[320,374],[520,374]];
 const texts=s===2?diagrams.properties:s===3?diagrams.product:s===6?diagrams.participants:s===8&&j<2?diagrams.recovery:words;
 labels.forEach((el,i)=>{el.textContent=texts?.[i]||'';el.style.left=positions[i][0]/640*100+'%';el.style.top=positions[i][1]/420*100+'%';el.classList.toggle('is-active',s===6?i===j:s===4&&j===1?i===2:false);});
 overlay.style.opacity=String(j===2&&s<8?1-blend:1);svg.dataset.frame=p.toFixed(3);svg.dataset.map=map?'real':'unavailable';
