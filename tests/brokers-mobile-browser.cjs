@@ -2,13 +2,14 @@
 const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),assert=require('node:assert/strict'),{chromium,webkit}=require('playwright'),{read}=require('./public-story-copy.cjs');
 async function shot(p,name){const b=await p.screenshot({type:'jpeg',quality:65});fs.writeFileSync('mobile-'+name+'.jpg',b);b.toString('base64').match(/.{1,1600}/g).forEach((c,i)=>console.log('MOBILE_SCREEN_CHUNK '+name+' '+i+' '+c));}
 (async()=>{
+setTimeout(()=>{console.error('Mobile browser test deadline');process.exit(1);},240000).unref();
 const payload=await read(fs.readFileSync('presentacion/source.js','utf8').match(/url:'([^']+)'/)[1]);
 const server=http.createServer((req,res)=>{const n=new URL(req.url,'http://local').pathname.slice(1)||'index.html';if(!/^[a-z0-9-]+\.(html|css|js)$/.test(n)&&n!=='assets/logo_dark.png'){res.statusCode=404;return res.end();}try{res.setHeader('Content-Type',n.endsWith('.js')?'application/javascript':n.endsWith('.css')?'text/css':n.endsWith('.png')?'image/png':'text/html');res.end(fs.readFileSync(n.startsWith('assets/')?n:path.join('presentacion',n)));}catch(e){res.statusCode=404;res.end();}});
 await new Promise(r=>server.listen(0,'127.0.0.1',r));
 for(const [name,engine]of [['webkit',webkit],['chromium',chromium]]){
  const browser=await engine.launch(),context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,deviceScaleFactor:1}),p=await context.newPage(),errors=[];p.on('pageerror',e=>errors.push(e.message));
  await context.route('https://**/*',r=>{assert.equal(r.request().method(),'GET');return r.fulfill({contentType:'application/json',body:JSON.stringify(payload)});});
- await p.addInitScript(()=>{window.scrollTrace=[];const fn=window.scrollTo;window.scrollTo=function(...args){const result=fn.apply(this,args);scrollTrace.push({args,y:scrollY,stack:new Error().stack});if(scrollTrace.length>12)scrollTrace.shift();return result;};});
+ await p.addInitScript(()=>{window.scrollTrace=[];window.scrollEvents=[];for(const target of [document,window])target.addEventListener('scroll',e=>scrollEvents.push({target:e.target.nodeName||'window',y:scrollY,time:performance.now()}),{capture:true});const fn=window.scrollTo;window.scrollTo=function(...args){const result=fn.apply(this,args);scrollTrace.push({args,y:scrollY,stack:new Error().stack});if(scrollTrace.length>12)scrollTrace.shift();return result;};});
  await p.bringToFront();await p.goto('http://127.0.0.1:'+server.address().port+'/');await p.locator('#journey:not([hidden])').waitFor({timeout:65000});await p.screenshot();await p.evaluate(()=>new Promise(r=>requestAnimationFrame(r)));
  try{
  for(const size of [{width:375,height:667},{width:390,height:844},{width:430,height:932},{width:844,height:390}]){
@@ -31,7 +32,7 @@ for(const [name,engine]of [['webkit',webkit],['chromium',chromium]]){
  await p.setViewportSize({width:390,height:844});await p.waitForTimeout(100);await p.emulateMedia({reducedMotion:'reduce'});await p.evaluate(()=>YodSlider.api.seek(0));await p.locator('#next').tap();assert.equal(await p.locator('#progress').inputValue(),'1');
  await p.locator('#contents').tap();assert.ok(await p.locator('#reader').isVisible());await p.locator('[data-close="reader"]').tap();assert.deepEqual(errors,[]);
  console.log(JSON.stringify({mobileJourney:true,engine:name,nativeScroll:true,verticalRail:true,noSnap:true,orientation:true,shortPhone:true,landscape:true,closingReachable:true,touchButtons:true,reducedMotion:true}));
- }catch(e){await shot(p,name+'-failure');throw e;}finally{await browser.close();}
+ }catch(e){console.log('MOBILE_DIAGNOSTIC '+JSON.stringify(await p.evaluate(()=>({state:YodSlider.api.state(),y:scrollY,trace:window.scrollTrace,events:window.scrollEvents,errors:window.mobileErrors,visibility:document.visibilityState}))));await shot(p,name+'-failure');throw e;}finally{await browser.close();}
 }
 await new Promise(r=>server.close(r));
 })().catch(e=>{console.error(e);process.exit(1);});
