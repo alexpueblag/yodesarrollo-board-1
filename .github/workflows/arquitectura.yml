@@ -45,7 +45,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: yodesarrollomx/yod-portal
-          ref: 814878a2ae8fbf5736c0069bd5963706aee6dff5
+          ref: 017287c83aefdd83d797fc756a6cc051d0338b7a
           path: .yod-atlas
           persist-credentials: false
           sparse-checkout-cone-mode: false
@@ -74,6 +74,7 @@ jobs:
           node --check presentacion/slider-core.js
           node --check presentacion/slider-art.js
           node --check presentacion/slider.js
+          node --check presentacion/atlas-mobile.js
           node --check presentacion/atlas.js
           node --check presentacion/atlas-core.js
           node --check presentacion/atlas-art.js
@@ -85,7 +86,8 @@ jobs:
           VERIFY_PUBLISHED_STORY: ${{ github.event_name == 'push' && '1' || startsWith(github.head_ref, 'codex/verify-published-story') && '1' || '0' }}
         run: |
           npm install --no-save --ignore-scripts --no-audit --no-fund playwright@1.58.2
-          npx playwright install --with-deps chromium
+          npx playwright install --with-deps chromium webkit
+          node tests/brokers-mobile-browser.cjs
           node tests/brokers-atlas-browser.cjs
           node tests/brokers-slider-browser.cjs
           node tests/brokers-simple-browser.cjs
@@ -107,6 +109,7 @@ jobs:
             simple-*.jpg
             slider-*.jpg
             atlas-*.jpg
+            mobile-*.jpg
           retention-days: 7
       - name: Resolver comparación
         id: refs
