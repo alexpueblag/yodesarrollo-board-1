@@ -84,3 +84,5 @@ html.mobile-journey{--dock:76px;--mobile-header:64px;scroll-padding-top:80px}
 }
 
 .mobile-journey .dock{z-index:40}.mobile-journey .transport{grid-template-columns:48px minmax(0,1fr) 48px}.mobile-journey .mobile-rail #progress{cursor:ns-resize}
+
+.mobile-journey .workspace{overflow-anchor:none}
