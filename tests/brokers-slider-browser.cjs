@@ -42,4 +42,3 @@ async function verify(p,c,capture=false){
  console.log(JSON.stringify({sliderBrowser:true,scenes:9,moments:27,mobile320:true,mobile390:true,desktop1440:true,reversible:true,persistentParcel:true,keyboard:true,drag:true,reducedMotion:true,liveCopy:true,businessWrites:writes}));
  await browser.close();await new Promise(r=>server.close(r));
 })().catch(e=>{console.error(e);process.exit(1);});
-
