@@ -1,20 +1,18 @@
 {
-  "model_revision": "2026-10-14.investor-atlas.2",
-  "proposal_id": "CHG-INVESTOR-ATLAS-2",
-  "summary": "Professional investor presentation: existing official logo, real map from Sheets, architectural diagrams and literal development-for-sale narrative. Final action navigates to existing evaluator without session transfer. Original slider archived.",
+  "model_revision": "2026-10-14.investor-mobile.1",
+  "proposal_id": "CHG-INVESTOR-MOBILE-SCROLL",
+  "summary": "Native mobile scroll with continuous reversible right rail, chapter index, safe-area controls and readable flowing copy; existing investor narrative and evaluator unchanged.",
   "components": [
     "SYS-INVERSION",
     "GAS-PLAN-POTENCIAL",
     "SHEET-PLAN-POTENCIAL",
-    "GAS-PORTERO",
     "SYS-CONTROL"
   ],
   "tests": [
     "node --test tests/brokers*.test.cjs",
     "Syntax and git diff --check",
-    "Chromium320/390/1440:27 moments, reversibility, native slider, keyboard, reduced-motion, official logo, real map, evaluator CTA, live editorial.",
-    "Existing evaluator anonymous GET; zero business writes; prior versions retained.",
-    "Exact public frontend and anonymous browser after deployment."
+    "WebKit and Chromium: 375/390/430 portrait, 844 landscape, continuous native scroll, non-snapping vertical range, touch buttons, orientation, reduced motion, reachable CTA.",
+    "Existing 27-moment browser regression, desktop and live editorial; exact published frontend."
   ],
-  "rollback": "Restore index from slider.html. Keep editorials, history, permissions and records."
+  "rollback": "Revert mobile frontend commits only; preserve editorial, old versions, permissions and shared credentials."
 }
