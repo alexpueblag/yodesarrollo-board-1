@@ -1,7 +1,7 @@
 {
-  "model_revision": "2026-10-13.investor-principal-story.1",
-  "proposal_id": "CHG-INVESTOR-PRINCIPAL-STORY",
-  "summary": "Versión principal nueva desde boceto: Hermosillo → zonas A/B/C → candidatos P1/P2 → comparación y cuenta → desarrollo/cobros → codesarrolladores y acuerdo. 9 escenas /36 momentos, mundo SVG continuo con zoom por scroll; copy/config principal_* desde Sheets; beta y original conservadas dentro de la misma URL.",
+  "model_revision": "2026-10-13.investor-simple-story.1",
+  "proposal_id": "CHG-INVESTOR-SIMPLE-STORY",
+  "summary": "Presentación nueva de siete escenas independientes y trazos grandes. Lectura opcional conserva la fuente completa; anteriores se archivan dentro del mismo sitio. Todo el contenido simple_* en Sheets, sin backend/ACL/reglas financieras.",
   "components": [
     "SYS-INVERSION",
     "GAS-PLAN-POTENCIAL",
@@ -11,15 +11,10 @@
   ],
   "tests": [
     "node --test tests/brokers*.test.cjs",
-    "node --check presentacion/principal-core.js",
-    "node --check presentacion/principal.js",
-    "node tests/brokers-principal-browser.cjs",
-    "node tests/brokers-monoline-browser.cjs",
-    "node tests/brokers-story-browser.cjs",
-    "node tests/brokers-hunt-browser.cjs",
-    "Un solo path/un M persistente, 36 momentos reversibles y cámara abierta entre zonas; ABC exclusivamente zonas, P1/P2 exclusivamente candidatos esquemáticos; sin ganador/rendimiento ficticio.",
-    "Chromium320/390/1440: navegación, reproducción/pausa/reset+resize, texto fuente completo, criterios iguales, motion reducido, beta→original→principal sin nueva lectura; credencial Portero intacta, cero escrituras de negocio.",
-    "Verificación anónima posterior del código publicado exacto, marketing público vivo y capturas reales; auditoría editorial/digital separada del resultado funcional."
+    "node --check presentacion/simple.js; node --check presentacion/simple-diagrams.js",
+    "Chromium320/390/1440: siete escenas, tres revelados, texto y controles44 dentro de pantalla, trazo físico7px, scroll/reversa, play/pausa, reset y reduced-motion.",
+    "Lector mantiene todos los bloques originales. Transporte público y mensajes seguros, credencial Portero intacta, cero escrituras de negocio.",
+    "Pruebas anteriores sobre archive.html, sin eliminar contratos; verificación pública anónima de código exacto, fuente viva, controles y capturas tras integración."
   ],
-  "rollback": "Revertir PR frontend mediante revisión y repetir verificaciones sin borrar principal_*, mono_*, láminas originales, material Masterbroker ni registros de negocio. Beta y original siguen accesibles en la misma página."
+  "rollback": "Revertir sólo frontend a la principal anterior en la misma URL. Conservar simple_*, principal_*, mono_*, originales, permisos y expedientes."
 }
