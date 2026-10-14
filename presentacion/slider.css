@@ -11,3 +11,4 @@ dialog{border:1px solid var(--line);border-radius:18px;background:var(--paper);c
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;scroll-behavior:auto!important}}
 
 #artFrame{position:relative;max-width:calc(48vh * 1.52381);margin:auto}#art{max-height:none!important}#diagramLabels{position:absolute;inset:0;pointer-events:none}.art-label{position:absolute;transform:translate(-50%,-50%);text-align:center;font-size:15px;line-height:1.2;width:25%;padding:3px;color:var(--ink);overflow-wrap:anywhere}.art-label.is-active{color:var(--accent);font-weight:700}#labels span{font-size:14px}#labels{gap:6px}#art .semantic-label{display:none}@media(max-width:800px){#artFrame{max-width:none}.art-label{font-size:14px}#labels span{font-size:14px}#labels{margin:9px 0}#art text{font-size:34px}}
+.art-label{width:28%;overflow-wrap:normal}@media(max-width:800px){html[data-scene="8"] h1{font-size:32px}html[data-scene="8"] #artFrame{max-width:78%}}
