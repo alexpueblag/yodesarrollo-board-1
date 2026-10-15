@@ -1,18 +1,25 @@
 {
-  "model_revision": "2026-10-15.investor-intent.1",
-  "proposal_id": "CHG-INVESTOR-INTENT-STORY",
-  "summary": "Recorrido variable de siete preguntas del inversionista, mismo inmueble ilustrativo, composición por escena sin flechas decorativas obligatorias. Conservar gesto iPhone, chinches y detalle original. Nueva configuración editorial aditiva en Sheets, con compatibilidad para versiones previas. Capital como entrada principal; inmueble al evaluador como entrada secundaria.",
+  "model_revision": "2026-10-15.presentation-pins-ingest.1",
+  "proposal_id": "CHG-PRESENTATION-PINS-INGEST-20261015",
+  "summary": "Conecta chinches de presentación al circuito Sala con sesión existente confinada a su origen, captura/contexto privados, acuse leído por ID/huella y conservación de pendientes. Relevo entre orígenes, sin copiar credenciales ni cambiar el recorrido aprobado. Conserva el recorrido intent-1 concurrente y conecta también la versión single.html preservada, sin cambiar sus relatos ni controles.",
   "components": [
     "SYS-INVERSION",
+    "SYS-YOD-OS",
     "SYS-CONTROL",
-    "GAS-PLAN-POTENCIAL",
-    "SHEET-PLAN-POTENCIAL"
+    "SYS-SALA",
+    "GAS-SALA",
+    "SHEET-SALA",
+    "EXT-ACTIONS",
+    "SVC-SALA-PRODUCTOR",
+    "SVC-SALA-EJECUTOR",
+    "EXT-DRIVE"
   ],
   "tests": [
-    "Pruebas sintéticas de esquema, estados variables, reversa, error y compatibilidad.",
-    "WebKit y Chromium: iPhone pequeño y horizontal, controles, detalle y chinches; capturas de estados clave e intermedios.",
-    "Publicación anónima del código exacto y contenido editorial; enlace evaluador sin credenciales.",
-    "Atlas generado y contratos existentes."
+    "118 contratos Node; captura/composer heredado con recarga/cancelación/dictado/error de cuota y cero efectos externos en preview.",
+    "Chromium/WebKit,2orígenesHTTPS: JPEG real, sesión ausente/recuperada, respuesta POST perdida y confirmación por lectura; una escritura sintética y cero POST reales.",
+    "Contrato público previo; origen/emisor/nonce, payload/digest acotados, offline, conflictoID y ambigüedad sin duplicado.",
+    "Sonda de fuente pública:404 sólo en redirect Googleusercontent se concilia dentro de3GET;404 deployment y403 siguen terminales. Preservar fuente/editorial y casos reales; QA servida y recepción desde dispositivo son pruebas separadas.",
+    "Integración conmain4d21137: mantener intent-core/art/mobile y rutas históricas; probar captura/pause/historial sobre el recorrido vigente."
   ],
-  "rollback": "Revertir frontend y sólo nuevo campo editorial; conservar originales, revisiones, configuración histórica, datos, permisos y credenciales."
+  "rollback": "Revertir consumidores manteniendo IDs, IndexedDB, capturas y recibos. Conservar la proyección y guardia públicas mientras existan sobres privados; no restaurar exportación íntegra ni borrar originales, cambiar ACL o reenviar respuestas ambiguas."
 }

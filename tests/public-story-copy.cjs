@@ -25,7 +25,7 @@ function createReader({fetchImpl=globalThis.fetch,wait=ms=>new Promise(resolve=>
     if(!response.ok){
      try{await response.body?.cancel();}catch(_){}
      const error=safeError('PublicSourceHttpError','The public story source returned HTTP '+status+'.');
-     error.retry=RETRY_STATUS.has(status);throw error;
+     error.retry=RETRY_STATUS.has(status)||(status===404&&final.hostname==='script.googleusercontent.com');throw error;
     }
     let payload;try{payload=await response.json();}catch(error){
      if(isTransient(error))throw error;

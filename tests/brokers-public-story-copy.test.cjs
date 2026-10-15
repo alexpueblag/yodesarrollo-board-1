@@ -28,3 +28,6 @@ test('source and final redirect must stay within the public Google HTTPS provide
  await assert.rejects(()=>p.read('http://script.google.com/macros/s/synthetic/exec'),{name:'PublicSourceUrlError'});assert.equal(calls,0);
  await assert.rejects(()=>p.read(URL_PUBLIC),{name:'PublicSourceUrlError'});assert.equal(calls,1);assert.deepEqual(p.waits,[]);assert.equal(JSON.stringify(p.logs).includes('synthetic'),false);
 });
+
+test('a transient 404 at the Google content redirect can recover within the same three-GET budget',async()=>{let calls=0;const p=probe(async()=>{if(++calls===1)return{ok:false,status:404,url:'https://script.googleusercontent.com/macros/echo?synthetic=1',headers:new Headers({'content-type':'text/html'}),body:{cancel:async()=>{}}};return new Response('{}',{status:200});});assert.deepEqual(await p.read(URL_PUBLIC),{});assert.equal(calls,2);assert.deepEqual(p.waits,[1000]);});
+test('a 404 at the deployment endpoint remains terminal',async()=>{let calls=0;const p=probe(async()=>{calls++;return{ok:false,status:404,url:URL_PUBLIC,headers:new Headers(),body:{cancel:async()=>{}}};});await assert.rejects(p.read(URL_PUBLIC),{name:'PublicSourceHttpError'});assert.equal(calls,1);});

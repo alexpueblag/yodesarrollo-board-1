@@ -45,7 +45,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: yodesarrollomx/yod-portal
-          ref: f35582b799f56cc2d62efa8a7fea57f6c87c8c8b
+          ref: eca7f20a6bcbccdcc82c0e7546df9d17e1c4d3d1
           path: .yod-atlas
           persist-credentials: false
           sparse-checkout-cone-mode: false
@@ -74,6 +74,8 @@ jobs:
           node --check presentacion/slider-core.js
           node --check presentacion/slider-art.js
           node --check presentacion/slider.js
+          node --check presentacion/pin-delivery.js
+          node --check presentacion/pin-gateway.js
           node --check presentacion/atlas-pins.js
           node --check presentacion/vendor/yod-chinche.js
           node --check presentacion/vendor/html2canvas.min.js
@@ -94,6 +96,7 @@ jobs:
         run: |
           npm install --no-save --ignore-scripts --no-audit --no-fund playwright@1.58.2
           npx playwright install --with-deps chromium webkit
+          node tests/brokers-pin-delivery-browser.cjs
           node tests/brokers-pins-browser.cjs
           node tests/brokers-intent-browser.cjs
           node tests/intent-visual-browser.cjs

@@ -506,6 +506,7 @@ async function anotar(op){
       codigo: [dondeVive(PANT, op.clase || ""), codigoDespacho(op.objeto), codigoInterfaz(op.objeto)].filter(Boolean).join(" · ")
     };
     if (esDespacho) { guardId = ch.id; despachoGuards.set(ch.id, vigente); }
+    try { if (typeof CTX.alAntesClavar === "function") CTX.alAntesClavar(ch); } catch(e) {}
     try {
       var full = op.sinCaptura ? null : await aBlob(lienzo, 0.7), chica = full ? await aBlob(mini(lienzo), 0.6) : null;
       if (!vigente()) { cancelar(); return; }
