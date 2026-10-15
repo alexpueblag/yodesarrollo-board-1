@@ -1,7 +1,7 @@
 {
-  "model_revision": "2026-10-14.investor-mobile.1",
-  "proposal_id": "CHG-INVESTOR-MOBILE-SCROLL",
-  "summary": "Native mobile scroll with continuous reversible right rail, chapter index, safe-area controls and readable flowing copy; existing investor narrative and evaluator unchanged.",
+  "model_revision": "2026-10-14.investor-gesture.2",
+  "proposal_id": "CHG-INVESTOR-MOBILE-GESTURE",
+  "summary": "Public investor presentation adopts centered corporate header, full-width canvas and transparent relative mobile rotor.",
   "components": [
     "SYS-INVERSION",
     "GAS-PLAN-POTENCIAL",
@@ -11,8 +11,8 @@
   "tests": [
     "node --test tests/brokers*.test.cjs",
     "Syntax and git diff --check",
-    "WebKit and Chromium: 375/390/430 portrait, 844 landscape, continuous native scroll, non-snapping vertical range, touch buttons, orientation, reduced motion, reachable CTA.",
-    "Existing 27-moment browser regression, desktop and live editorial; exact published frontend."
+    "WebKit and Chromium: 135 moments per engine; full-width 320/375/390/430/844, centered brand, relative touch velocity, five rotor heights, no jump on tap, endpoints/reversal, release brake, chapter navigation, CTA reach, orientation, keyboard and reduced motion.",
+    "Existing live editorial and exact published frontend regression."
   ],
-  "rollback": "Revert mobile frontend commits only; preserve editorial, old versions, permissions and shared credentials."
+  "rollback": "Revert frontend only; preserve data and permissions."
 }
