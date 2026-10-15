@@ -15,10 +15,10 @@
     "EXT-DRIVE"
   ],
   "tests": [
-    "114 contratos Node; captura/composer heredado con recarga/cancelación/dictado/error de cuota y cero efectos externos en preview.",
+    "118 contratos Node; captura/composer heredado con recarga/cancelación/dictado/error de cuota y cero efectos externos en preview.",
     "Chromium/WebKit,2orígenesHTTPS: JPEG real, sesión ausente/recuperada, respuesta POST perdida y confirmación por lectura; una escritura sintética y cero POST reales.",
     "Contrato público previo; origen/emisor/nonce, payload/digest acotados, offline, conflictoID y ambigüedad sin duplicado.",
-    "Preservar fuente/editorial y casos reales; QA servida y recepción desde dispositivo son pruebas separadas."
+    "Sonda de fuente pública:404 sólo en redirect Googleusercontent se concilia dentro de3GET;404 deployment y403 siguen terminales. Preservar fuente/editorial y casos reales; QA servida y recepción desde dispositivo son pruebas separadas."
   ],
   "rollback": "Revertir consumidores manteniendo IDs, IndexedDB, capturas y recibos. Conservar la proyección y guardia públicas mientras existan sobres privados; no restaurar exportación íntegra ni borrar originales, cambiar ACL o reenviar respuestas ambiguas."
 }
