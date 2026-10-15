@@ -1,102 +1,128 @@
-/* Architectural storytelling. Geometry is illustrative; all editorial labels come from Sheets. */
 (function(root){'use strict';
-const NS='http://www.w3.org/2000/svg',clamp=v=>Math.max(0,Math.min(1,v)),ease=v=>{v=clamp(v);return v*v*(3-2*v);},esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function mount(svg,overlay,map){
- overlay.replaceChildren();let cfg,group,current='',words=[],cache=new Map;
- const path=(d,c='')=>'<path class="p-line '+c+'" d="'+d+'"/>';
- const rect=(x,y,w,h,c='',attrs='')=>'<rect class="p-line '+c+'" x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" '+attrs+'/>';
- const txt=(x,y,t,c='',anchor='middle')=>'<text class="p-text '+c+'" x="'+x+'" y="'+y+'" text-anchor="'+anchor+'">'+String(t||'').split('|').map((v,i)=>'<tspan x="'+x+'" dy="'+(i?31:0)+'">'+esc(v)+'</tspan>').join('')+'</text>';
- const wrap=(s,n=22)=>{let a=[],r='';for(const w of String(s||'').split(' ')){if(r&&r.length+w.length+1>n){a.push(r);r=w;}else r+=(r?' ':'')+w;}return [...a,r].join('|');};
- const label=(i,x,y,c='',n=24)=>txt(x,y,wrap(words[i],n),c);
- const P=(u,v,z=0)=>[320+(u-v)*1.02,265+(u+v)*.44-z];
- const D=(pts,close=true)=>pts.map((p,i)=>(i?'L':'M')+p.map(n=>n.toFixed(2)).join(' ')).join('')+(close?'Z':'');
- const plane=(u,v,w,d,z,c='')=>path(D([P(u,v,z),P(u+w,v,z),P(u+w,v+d,z),P(u,v+d,z)]),c);
- function volume(u,v,w,d,z=0,h=80,c=''){
-  return '<g class="p-volume '+c+'">'+path(D([P(u,v+d,z),P(u+w,v+d,z),P(u+w,v+d,z+h),P(u,v+d,z+h)]),'p-wall')+path(D([P(u+w,v,z),P(u+w,v+d,z),P(u+w,v+d,z+h),P(u+w,v,z+h)]),'p-side')+plane(u,v,w,d,z+h,'p-roof')+'</g>';
+ const NS='http://www.w3.org/2000/svg',M=root.YodFilmMotion;
+ let cfg,words=[],group,refs={},current='city',last=-1;
+ const el=(tag,attrs={},parent=group)=>{const n=document.createElementNS(NS,tag);for(const[k,v]of Object.entries(attrs))n.setAttribute(k,String(v));parent?.append(n);return n;};
+ const path=(c,parent=group)=>el('path',{class:'film-line '+c},parent);
+ const set=(n,k,v)=>n?.setAttribute(k,String(v));
+ const opacity=(n,v)=>{set(n,'opacity',v.toFixed(4));set(n,'visibility',v<.001?'hidden':'visible');};
+ const D=(pts,close=true)=>pts.map((a,i)=>(i?'L':'M')+a.map(v=>v.toFixed(3)).join(' ')).join(' ')+(close?'Z':'');
+ const line=(n,pts,close=false)=>set(n,'d',D(pts,close));
+ function build(){
+  svg.querySelectorAll('[data-film-root],defs[data-film-defs]').forEach(n=>n.remove());overlay.replaceChildren();
+  svg.setAttribute('viewBox','0 0 640 460');
+  const defs=el('defs',{'data-film-defs':''},null);svg.append(defs);
+  const clip=el('clipPath',{id:'film-map-clip'},defs);el('rect',{x:12,y:10,width:616,height:360,rx:5},clip);
+  const hatch=el('pattern',{id:'film-hatch',width:9,height:9,patternUnits:'userSpaceOnUse',patternTransform:'rotate(35)'},defs);el('path',{d:'M0 0V9',stroke:'var(--accent)','stroke-opacity':'.25','stroke-width':1.2},hatch);
+  group=el('g',{'data-film-root':'','data-intent-stage':'continuous','data-object':'responsive-stage'},null);svg.append(group);
+  const mapWrap=el('g',{'clip-path':'url(#film-map-clip)'});refs.map=el('g',{'data-object':'city-context'},mapWrap);
+  refs.camera=el('g',{'data-object':'map-camera'},refs.map);
+  if(map)map.roads.forEach(r=>{const major=['primary','trunk','secondary'].includes(r[1]);el('path',{d:r[2],class:'film-road '+(major?'film-road-major':'')},refs.camera);});
+  refs.zones=el('g',{},refs.map);refs.zoneRings=Array.from({length:3},(_,i)=>el('ellipse',{cx:[205,430,335][i],cy:[142,195,280][i],rx:[58,68,52][i],ry:[37,44,35][i],class:'film-zone'},refs.zones));
+  refs.returnMap=el('g',{'clip-path':'url(#film-map-clip)'});if(map)el('g',{transform:'translate(18 15) scale(.60 .48)'},refs.returnMap).innerHTML=map.roads.filter(r=>['primary','trunk'].includes(r[1])).map(r=>'<path class="film-road" d="'+r[2]+'"/>').join('');
+  refs.block=el('g',{'data-object':'illustrative-block'});refs.neighbors=[];
+  for(const [x,y,w,h]of [[35,58,105,94],[35,173,105,126],[500,55,103,99],[500,178,103,121],[173,16,124,25],[328,16,135,25]])refs.neighbors.push(el('rect',{x,y,width:w,height:h,class:'film-neighbor'},refs.block));
+  refs.street=path('film-street');refs.thread=path('film-thread');
+  refs.dossier=path('film-dossier');
+  refs.hero=el('g',{'data-object':'property-p1'});
+  refs.ground=path('film-ground',refs.hero);refs.front=path('film-front',refs.hero);
+  refs.existing=el('g',{'data-object':'existing-house'},refs.hero);refs.oldWall=path('film-wall',refs.existing);refs.oldSide=path('film-side',refs.existing);refs.oldRoof=path('film-roof',refs.existing);refs.oldDoor=path('film-door',refs.existing);
+  refs.plan=el('g',{'data-object':'same-floorplan'},refs.hero);refs.floor=path('film-floor',refs.plan);refs.corridor=path('film-corridor',refs.plan);refs.dividers=path('film-partition',refs.plan);refs.planDoor=path('film-door',refs.plan);
+  refs.proposed=el('g',{'data-object':'proposed-project'},refs.hero);refs.wall=path('film-wall',refs.proposed);refs.side=path('film-side',refs.proposed);refs.roof=path('film-roof',refs.proposed);refs.seam=path('film-seam',refs.proposed);refs.windows=path('film-windows',refs.proposed);
+  refs.resources=path('film-capital',refs.hero);
+  refs.entry=path('film-entry',refs.hero);
+  refs.structure=path('film-structure',refs.hero);refs.buildLine=path('film-build-line',refs.hero);
+  refs.alternative=el('g',{'data-object':'alternative-property'});refs.altGround=path('film-ground',refs.alternative);refs.altPlan=path('film-floor',refs.alternative);refs.altWall=path('film-proposal',refs.alternative);refs.altSeam=path('film-partition',refs.alternative);
+  refs.account=el('g',{'data-object':'entry-limit'});refs.accountRule=path('film-account-rule',refs.account);refs.equation=Array.from({length:4},(_,i)=>el('text',{x:385,y:99+i*53,class:'film-equation'+(i===3?' film-result':''),'text-anchor':'start'},refs.account));
+  refs.tenure=el('g',{'data-object':'purchase-contribution'});refs.tenureLine=path('film-relation',refs.tenure);refs.tenureLeft=path('film-document',refs.tenure);refs.tenureRight=path('film-document',refs.tenure);
+  refs.guide=path('film-direction');refs.conditions=el('g',{'data-object':'conditions'});refs.checkPaths=Array.from({length:3},()=>path('film-check',refs.conditions));
+  refs.sale=el('g',{'data-object':'same-unit-to-sale'});refs.saleShape=path('film-sale-outline',refs.sale);refs.saleLines=path('film-sale-lines',refs.sale);
+  refs.recovery=path('film-recovery');
+  refs.words=Array.from({length:2},(_,i)=>el('text',{x:320,y:410+i*32,class:'film-label'+(i?' film-label-secondary':''),'text-anchor':'middle'}));
  }
- const slab=()=>'<g data-object="property-p1">'+plane(-145,-100,290,200,0,'p-ground')+path(D([P(-165,122),P(165,122)],false),'p-street')+'</g>';
- function proposed(){return '<g class="p-proposed">'+volume(-110,-66,220,132,10,100)+[-36,38].map(u=>path(D([P(u,-66,110),P(u,66,110),P(u,66,10)],false),'p-seam')).join('')+[-80,-10,60].map(u=>path(D([P(u,66,35),P(u,66,78),P(u+23,66,78),P(u+23,66,35)],false),'p-opening')).join('')+'</g>';}
- function old(){return volume(-100,-62,125,124,0,46,'p-existing')+path(D([P(-68,62,0),P(-68,62,32),P(-43,62,32),P(-43,62,0)],false),'p-opening')+path(D([P(25,-33,13),P(25,4,13),P(25,4,31),P(25,-33,31)]),'p-opening');}
- const dimension=(x,y,w)=>path('M'+x+' '+y+'h'+w+'m-'+w+' -7v14m'+w+' -14v14','p-dim');
- function groundPlan(x,y,w,h,variant=0){
-  const entry=variant?Math.round(w*.32):Math.round(w*.20);
-  return rect(x,y,w,h,'p-paper p-strong')+rect(x,y,entry,h,'p-hatch')+
-  path('M'+(x+entry)+' '+y+'v'+h+'M'+(x+entry)+' '+(y+h*.48)+'H'+(x+w),'p-strong')+
-  path('M'+(x+entry+14)+' '+(y+h*.48)+'a26 26 0 0 0 26 -26M'+(x+entry+14)+' '+(y+h*.48)+'v-26','p-detail')+
-  path('M'+(x+entry+14)+' '+(y+h-7)+'a26 26 0 0 0 26 -26','p-detail')+
-  rect(x+w-52,y+15,35,h*.25,'p-furniture')+rect(x+entry+16,y+h*.63,Math.max(22,w-entry-36),30,'p-furniture');
+ function draw(value,reduced){
+  if(!cfg)return;const p=M.clamp(value,0,14),f=M.frame(p);
+  // Every attribute depends only on position: reverse is the exact same film.
+  // No stage replacement, random motion, CSS timer or frame-history dependency.
+  const ramp=M.ramp,mix=M.mix,win=M.windowed;
+  svg.dataset.frame=p.toFixed(3);svg.dataset.revision=cfg.surface?.revision||'journey-3';svg.dataset.map=map?'real':'unavailable';svg.dataset.continuity='single-property';
+  opacity(refs.map,f.map);opacity(refs.zones,f.zones);opacity(refs.returnMap,f.cityReturn);
+  if(map){const z=f.zoom;set(refs.camera,'transform','translate('+(320-map.focus[0]*z)+' '+(205-map.focus[1]*z*.80)+') scale('+z+' '+z*.80+')');}
+  refs.zoneRings.forEach((n,i)=>{set(n,'stroke-dasharray',((.25+.75*ramp(p,1.25+i*.12,2.1+i*.12))*400)+' 500');});
+  opacity(refs.block,f.block);
+  const streetY=mix(228,354,ramp(p,1.2,3.1)),streetSpan=mix(80,540,ramp(p,0,2.9));
+  line(refs.street,[[320-streetSpan/2,streetY],[320+streetSpan/2,streetY]]);
+  opacity(refs.street,(.45+.55*ramp(p,1,3))*(1-ramp(p,4.7,5.4)));
+  line(refs.thread,[[320-streetSpan/2,streetY],[320+streetSpan/2,streetY]]);
+  opacity(refs.thread,win(p,.1,.65,3.25,4));
+  opacity(refs.hero,f.hero);
+  const tilt=f.tilt,scale=f.scale,cx=f.heroX,cy=f.heroY;
+  const P=(u,v,z=0)=>[cx+scale*mix(u*1.12,(u-v)*1.03,tilt),cy+scale*(mix(v*1.1,(u+v)*.43,tilt)-z)];
+  const plane=(n,u,v,w,d,z=0)=>line(n,[[u,v],[u+w,v],[u+w,v+d],[u,v+d]].map(a=>P(a[0],a[1],z)),true);
+  const facade=(n,u,v,w,z,h)=>line(n,[P(u,v,z),P(u+w,v,z),P(u+w,v,z+h),P(u,v,z+h)],true);
+  plane(refs.ground,-135,-100,270,200);
+  line(refs.front,[P(-135,100),P(135,100)]);
+  opacity(refs.front,.65+.35*f.plan);
+  opacity(refs.existing,f.existing);
+  const oldHeight=42*(1-ramp(p,3.5,4.4));
+  facade(refs.oldWall,-100,65,170,0,oldHeight);
+  line(refs.oldSide,[P(70,-65),P(70,65),P(70,65,oldHeight),P(70,-65,oldHeight)],true);
+  plane(refs.oldRoof,-100,-65,170,130,42+f.roofLift*100);
+  opacity(refs.oldRoof,f.roof);
+  line(refs.oldDoor,[P(-65,65),P(-65,65,29),P(-40,65,29),P(-40,65)]);
+  opacity(refs.plan,f.plan*(1-.80*f.finish));
+  plane(refs.floor,-110,-70,220,140);
+  plane(refs.corridor,-110,43,220,27);
+  const division=mix(-27,-39,ramp(p,4.0,4.65));
+  line(refs.dividers,[P(division,-70),P(division,43),P(39,43),P(39,-70)],false);
+  line(refs.planDoor,[P(-88,70),P(-88,96),P(-71,96)]);
+  const h=86*f.height;
+  opacity(refs.proposed,f.proposal);
+  const solid=f.finish;
+  for(const n of [refs.wall,refs.side,refs.roof]){set(n,'fill-opacity',solid*.93);set(n,'stroke-dasharray',solid>.95?'none':'5 5');}
+  facade(refs.wall,-110,70,220,0,h);
+  line(refs.side,[P(110,-70),P(110,70),P(110,70,h),P(110,-70,h)],true);
+  const explode=f.roles*46;
+  plane(refs.roof,-110,-70,220,140,h+explode);
+  line(refs.seam,[P(-38,70),P(-38,70,h),P(38,70,h),P(38,70)],false);
+  let windowD='';
+  for(const u of [-92,-16,60])windowD+=D([P(u,70,23),P(u+31,70,23),P(u+31,70,57),P(u,70,57)])+' ';
+  set(refs.windows,'d',windowD);opacity(refs.windows,solid);
+  plane(refs.resources,-127,-89,254,178,43+f.resources);opacity(refs.resources,f.roles*.75);
+  line(refs.entry,[P(-85,100),P(-85,70),P(-64,70)]);
+  opacity(refs.entry,f.plan);
+  let sk='';
+  for(const u of [-110,-38,38,110])sk+=D([P(u,-70),P(u,-70,h),P(u,70,h),P(u,70)],false)+' ';
+  sk+=D([P(-110,-70,h),P(110,-70,h),P(110,70,h),P(-110,70,h)])+' ';
+  set(refs.structure,'d',sk);opacity(refs.structure,win(p,10.2,10.65,11.4,11.8));
+  const buildZ=h*(1-ramp(p,10.6,11.7));plane(refs.buildLine,-112,-72,224,144,buildZ);opacity(refs.buildLine,win(p,10.4,10.7,11.5,11.8));
+  // The alternative shares a baseline and scale; it never replaces our property.
+  const A=(u,v,z=0)=>[482+(u-v)*.63,225+(u+v)*.27-z*.62];
+  const ap=(n,u,v,w,d,z=0)=>line(n,[[u,v],[u+w,v],[u+w,v+d],[u,v+d]].map(a=>A(a[0],a[1],z)),true);
+  opacity(refs.alternative,f.compare);ap(refs.altGround,-105,-80,210,160);ap(refs.altPlan,-80,-55,160,110);
+  line(refs.altWall,[A(-80,55),A(80,55),A(80,55,78),A(-80,55,78)],true);
+  line(refs.altSeam,[A(0,-55),A(0,55),A(0,55,78)],false);
+  opacity(refs.account,f.account);line(refs.accountRule,[[380,225],[602,225]]);refs.equation.forEach((n,i)=>n.textContent=cfg.surface.equation?.[i]||'');
+  opacity(refs.tenure,f.tenure);line(refs.tenureLine,[[130,322],[130,341],[510,341],[510,322]]);
+  line(refs.tenureLeft,[[102,286],[144,286],[158,300],[158,326],[102,326]],true);line(refs.tenureRight,[[482,286],[524,286],[538,300],[538,326],[482,326]],true);
+  const relation=f.thread;line(refs.guide,[[89,282],[89,99],[320,99],[551,99],[551,282]]);
+  opacity(refs.guide,relation);
+  opacity(refs.conditions,f.checks);refs.checkPaths.forEach((n,i)=>{const x=170+i*150;line(n,[[x-13,337],[x-3,348],[x+18,323]]);});
+  const sale=f.sale,t=ramp(p,11.75,12.85),unit=[P(38,70,0),P(110,70,0),P(110,70,h),P(38,70,h)],doc=[[466,126],[552,126],[552,248],[466,248]];
+  line(refs.saleShape,unit.map((a,i)=>[mix(a[0],doc[i][0],t),mix(a[1],doc[i][1],t)]),true);
+  let sd='';for(let i=0;i<3;i++)sd+=D([[481,162+i*23],[536-i*6,162+i*23]],false)+' ';set(refs.saleLines,'d',sd);
+  opacity(refs.sale,sale);opacity(refs.saleLines,ramp(p,12.1,12.75));
+  line(refs.recovery,[[510,258],[510,316],[379,316],[379,335]]);opacity(refs.recovery,win(p,12.15,12.6,13.0,13.45));
+  line(refs.dossier,[[80,53],[526,53],[560,87],[560,359],[80,359]],true);opacity(refs.dossier,f.dossier*.65);
+  // Labels occupy their own baseline, never overlap the architectural drawing.
+  refs.words.forEach((n,i)=>{n.textContent=words[i]||'';set(n,'opacity',1);});
+  last=p;
  }
- const street=(y=369)=>path('M58 '+y+'H582','p-street');
- function mapMarkup(zones){
-  if(!map)return txt(320,210,'Cartografía no disponible','p-small');
-  return '<g clip-path="url(#potential-map)"><g data-object="map-camera">'+map.roads.map(r=>path(r[2],r[1]==='primary'||r[1]==='trunk'?'p-road-major':'p-road')).join('')+'</g></g>'+
-   (zones?[[190,130],[435,184],[295,290]].map((a,i)=>'<g class="p-area" data-area="'+i+'"><ellipse cx="'+a[0]+'" cy="'+a[1]+'" rx="65" ry="48" class="p-line p-search"/><circle cx="'+a[0]+'" cy="'+a[1]+'" r="21" fill="var(--paper)"/>'+label(i,a[0],a[1]+9,'p-accent-text')+'</g>').join('')+label(3,320,419,'p-small'):
-   '<g class="p-focus">'+path('M202 118v-18h28M410 100h28v18M438 286v18h-28M230 304h-28v-18','p-accent p-strong')+'</g>'+label(0,320,421,'p-city'));
- }
- function diagram(type){
-  switch(type){
-   case 'city':return mapMarkup(false);
-   case 'zones':return mapMarkup(true);
-   case 'outcome':return slab()+'<g class="p-old">'+old()+'</g><g class="p-future">'+proposed()+'</g>'+label(0,165,390,'p-small')+label(1,460,390,'p-small',22)+path('M77 410H250','p-detail')+path('M365 434H555','p-accent p-dashed');
-   case 'market':return groundPlan(126,65,388,265)+'<g class="p-divider">'+path('M350 65V188','p-accent p-strong')+rect(369,85,110,67,'p-furniture')+'</g>'+dimension(126,40,388)+label(1,320,25,'p-small')+label(0,172,381,'p-small')+label(2,468,381,'p-small')+path('M290 369H350','p-accent')+label(3,320,430,'p-accent-text');
-   case 'survey':return rect(163,40,314,292,'p-paper p-strong')+rect(238,81,185,178,'p-existing p-paper')+path('M238 173H423M326 81V173','p-detail')+'<rect class="p-circulation p-line p-hatch" x="163" y="40" width="60" height="292"/>'+path('M193 332V276M185 287L193 276L201 287','p-accent')+street(369)+dimension(163,352,314)+label(0,320,419)+label(1,330,124,'p-small',14)+label(2,80,217,'p-small',12)+path('M130 225H160','p-detail');
-   case 'plan':return groundPlan(87,70,190,270,1)+groundPlan(363,135,190,205,0)+street(369)+label(0,182,35)+label(1,458,35)+rect(98,402,16,16,'p-hatch')+label(2,218,418,'p-small')+rect(350,402,16,16,'p-tint')+label(3,471,418,'p-small')+'<g class="p-plan-highlight">'+rect(149,76,121,123,'p-tint')+rect(407,141,139,91,'p-tint')+'</g>';
-   case 'cost':return '<g class="p-equation">'+
-    ['','−','−','='].map((op,i)=>txt(90,76+i*98,op,'p-operator')+txt(134,76+i*98,wrap(words[i],26),i===3?'p-accent-text p-result':'','start')).join('')+
-    path('M80 314H560','p-accent')+'<path class="p-line p-accent p-bracket" d="M576 54v245h-17"/>'+'</g>';
-   case 'sensitivity':return [0,1,2].map((i)=>'<g class="p-condition" data-condition="'+i+'">'+label(i,165,95+i*89,'',19)+path('M335 '+(85+i*89)+'h160','p-detail')+(i===0?path('M355 69L475 99M463 88L475 99L461 102','p-accent'):i===1?path('M355 190L475 158M461 155L475 158L465 171','p-accent'):path('M355 263H475M463 254L475 263L463 272','p-accent'))+'</g>').join('')+path('M70 330H570','p-detail')+label(3,320,392,'p-accent-text');
-   case 'tenure':return '<g transform="translate(-21 70) scale(.55)">'+slab()+old()+'</g><g transform="translate(309 70) scale(.55)">'+slab()+old()+'</g>'+
-    label(0,155,53)+label(1,485,53)+path('M155 259v46m-7-10 7 10 7-10','p-accent')+'<path class="p-line p-accent p-owner-link" d="M485 259v46m-7-10 7 10 7-10"/>'+label(2,155,354,'p-small',20)+label(3,485,354,'p-small',20)+path('M320 55V395','p-detail p-dashed');
-   case 'roles':return '<g class="p-resource-base">'+slab()+'</g><g class="p-resource-capital">'+plane(-130,-85,260,170,66,'p-hatch')+'</g><g class="p-resource-project">'+proposed()+'</g>'+label(0,105,344,'p-small')+label(1,570,205,'p-small')+label(2,320,32,'p-small')+label(3,320,428,'p-accent-text');
-   case 'design':return slab()+'<g class="p-design-existing">'+old()+'</g><g class="p-design-project">'+proposed()+'</g>'+
-    label(0,150,401,'p-small')+label(1,495,401,'p-small')+label(2,320,30,'p-accent-text');
-   case 'build':return slab()+'<g class="p-structure">'+[-110,0,110].map(u=>path(D([P(u,-66,10),P(u,-66,110),P(u,66,110),P(u,66,10)],false),'p-detail')).join('')+plane(-110,-66,220,132,110,'p-detail')+'</g><g clip-path="url(#potential-build)">'+proposed()+'</g>'+
-    [0,1,2].map((i)=>label(i,126+i*194,407,'p-small')+path('M'+(83+i*194)+' 427h86','p-detail')).join('');
-   case 'cash':return '<g transform="translate(-55 0) scale(.77)">'+slab()+proposed()+'</g><g class="p-sale-unit">'+volume(60,-20,70,65,70,48)+'</g>'+
-    label(0,175,334,'p-small',22)+label(1,500,195,'p-accent-text')+path('M500 215V275H390','p-accent')+
-    path('M405 268L390 275L405 282','p-accent')+label(2,320,365,'p-small',40)+label(3,320,430,'p-tiny',55);
-   case 'terms':return path('M78 30H534L562 58V427H78Z','p-detail')+path('M534 30V58H562','p-detail')+
-    '<g transform="translate(42 -10) scale(.42)">'+slab()+proposed()+'</g>'+
-    [0,1,2,3].map((i)=>path('M115 '+(205+i*61)+'h410','p-detail')+txt(115,187+i*61,wrap(words[i],28),'','start')).join('');
-   case 'closing':return '<g transform="translate(20 -45) scale(.72)">'+slab()+proposed()+'</g>'+
-    path('M465 85H575M563 77L575 85L563 93','p-accent')+label(2,497,148,'p-small',16);
-   default:return '';
-  }
- }
- function activate(type,key){
-  if(group){group.style.display='none';group.removeAttribute('data-intent-stage');}
-  let g=cache.get(key);
-  if(!g){g=document.createElementNS(NS,'g');g.dataset.stageKey=type;g.dataset.object='responsive-stage';g.innerHTML=diagram(type);svg.append(g);cache.set(key,g);}
-  group=g;group.style.display='';group.dataset.intentStage=type;current=type;
-  svg.setAttribute('viewBox',type==='closing'?'0 0 640 245':'0 0 640 460');
-  svg.dataset.map=map?'real':'unavailable';
- }
- const def=document.createElementNS(NS,'defs');
- def.innerHTML='<pattern id="potential-hatch" patternUnits="userSpaceOnUse" width="9" height="9" patternTransform="rotate(35)"><path d="M0 0V9" stroke="var(--accent)" stroke-opacity=".32" stroke-width="2"/></pattern><clipPath id="potential-map"><rect x="30" y="12" width="580" height="360"/></clipPath><clipPath id="potential-build"><rect id="potential-build-mask" x="0" y="0" width="640" height="460"/></clipPath>';
- svg.append(def);
- const set=(sel,name,value)=>{const e=group?.querySelector(sel);if(e)e.setAttribute(name,String(value));};
- return {
-  configure(c){cfg=c;cache.forEach(g=>g.remove());cache.clear();},
-  labels(v,d,s,j){words=v;activate(cfg.scenes[s].steps[j].visual,s+':'+j);},
-  draw(p,reduced){
-   if(!group)return;const f=p-Math.floor(p),q=reduced?1:ease(f/.88);
-   const camera=group.querySelector('[data-object="map-camera"]');
-   if(camera&&map){const z=(current==='zones'?1.16:1)+q*.15;camera.setAttribute('transform','translate('+(320-map.focus[0]*.60*z)+' '+(208-map.focus[1]*.50*z)+') scale('+(.60*z)+' '+(.50*z)+')');}
-   if(current==='city')set('.p-focus','transform','translate('+(320*(1-(1+.12*q)))+' '+(210*(1-(1+.12*q)))+') scale('+(1+.12*q)+')');
-   if(current==='zones')group.querySelectorAll('.p-area').forEach((e,i)=>e.style.opacity=String(.45+.55*ease(q*2-i*.35)));
-   if(current==='outcome'){set('.p-future','transform','translate(0 '+((1-q)*52)+')');set('.p-future','opacity',.20+.65*q);set('.p-old','opacity',1-.62*q);}
-   if(current==='market')set('.p-divider','transform','translate('+(-55*q)+' 0)');
-   if(current==='survey')set('.p-circulation','width',42+25*q);
-   if(current==='plan')set('.p-plan-highlight','opacity',.14+.40*q);
-   if(current==='cost')set('.p-bracket','stroke-dasharray',(245*q)+' 300');
-   if(current==='sensitivity')group.querySelectorAll('.p-condition').forEach((e,i)=>e.style.opacity=String(.45+.55*ease(q*2-i*.35)));
-   if(current==='tenure')set('.p-owner-link','d','M485 259v46m-7-10 7 10 7-10'+(q>.45?'M535 280Q575 223 530 195':''));
-   if(current==='roles'){set('.p-resource-project','transform','translate(0 '+(-32+26*q)+')');set('.p-resource-capital','transform','translate(0 '+(12*q)+')');}
-   if(current==='design'){set('.p-design-project','transform','translate(0 '+(-42+42*q)+')');set('.p-design-project','opacity',.35+.5*q);set('.p-design-existing','opacity',1-.75*q);}
-   if(current==='build'){const m=svg.querySelector('#potential-build-mask');m.setAttribute('y',280-230*q);m.setAttribute('height',460);}
-   if(current==='cash')set('.p-sale-unit','transform','translate('+(120+30*q)+' '+(-80-12*q)+') scale(.75)');
-   svg.dataset.frame=p.toFixed(3);svg.dataset.revision=cfg.surface?.revision||'potential-2';
-  }
+ return{
+  configure(c){cfg=c;refs={};build();},
+  labels(v,d,s,j){words=v;current=cfg.scenes[s].steps[j].visual;group.dataset.visual=current;},
+  draw,
+  inspect:()=>({position:last,rootCount:svg.querySelectorAll('[data-film-root]').length,property:refs.hero,revision:cfg?.surface?.revision})
  };
 }
 root.YodSliderArt={mount};
