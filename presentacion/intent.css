@@ -22,8 +22,8 @@
 .intent-story #art .intent-accent{stroke:var(--accent);stroke-width:2.5}
 .intent-story #art .intent-muted{stroke:var(--line);stroke-width:1.5}
 .intent-story #art .intent-zone{fill:#38788e13;stroke:var(--accent);stroke-width:1.5;stroke-dasharray:5 7}
-.intent-story #art .intent-label{font:400 27px DM,Arial,sans-serif;fill:var(--ink);text-anchor:middle}
-.intent-story #art .intent-small{font:400 23px DM,Arial,sans-serif;fill:var(--muted);text-anchor:middle}
+.intent-story #art .intent-label{font:400 28px DM,Arial,sans-serif;fill:var(--ink);text-anchor:middle}
+.intent-story #art .intent-small{font:400 26px DM,Arial,sans-serif;fill:var(--muted);text-anchor:middle}
 .intent-story #art .intent-number{font:400 25px DM,Arial,sans-serif;fill:var(--accent);text-anchor:middle}
 .intent-story #art .intent-zone{font:700 32px DM,Arial,sans-serif;text-anchor:middle}
 .intent-story #art text.intent-zone{fill:var(--accent);stroke:none}
@@ -60,3 +60,5 @@
  .mobile-journey.intent-story #actions{grid-column:2;grid-row:2;flex-direction:column;min-height:0;gap:4px;margin:3px 0}
  .mobile-journey.intent-story #actions a,.mobile-journey.intent-story #actions button{min-height:44px;font-size:12px}
 }
+
+html.intent-story[data-scene="0"] .map-source{display:none}
