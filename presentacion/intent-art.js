@@ -32,7 +32,7 @@ function mount(svg,overlay,map){
   refs.resources=path('film-capital',refs.hero);
   refs.entry=path('film-entry',refs.hero);
   refs.structure=path('film-structure',refs.hero);refs.buildLine=path('film-build-line',refs.hero);
-  refs.alternative=el('g',{'data-object':'alternative-property'});refs.altGround=path('film-ground',refs.alternative);refs.altPlan=path('film-floor',refs.alternative);refs.altWall=path('film-proposal',refs.alternative);refs.altSeam=path('film-partition',refs.alternative);
+  refs.alternative=el('g',{'data-object':'alternative-property'});refs.altGround=path('film-ground',refs.alternative);refs.altPlan=path('film-floor',refs.alternative);refs.altWall=path('film-proposal',refs.alternative);refs.altSide=path('film-proposal',refs.alternative);refs.altRoof=path('film-proposal',refs.alternative);refs.altSeam=path('film-partition',refs.alternative);
   refs.account=el('g',{'data-object':'entry-limit'});refs.accountRule=path('film-account-rule',refs.account);refs.equation=Array.from({length:4},(_,i)=>el('text',{x:385,y:99+i*53,class:'film-equation'+(i===3?' film-result':''),'text-anchor':'start'},refs.account));
   refs.tenure=el('g',{'data-object':'purchase-contribution'});refs.tenureLine=path('film-relation',refs.tenure);refs.tenureLeft=path('film-document',refs.tenure);refs.tenureRight=path('film-document',refs.tenure);
   refs.guide=path('film-direction');refs.conditions=el('g',{'data-object':'conditions'});refs.checkPaths=Array.from({length:3},()=>path('film-check',refs.conditions));
@@ -97,10 +97,11 @@ function mount(svg,overlay,map){
   set(refs.structure,'d',sk);opacity(refs.structure,win(p,10.2,10.65,11.4,11.8));
   const buildZ=h*(1-ramp(p,10.6,11.7));plane(refs.buildLine,-112,-72,224,144,buildZ);opacity(refs.buildLine,win(p,10.4,10.7,11.5,11.8));
   // The alternative shares a baseline and scale; it never replaces our property.
-  const A=(u,v,z=0)=>[482+(u-v)*.63,225+(u+v)*.27-z*.62];
+  const A=(u,v,z=0)=>[482+(u-v)*.72,238+(u+v)*.30-z*.70];
   const ap=(n,u,v,w,d,z=0)=>line(n,[[u,v],[u+w,v],[u+w,v+d],[u,v+d]].map(a=>A(a[0],a[1],z)),true);
   opacity(refs.alternative,f.compare);ap(refs.altGround,-105,-80,210,160);ap(refs.altPlan,-80,-55,160,110);
   line(refs.altWall,[A(-80,55),A(80,55),A(80,55,78),A(-80,55,78)],true);
+  ap(refs.altRoof,-80,-55,160,110,78);line(refs.altSide,[A(80,-55),A(80,55),A(80,55,78),A(80,-55,78)],true);
   line(refs.altSeam,[A(0,-55),A(0,55),A(0,55,78)],false);
   opacity(refs.account,f.account);line(refs.accountRule,[[380,225],[602,225]]);refs.equation.forEach((n,i)=>n.textContent=cfg.surface.equation?.[i]||'');
   opacity(refs.tenure,f.tenure);line(refs.tenureLine,[[130,322],[130,341],[510,341],[510,322]]);
