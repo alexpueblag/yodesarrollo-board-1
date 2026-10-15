@@ -28,8 +28,8 @@ function mount(svg,overlay,map){
  }
  const street=(y=369)=>path('M58 '+y+'H582','p-street');
  function mapMarkup(zones){
-  if(!map)return '';
-  return '<g data-object="map-camera">'+map.roads.map(r=>path(r[2],r[1]==='primary'||r[1]==='trunk'?'p-road-major':'p-road')).join('')+'</g>'+
+  if(!map)return txt(320,210,'Cartografía no disponible','p-small');
+  return '<g clip-path="url(#potential-map)"><g data-object="map-camera">'+map.roads.map(r=>path(r[2],r[1]==='primary'||r[1]==='trunk'?'p-road-major':'p-road')).join('')+'</g></g>'+
    (zones?[[190,130],[435,184],[295,290]].map((a,i)=>'<g class="p-area" data-area="'+i+'"><ellipse cx="'+a[0]+'" cy="'+a[1]+'" rx="65" ry="48" class="p-line p-search"/><circle cx="'+a[0]+'" cy="'+a[1]+'" r="21" fill="var(--paper)"/>'+label(i,a[0],a[1]+9,'p-accent-text')+'</g>').join('')+label(3,320,419,'p-small'):
    '<g class="p-focus">'+path('M202 118v-18h28M410 100h28v18M438 286v18h-28M230 304h-28v-18','p-accent p-strong')+'</g>'+label(0,320,421,'p-city'));
  }
@@ -58,26 +58,26 @@ function mount(svg,overlay,map){
    case 'terms':return path('M78 30H534L562 58V427H78Z','p-detail')+path('M534 30V58H562','p-detail')+
     '<g transform="translate(42 -10) scale(.42)">'+slab()+proposed()+'</g>'+
     [0,1,2,3].map((i)=>path('M115 '+(205+i*61)+'h410','p-detail')+txt(115,187+i*61,wrap(words[i],28),'','start')).join('');
-   case 'closing':return '<g transform="translate(20 -80) scale(.84)">'+slab()+proposed()+'</g>'+
+   case 'closing':return '<g transform="translate(20 -45) scale(.72)">'+slab()+proposed()+'</g>'+
     path('M465 85H575M563 77L575 85L563 93','p-accent')+label(2,497,148,'p-small',16);
    default:return '';
   }
  }
- function activate(type){
+ function activate(type,key){
   if(group){group.style.display='none';group.removeAttribute('data-intent-stage');}
-  let g=cache.get(type);
-  if(!g){g=document.createElementNS(NS,'g');g.dataset.stageKey=type;g.dataset.object='responsive-stage';g.innerHTML=diagram(type);svg.append(g);cache.set(type,g);}
+  let g=cache.get(key);
+  if(!g){g=document.createElementNS(NS,'g');g.dataset.stageKey=type;g.dataset.object='responsive-stage';g.innerHTML=diagram(type);svg.append(g);cache.set(key,g);}
   group=g;group.style.display='';group.dataset.intentStage=type;current=type;
   svg.setAttribute('viewBox',type==='closing'?'0 0 640 245':'0 0 640 460');
   svg.dataset.map=map?'real':'unavailable';
  }
  const def=document.createElementNS(NS,'defs');
- def.innerHTML='<pattern id="potential-hatch" patternUnits="userSpaceOnUse" width="9" height="9" patternTransform="rotate(35)"><path d="M0 0V9" stroke="var(--accent)" stroke-opacity=".32" stroke-width="2"/></pattern><clipPath id="potential-build"><rect id="potential-build-mask" x="0" y="0" width="640" height="460"/></clipPath>';
+ def.innerHTML='<pattern id="potential-hatch" patternUnits="userSpaceOnUse" width="9" height="9" patternTransform="rotate(35)"><path d="M0 0V9" stroke="var(--accent)" stroke-opacity=".32" stroke-width="2"/></pattern><clipPath id="potential-map"><rect x="30" y="12" width="580" height="360"/></clipPath><clipPath id="potential-build"><rect id="potential-build-mask" x="0" y="0" width="640" height="460"/></clipPath>';
  svg.append(def);
  const set=(sel,name,value)=>{const e=group?.querySelector(sel);if(e)e.setAttribute(name,String(value));};
  return {
   configure(c){cfg=c;cache.forEach(g=>g.remove());cache.clear();},
-  labels(v,d,s,j){words=v;activate(cfg.scenes[s].steps[j].visual);},
+  labels(v,d,s,j){words=v;activate(cfg.scenes[s].steps[j].visual,s+':'+j);},
   draw(p,reduced){
    if(!group)return;const f=p-Math.floor(p),q=reduced?1:ease(f/.88);
    const camera=group.querySelector('[data-object="map-camera"]');

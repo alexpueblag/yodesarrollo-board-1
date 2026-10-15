@@ -76,3 +76,5 @@
  .mobile-journey.intent-story #actions{grid-column:2;grid-row:2;flex-direction:column;min-height:0;gap:4px;margin:3px 0}
  .mobile-journey.intent-story #actions a,.mobile-journey.intent-story #actions button{min-height:44px;font-size:12px}
 }
+
+.intent-story #art .p-text[text-anchor="start"]{text-anchor:start}
