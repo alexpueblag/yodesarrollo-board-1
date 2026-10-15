@@ -1,18 +1,24 @@
 {
-  "model_revision": "2026-10-15.investor-single.1",
-  "proposal_id": "CHG-INVESTOR-SINGLE-SURFACE",
-  "summary": "One iPhone interaction surface with diagram annotations and the existing PPP review-pin system; no moving footer or separate narrative scroll.",
+  "model_revision": "2026-10-15.presentation-pins-ingest.1",
+  "proposal_id": "CHG-PRESENTATION-PINS-INGEST-20261015",
+  "summary": "Conecta chinches de presentación al circuito Sala con sesión existente confinada a su origen, captura/contexto privados, acuse leído por ID/huella y conservación de pendientes. Relevo entre orígenes, sin copiar credenciales ni cambiar el recorrido aprobado.",
   "components": [
     "SYS-INVERSION",
+    "SYS-YOD-OS",
     "SYS-CONTROL",
-    "GAS-PLAN-POTENCIAL",
-    "SHEET-PLAN-POTENCIAL"
+    "SYS-SALA",
+    "GAS-SALA",
+    "SHEET-SALA",
+    "EXT-ACTIONS",
+    "SVC-SALA-PRODUCTOR",
+    "SVC-SALA-EJECUTOR",
+    "EXT-DRIVE"
   ],
   "tests": [
-    "Read-only reference UI source inspection; no model/case data or outbound writes.",
-    "WebKit/Chromium: one gesture across drawing and notes; no bottom navigation or independent scroll; complete reader; immediate closing actions; reduced motion and keyboard.",
-    "Existing pin composer: real screenshot/crop, ArrayBuffer persistence after reload, cancel, review history, synthetic share/microphone; zero business writes.",
-    "Exact anonymous public frontend and evaluator after publication."
+    "114 contratos Node; captura/composer heredado con recarga/cancelación/dictado/error de cuota y cero efectos externos en preview.",
+    "Chromium/WebKit,2orígenesHTTPS: JPEG real, sesión ausente/recuperada, respuesta POST perdida y confirmación por lectura; una escritura sintética y cero POST reales.",
+    "Contrato público previo; origen/emisor/nonce, payload/digest acotados, offline, conflictoID y ambigüedad sin duplicado.",
+    "Preservar fuente/editorial y casos reales; QA servida y recepción desde dispositivo son pruebas separadas."
   ],
-  "rollback": "Revert frontend and public editorial surface fields only; preserve original narrative, case data, permissions, Portero, prior versions and saved reviews."
+  "rollback": "Revertir consumidores manteniendo IDs, IndexedDB, capturas y recibos. Conservar la proyección y guardia públicas mientras existan sobres privados; no restaurar exportación íntegra ni borrar originales, cambiar ACL o reenviar respuestas ambiguas."
 }
