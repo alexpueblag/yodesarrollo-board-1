@@ -12,7 +12,7 @@ const caption=(i,x,y,n=22)=>text(x,y,wrap(words[i],n));
 const rows=(ids)=>ids.map((i,k)=>box(100,55+k*88,440,66)+caption(i,320,96+k*88,30)).join('');
 function diagram(type){
 switch(type){
-case 'resources': return [0,1,2].map((i)=>box(70,42+i*117,500,91,i===1?'intent-emphasis':'')+text(110,97+i*117,String(i+1).padStart(2,'0'),'number')+text(340,78+i*117,words[i])+text(340,110+i*117,words[i+3],'small')).join('');
+case 'resources': return [0,1,2].map((i)=>box(70,42+i*117,500,91,i===1?'intent-emphasis':'')+text(110,97+i*117,String(i+1).padStart(2,'0'),'number')+text(340,72+i*117,words[i])+text(340,116+i*117,words[i+3],'small')).join('');
 case 'outcome':return house(68,60,.9)+house(368,60,.9,2)+line('M294 164H342M332 156L342 164L332 172','intent-accent')+caption(0,164,292)+caption(1,460,292)+box(160,340,320,62,'intent-emphasis')+caption(3,320,380);
 case 'city':case 'zones':return map?'<g data-object="map-camera" transform="translate(26 22) scale(.59 .51)">'+map.roads.map(r=>'<path class="road '+(r[1]==='primary'||r[1]==='trunk'?'major':'')+'" d="'+r[2]+'"/>').join('')+'</g>'+(type==='zones'?[[210,140],[410,200],[290,300]].map((a,i)=>'<circle class="intent-zone" cx="'+a[0]+'" cy="'+a[1]+'" r="53"/>'+text(a[0],a[1]+9,words[i],'zone')).join(''):text(320,400,words[0])):text(320,220,'Cartografía no disponible','small');
 case 'market':return [0,1,2,3].map((i)=>{const x=i%2?330:60,y=i<2?65:230;return box(x,y,250,140)+text(x+125,y+49,String(i+1).padStart(2,'0'),'number')+caption(i,x+125,y+91,19);}).join('');
@@ -23,9 +23,9 @@ case 'capacity':return house(240,3,.76,2)+[0,1,2].map(i=>box(80,220+i*66,480,54)
 case 'tenure':return [0,1].map(i=>box(50+i*280,65,260,300)+house(77+i*280,70,.85)+caption(i,180+i*280,291)+text(180+i*280,329,wrap(words[i+2],20),'small')).join('');
 case 'cost':return [0,1,2].map((i)=>box(100,30+i*80,440,60)+caption(i,320,69+i*80)).join('')+line('M100 283H540','intent-accent')+box(100,305,440,85,'intent-emphasis')+caption(3,320,356);
 case 'margin':return box(90,48,460,82)+caption(0,320,99)+text(320,172,'−','operator')+box(90,192,460,82)+caption(1,320,243)+text(320,315,'=','operator')+box(90,338,460,82,'intent-emphasis')+caption(2,320,389);
-case 'sensitivity':return [0,1,2].map(i=>box(65,38+i*127,510,105)+text(200,80+i*127,words[i])+text(200,115+i*127,words[i+3],'small')+line('M365 '+(113+i*127)+'H530','intent-muted')+(i===2?line('M365 '+(88+i*127)+'H540M530 '+(80+i*127)+'L540 '+(88+i*127)+'L530 '+(96+i*127),'intent-accent'):line('M365 '+(i===0?63:107+i*127)+'L530 '+(i===0?105:63+i*127),'intent-accent'))).join('');
+case 'sensitivity':return [0,1,2].map(i=>box(65,38+i*127,510,105)+text(200,75+i*127,words[i])+text(200,118+i*127,words[i+3],'small')+line('M365 '+(113+i*127)+'H530','intent-muted')+(i===2?line('M365 '+(88+i*127)+'H540M530 '+(80+i*127)+'L540 '+(88+i*127)+'L530 '+(96+i*127),'intent-accent'):line('M365 '+(i===0?63:107+i*127)+'L530 '+(i===0?105:63+i*127),'intent-accent'))).join('');
 case 'checks':return rows([0,1,2])+text(320,377,wrap(words[3],35),'small');
-case 'roles':return [0,1,2].map(i=>box(65,30+i*127,510,110,i===2?'intent-emphasis':'')+text(320,73+i*127,words[i])+text(320,107+i*127,wrap(words[i+3],34),'small')).join('');
+case 'roles':return [0,1,2].map(i=>box(65,30+i*127,510,110,i===2?'intent-emphasis':'')+text(320,69+i*127,words[i])+text(320,112+i*127,wrap(words[i+3],34),'small')).join('');
 case 'terms':return [0,1,2,3,4].map(i=>line('M100 '+(95+i*70)+'H540','intent-muted')+caption(i,320,78+i*70,32)).join('');
 case 'design':return house(210,0,1.05,2)+[0,1,2].map(i=>box(70,227+i*64,500,52)+caption(i,320,262+i*64)).join('');
 case 'build':return house(210,0,1.05,2)+[0,1,2].map(i=>text(320,300+i*48,words[i],'small')+line('M130 '+(310+i*48)+'H510','intent-muted')).join('');
