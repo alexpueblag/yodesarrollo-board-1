@@ -114,3 +114,7 @@ html.mobile-journey,html.mobile-journey body{height:100%;overflow:hidden;overscr
 }
 
 .mobile-journey #journey{grid-template-columns:minmax(0,1fr);width:100%;max-width:100%}.mobile-journey #journey>*{min-width:0}.mobile-journey .dock-inner{width:100%;min-width:0}.mobile-journey #chapters{min-width:0;max-width:100%}
+
+.mobile-journey .mobile-more{display:block}
+
+.mobile-journey .workspace{align-items:stretch;margin:0;height:100%}.mobile-journey .mobile-story{align-self:stretch;height:100%;max-height:100%;min-width:0}
