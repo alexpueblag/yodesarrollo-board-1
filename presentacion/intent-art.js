@@ -47,14 +47,14 @@ function mount(svg,overlay,map){
    case 'sensitivity':return [0,1,2].map((i)=>'<g class="p-condition" data-condition="'+i+'">'+label(i,165,95+i*89,'',19)+path('M335 '+(85+i*89)+'h160','p-detail')+(i===0?path('M355 69L475 99M463 88L475 99L461 102','p-accent'):i===1?path('M355 190L475 158M461 155L475 158L465 171','p-accent'):path('M355 263H475M463 254L475 263L463 272','p-accent'))+'</g>').join('')+path('M70 330H570','p-detail')+label(3,320,392,'p-accent-text');
    case 'tenure':return '<g transform="translate(-21 70) scale(.55)">'+slab()+old()+'</g><g transform="translate(309 70) scale(.55)">'+slab()+old()+'</g>'+
     label(0,155,53)+label(1,485,53)+path('M155 259v46m-7-10 7 10 7-10','p-accent')+'<path class="p-line p-accent p-owner-link" d="M485 259v46m-7-10 7 10 7-10"/>'+label(2,155,354,'p-small',20)+label(3,485,354,'p-small',20)+path('M320 55V395','p-detail p-dashed');
-   case 'roles':return '<g class="p-resource-base">'+slab()+'</g><g class="p-resource-capital">'+plane(-130,-85,260,170,66,'p-hatch')+'</g><g class="p-resource-project">'+proposed()+'</g>'+label(0,105,344,'p-small')+label(1,526,247,'p-small')+label(2,320,32,'p-small')+label(3,320,428,'p-accent-text');
+   case 'roles':return '<g class="p-resource-base">'+slab()+'</g><g class="p-resource-capital">'+plane(-130,-85,260,170,66,'p-hatch')+'</g><g class="p-resource-project">'+proposed()+'</g>'+label(0,105,344,'p-small')+label(1,570,205,'p-small')+label(2,320,32,'p-small')+label(3,320,428,'p-accent-text');
    case 'design':return slab()+'<g class="p-design-existing">'+old()+'</g><g class="p-design-project">'+proposed()+'</g>'+
     label(0,150,401,'p-small')+label(1,495,401,'p-small')+label(2,320,30,'p-accent-text');
    case 'build':return slab()+'<g class="p-structure">'+[-110,0,110].map(u=>path(D([P(u,-66,10),P(u,-66,110),P(u,66,110),P(u,66,10)],false),'p-detail')).join('')+plane(-110,-66,220,132,110,'p-detail')+'</g><g clip-path="url(#potential-build)">'+proposed()+'</g>'+
     [0,1,2].map((i)=>label(i,126+i*194,407,'p-small')+path('M'+(83+i*194)+' 427h86','p-detail')).join('');
    case 'cash':return '<g transform="translate(-55 0) scale(.77)">'+slab()+proposed()+'</g><g class="p-sale-unit">'+volume(60,-20,70,65,70,48)+'</g>'+
     label(0,175,334,'p-small',22)+label(1,500,195,'p-accent-text')+path('M500 215V275H390','p-accent')+
-    path('M405 268L390 275L405 282','p-accent')+label(2,320,389,'p-small')+label(3,320,430,'p-tiny',55);
+    path('M405 268L390 275L405 282','p-accent')+label(2,320,365,'p-small',40)+label(3,320,430,'p-tiny',55);
    case 'terms':return path('M78 30H534L562 58V427H78Z','p-detail')+path('M534 30V58H562','p-detail')+
     '<g transform="translate(42 -10) scale(.42)">'+slab()+proposed()+'</g>'+
     [0,1,2,3].map((i)=>path('M115 '+(205+i*61)+'h410','p-detail')+txt(115,187+i*61,wrap(words[i],28),'','start')).join('');

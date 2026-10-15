@@ -78,3 +78,5 @@
 }
 
 .intent-story #art .p-text[text-anchor="start"]{text-anchor:start}
+
+html.intent-story .map-source{display:none}html.intent-story[data-beat="0"] .map-source,html.intent-story[data-beat="2"] .map-source{display:block}
