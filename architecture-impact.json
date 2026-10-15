@@ -1,7 +1,7 @@
 {
   "model_revision": "2026-10-15.presentation-pins-ingest.1",
   "proposal_id": "CHG-INVESTOR-INTENT-STORY",
-  "summary": "Replanteamiento editorial potential-2 dentro del contrato de siete escenas variables: quince momentos sobre potencial no reflejado en el precio, producto, residual y participación. Nueva geometría SVG arquitectónica y animación reversible dirigida por el gesto existente. journeyNext aditivo en la misma celda de Sheets; journey y relatos originales conservados. Sin cambio de arquitectura, permisos, evaluador o transporte de chinches; preserva íntegra la integración Sala de main7435b2d.",
+  "summary": "Storyboard autorizado journey-3: un inmueble SVG persistente desde Hermosillo hasta la invitación a participar. Interpolación reversible de cámara, planta, volumen, comparación, aportaciones, ejecución y salida. Conserva interfaz, gesto, chinches y lector. journeyFilm aditivo en el Sheet vigente; las fuentes y ambos borradores siguen accesibles. Sin cambio de contratos, arquitectura, permisos, precios, evaluador ni transporte de Sala.",
   "components": [
     "SYS-INVERSION",
     "SYS-CONTROL",
@@ -9,10 +9,10 @@
     "SHEET-PLAN-POTENCIAL"
   ],
   "tests": [
-    "Estados variables, precedencia editorial y preservación del borrador original; pruebas sintéticas sin datos de casos.",
-    "WebKit y Chromium: quince momentos en cinco tamaños, gesto, reversa, pins, lector y cierre accesible.",
-    "SVG: geometría dentro del lienzo, etiquetas legibles sin solapes, cambios reversibles en pasos intermedios y capturas por capítulo.",
-    "Código y revisión editorial servidos en URL pública; comprobación separada de retorno del evaluador."
+    "Node: continuidad en fronteras, reversibilidad y posiciones finitas con datos sintéticos; sintaxis y git diff --check.",
+    "WebKit y Chromium: identidad persistente de inmueble y planta durante el recorrido; fronteras sin saltos geométricos y sin animación autónoma.",
+    "Regresión móvil existente: quince momentos en cinco tamaños, gesto, reversa, menú, lector, chinches y CTA.",
+    "Comprobación separada del frontend público exacto, revisión editorial y acceso anónimo; sin pruebas de escritura de negocio."
   ],
-  "rollback": "Revertir sólo este commit de presentación. La misma fuente conserva journey y todo el relato original; no borrar journeyNext ni datos, chinches o recibos. No modificar Portero ni repetir escrituras de Sala."
+  "rollback": "Revertir el PR del frontend; journeyNext y journey originales permanecen intactos en la misma fuente. No borrar journeyFilm, chinches, recibos ni credenciales; no modificar el evaluador o Sala."
 }

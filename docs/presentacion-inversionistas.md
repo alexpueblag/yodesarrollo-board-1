@@ -1,15 +1,29 @@
-# Presentación pública · apertura desde la ciudad
+# Presentación pública · storyboard continuo
 
-La URL existente conserva el borrador de siete láminas. Antes aparece el recorrido por ocho momentos: ciudad, uso mixto buscado, población y empleo buscados, barrios consolidados, dos oportunidades, costo, viviendas y saldo.
+Revisión journey-3. Dirección autoriza ejecutar el storyboard en la URL existente y conservar la interfaz móvil aprobada. La narrativa anterior se conserva como borrador.
 
-El trazado de vialidades reales se obtiene de OpenStreetMap con parámetros de Sheets, se simplifica y se guarda en el contrato editorial público hunt_*. Las áreas naranja e iconos son criterios ilustrativos, no capas municipales ni establecimientos acreditados. La transición a dos cuadras/predios es un esquema, sin afirmar ubicación o propiedad real.
+## Recorrido y continuidad
 
-Cada casa representa una vivienda; las monedas son unidades abstractas de valor. Los casos y conteos viven en Sheets. Costo = valor del inmueble + ejecución; saldo = venta − costo. La aportación no elimina el valor del inmueble y el saldo del proyecto no se ofrece como reparto al inversionista. No son pesos ni un pronóstico de rentabilidad.
+1. Invitación a participar con capital. Vialidades reales de Hermosillo.
+2. Ciudad, zonas de búsqueda y manzana. Transición declarada a inmueble ilustrativo.
+3. El mismo frente y acceso permiten abrir la construcción, explicar circulación y explorar un producto.
+4. Planta a volumen; comparación con otra alternativa y cuenta residual del inmueble, sin números o ganadores inventados.
+5. Incorporación por compra o aportación; relación entre inmueble, capital y dirección.
+6. Condiciones antes de comprometer, construcción dirigida y paso de vivienda a documentación y cobro.
+7. Expediente de participación y llamada a conversación; acceso secundario al evaluador existente.
 
-La apertura tiene scroll, ocho botones, reproducción, pausa, replay, comparación y continuación al borrador. Prefers-reduced-motion conserva controles sin movimiento automático. Usa un único fetch editorial; no pide datos ni credenciales ni consulta servicios cartográficos en cada visita.
+El SVG conserva un inmueble y su planta en el DOM durante los quince momentos. Las posiciones, cámara y capas dependen sólo del progreso; retroceder recorre las mismas transformaciones. No hay autoplay ni reemplazo de diagrama en fronteras. El gesto de iPhone, cabecera, chinches, lector y controles existentes se conservan.
 
-Pruebas: node --test tests/brokers*.test.cjs; node tests/brokers-story-browser.cjs; node tests/brokers-hunt-browser.cjs. Publicación anónima y capturas reales se comprueban con VERIFY_PUBLISHED_STORY=1 después del despliegue. Las consultas cartográficas son lecturas, no pruebas de escrituras de negocio.
+## Fuentes y alcance
 
-Reversión por PR: retirar la apertura conservando el borrador de siete láminas y todo el contenido/historial de Sheets. Sin cambios al Portero del Masterbroker.
+Contenido editorial desde journeyFilm aditivo en la misma celda del Sheet vigente. journeyNext, journey y las escenas originales se preservan y permanecen disponibles en el lector. El consumidor anterior ignora el campo aditivo. No se modifican backend, permisos, precios, acuerdos ni evaluador. Este cambio es editorial y de representación dentro del contrato actual CHG-INVESTOR-INTENT-STORY, sin nueva arquitectura.
 
-La obtención de vialidades es una preparación manual con workflow_dispatch; no se repite en cada visita ni cambio del frontend. Las consultas cartográficas sólo recuperan datos públicos. Guardar la salida atribuida en las celdas editoriales y revisar antes de publicarla.
+Cartografía de OpenStreetMap atribuida; zonas ilustrativas, no zonificación ni demanda comprobada. El inmueble conceptual no se presenta como propiedad localizada o cabida autorizada. Sin proyectos, documentación privada, rendimientos, pipeline o condiciones de inversión en el repositorio.
+
+## Validación y reversión
+
+Pruebas de continuidad numérica, identidad SVG, fronteras sin saltos y reversibilidad exacta; regresión WebKit/Chromium en cinco tamaños, gesto, teclado, lector, chinches y cierre. Las integraciones de escritura se prueban con dobles. CI obtiene únicamente el contenido editorial público; no registra el payload.
+
+La comprobación de Pages y fuente pública es posterior y separada. Emulación WebKit no equivale a prueba en iPhone físico ni a aceptación creativa del usuario.
+
+Rollback mediante PR del frontend. Conservar datos editoriales, borradores, chinches, accesos y recibos. No cambiar credenciales ni reejecutar entregas de Sala.
