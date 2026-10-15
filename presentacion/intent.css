@@ -1,0 +1,64 @@
+
+/* Intent-led compositions: labels belong to their objects, annotations are optional. */
+.intent-story .surface-heading{padding-top:10px;max-width:700px}
+.intent-story .surface-kicker{font-size:10px;margin-bottom:9px}
+.intent-story .surface-title{font-weight:700;font-size:30px;line-height:1.12;max-width:620px;margin:0 auto 12px}
+.intent-story .surface-caption{font-size:15px;line-height:1.45;max-width:570px;margin:auto}
+.intent-story .surface-stage{max-width:950px;margin:auto}
+.intent-story .surface-notes{display:block;min-height:0;padding:10px 24px 12px;max-width:650px;width:100%;margin:0 auto}
+.intent-story .marker-note{font:400 13px/1.4 DM,Arial,sans-serif;color:var(--muted);transform:none!important}
+.intent-story #surfaceLeaders{display:none}
+.intent-story .map-source{display:none}
+.intent-story[data-scene="1"] .map-source{display:block}
+.intent-story #art .intent-line{fill:none;stroke:var(--ink);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.intent-story #art .intent-box{fill:none;stroke:var(--line);stroke-width:1.5;vector-effect:non-scaling-stroke}
+.intent-story #art .intent-land{fill:#e9eee4;stroke:var(--ink);stroke-width:2;vector-effect:non-scaling-stroke}
+.intent-story #art .intent-fill{fill:var(--paper);stroke:var(--ink);stroke-width:2}
+.intent-story #art .intent-window{fill:#dbe7e3;stroke:var(--accent);stroke-width:1.5}
+.intent-story #art .intent-emphasis{fill:#e2ece8;stroke:var(--accent);stroke-width:1.8}
+.intent-story #art .intent-selected{fill:#38788e15;stroke:var(--accent);stroke-width:3}
+.intent-story #art .intent-common{fill:#d8ded0;stroke:var(--muted);stroke-width:1}
+.intent-story #art .intent-street{stroke:#a7b2a1;stroke-width:7}
+.intent-story #art .intent-accent{stroke:var(--accent);stroke-width:2.5}
+.intent-story #art .intent-muted{stroke:var(--line);stroke-width:1.5}
+.intent-story #art .intent-zone{fill:#38788e13;stroke:var(--accent);stroke-width:1.5;stroke-dasharray:5 7}
+.intent-story #art .intent-label{font:400 28px DM,Arial,sans-serif;fill:var(--ink);text-anchor:middle}
+.intent-story #art .intent-small{font:400 26px DM,Arial,sans-serif;fill:var(--muted);text-anchor:middle}
+.intent-story #art .intent-number{font:400 25px DM,Arial,sans-serif;fill:var(--accent);text-anchor:middle}
+.intent-story #art .intent-zone{font:700 32px DM,Arial,sans-serif;text-anchor:middle}
+.intent-story #art text.intent-zone{fill:var(--accent);stroke:none}
+.intent-story #art .intent-operator{font:400 32px DM,Arial,sans-serif;fill:var(--accent)}
+.intent-story .surface-hint{font-size:11px;color:var(--muted)}
+.intent-story #actions{max-width:610px}
+.intent-story #actions .primary{background:var(--ink);color:var(--paper)}
+.intent-story #original-narrative{padding:18px 0}
+.intent-story #original-narrative summary{cursor:pointer;min-height:44px}
+.mobile-journey.intent-story .surface-title{font-size:25px}
+.mobile-journey.intent-story .surface-heading{padding:8px 19px 4px}
+.mobile-journey.intent-story .surface-caption{font-size:14px;line-height:1.4}
+.mobile-journey.intent-story .surface-notes{min-height:0}
+.mobile-journey.intent-story .marker-note{font-size:12px;line-height:1.35}
+.mobile-journey.intent-story .surface-rotor{right:0}
+@media(max-width:359px){
+ .mobile-journey.intent-story .surface-title{font-size:22px;margin-bottom:7px}
+ .mobile-journey.intent-story .surface-caption{font-size:13px}
+ .mobile-journey.intent-story .surface-heading{padding:3px 17px}
+ .mobile-journey.intent-story .surface-kicker{margin-bottom:5px;font-size:9px}
+ .mobile-journey.intent-story .surface-notes{padding:5px 14px}
+ .mobile-journey.intent-story .surface-hint{font-size:10px}
+}
+@media(orientation:landscape) and (max-height:550px){
+ .mobile-journey.intent-story .workspace{display:grid;grid-template-columns:34% 66%;grid-template-rows:minmax(0,1fr) auto;column-gap:6px;padding-right:24px}
+ .mobile-journey.intent-story .surface-heading{grid-column:1;grid-row:1;align-self:center;padding:5px 13px}
+ .mobile-journey.intent-story .surface-title{font-size:23px}
+ .mobile-journey.intent-story .surface-caption{font-size:13px}
+ .mobile-journey.intent-story .surface-kicker{display:block;font-size:9px}
+ .mobile-journey.intent-story .surface-stage{grid-column:2;grid-row:1;height:100%;width:100%}
+ .mobile-journey.intent-story .surface-notes{padding:2px 12px;min-height:0}
+ .mobile-journey.intent-story .marker-note{font-size:11px}
+ .mobile-journey.intent-story .surface-hint{grid-column:1;grid-row:2;font-size:9px}
+ .mobile-journey.intent-story #actions{grid-column:2;grid-row:2;flex-direction:column;min-height:0;gap:4px;margin:3px 0}
+ .mobile-journey.intent-story #actions a,.mobile-journey.intent-story #actions button{min-height:44px;font-size:12px}
+}
+
+html.intent-story[data-scene="0"] .map-source{display:none}
