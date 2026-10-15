@@ -90,9 +90,9 @@ jobs:
         run: |
           npm install --no-save --ignore-scripts --no-audit --no-fund playwright@1.58.2
           npx playwright install --with-deps chromium webkit
-          node tests/brokers-pins-browser.cjs
           node tests/brokers-mobile-browser.cjs
           node tests/brokers-atlas-browser.cjs
+          node tests/brokers-pins-browser.cjs
           node tests/brokers-slider-browser.cjs
           node tests/brokers-simple-browser.cjs
           node tests/brokers-principal-browser.cjs
