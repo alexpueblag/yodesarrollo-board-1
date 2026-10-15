@@ -1,18 +1,18 @@
 {
-  "model_revision": "2026-10-14.investor-gesture.2",
-  "proposal_id": "CHG-INVESTOR-MOBILE-GESTURE",
-  "summary": "Public investor presentation adopts centered corporate header, full-width canvas and transparent relative mobile rotor.",
+  "model_revision": "2026-10-15.investor-single.1",
+  "proposal_id": "CHG-INVESTOR-SINGLE-SURFACE",
+  "summary": "One iPhone interaction surface with diagram annotations and the existing PPP review-pin system; no moving footer or separate narrative scroll.",
   "components": [
     "SYS-INVERSION",
+    "SYS-CONTROL",
     "GAS-PLAN-POTENCIAL",
-    "SHEET-PLAN-POTENCIAL",
-    "SYS-CONTROL"
+    "SHEET-PLAN-POTENCIAL"
   ],
   "tests": [
-    "node --test tests/brokers*.test.cjs",
-    "Syntax and git diff --check",
-    "WebKit and Chromium: 135 moments per engine; full-width 320/375/390/430/844, centered brand, relative touch velocity, five rotor heights, no jump on tap, endpoints/reversal, release brake, chapter navigation, CTA reach, orientation, keyboard and reduced motion.",
-    "Existing live editorial and exact published frontend regression."
+    "Read-only reference UI source inspection; no model/case data or outbound writes.",
+    "WebKit/Chromium: one gesture across drawing and notes; no bottom navigation or independent scroll; complete reader; immediate closing actions; reduced motion and keyboard.",
+    "Existing pin composer: real screenshot/crop, ArrayBuffer persistence after reload, cancel, review history, synthetic share/microphone; zero business writes.",
+    "Exact anonymous public frontend and evaluator after publication."
   ],
-  "rollback": "Revert frontend only; preserve data and permissions."
+  "rollback": "Revert frontend and public editorial surface fields only; preserve original narrative, case data, permissions, Portero, prior versions and saved reviews."
 }
