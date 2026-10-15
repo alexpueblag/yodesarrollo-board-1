@@ -11,13 +11,13 @@ async function closingVisible(p){await seek(p,20);await settle(p);const a=await 
 setTimeout(()=>{console.error('Single interaction browser deadline');process.exit(1);},240000).unref();
 const payload=await read(fs.readFileSync('presentacion/source.js','utf8').match(/url:'([^']+)'/)[1]);
 const server=http.createServer((req,res)=>{const n=new URL(req.url,'http://local').pathname.slice(1)||'index.html';if(!/^[a-z0-9-]+\.(html|css|js)$/.test(n)&&!/^vendor\/[a-zA-Z0-9._-]+\.js$/.test(n)&&!/^fonts\/[a-zA-Z0-9._-]+\.woff2$/.test(n)&&n!=='assets/logo_dark.png'){res.statusCode=404;return res.end();}try{res.setHeader('Content-Type',n.endsWith('.js')?'application/javascript':n.endsWith('.css')?'text/css':n.endsWith('.png')?'image/png':n.endsWith('.woff2')?'font/woff2':'text/html');res.end(fs.readFileSync(n.startsWith('assets/')?n:path.join('presentacion',n)));}catch(e){res.statusCode=404;res.end();}});
-await new Promise(r=>server.listen(0,'121.0.0.1',r));
+await new Promise(r=>server.listen(0,'127.0.0.1',r));
 let writes=0;
 for(const [name,engine]of [['webkit',webkit],['chromium',chromium]]){
  const browser=await engine.launch(),context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,deviceScaleFactor:1}),p=await context.newPage(),errors=[];p.on('pageerror',e=>errors.push(e.message));
  await context.route('https://**/*',r=>{if(r.request().method()!=='GET'){writes++;return r.abort();}return r.fulfill({contentType:'application/json',body:JSON.stringify(payload)});});
  await p.addInitScript(()=>localStorage.setItem('pyod_clave_v1','synthetic-key'));
- await p.bringToFront();await p.goto('http://121.0.0.1:'+server.address().port+'/');await p.locator('#journey:not([hidden])').waitFor({timeout:65000});await p.evaluate(()=>document.fonts.ready);
+ await p.bringToFront();await p.goto('http://127.0.0.1:'+server.address().port+'/');await p.locator('#journey:not([hidden])').waitFor({timeout:65000});await p.evaluate(()=>document.fonts.ready);
  const cdp=name==='chromium'?await context.newCDPSession(p):null;
  try{
  const full=await p.evaluate(()=>YodSlider.api.config());assert.ok(full.surface?.scenes?.length===7,'Surface editorial is loaded');
@@ -35,7 +35,7 @@ for(const [name,engine]of [['webkit',webkit],['chromium',chromium]]){
  const box=await p.locator('.workspace').boundingBox(),x=box.x+box.width*.30,y=box.y+box.height*.8;
  await gesture(p,x,y,240,1500,cdp);const slow=(await state(p))-8;
  await seek(p,8);await gesture(p,x,y,240,650,cdp);const fast=(await state(p))-8;assert.ok(slow>.5&&fast>slow*1.03,'Velocity sensitive gesture '+JSON.stringify({slow,fast}));
- const origins=await p.evaluate(()=>{const w=document.querySelector('.workspace').getBoundingClientRect(),d=document.querySelector('#diagram').getBoundingClientRect(),n=document.querySelector('#surfaceNotes .marker-note').getBoundingClientRect();return[{name:'drawing',x:d.x+d.width*.3,y:d.y+d.height*.6},{name:'annotation',x:n.x+n.width*.5,y:n.y+n.height*.5},{name:'surrounding canvas',x:w.x+12,y:w.y+w.height*.7}];});
+ await seek(p,8);const origins=await p.evaluate(()=>{const w=document.querySelector('.workspace').getBoundingClientRect(),d=document.querySelector('#diagram').getBoundingClientRect(),n=document.querySelector('#surfaceNotes .marker-note').getBoundingClientRect();return[{name:'drawing',x:d.x+d.width*.3,y:d.y+d.height*.6},{name:'annotation',x:n.x+n.width*.5,y:n.y+n.height*.5},{name:'surrounding canvas',x:w.x+12,y:w.y+w.height*.7}];});
  for(const origin of origins){await seek(p,8);const delta=Math.min(80,origin.y-box.y-8);assert.ok(delta>15,'Usable gesture origin '+JSON.stringify(origin));await gesture(p,origin.x,origin.y,delta,300,cdp);assert.ok((await state(p))>8,'Same gesture works on '+origin.name);}
  await seek(p,8);await p.locator('.workspace').dispatchEvent('wheel',{deltaY:20,bubbles:true,cancelable:true});await settle(p);assert.ok((await state(p))>8,'Wheel forward');await seek(p,8);await p.locator('.workspace').dispatchEvent('wheel',{deltaY:-20,bubbles:true,cancelable:true});await settle(p);assert.ok((await state(p))<8,'Wheel reverse');
  await seek(p,8);await p.evaluate(()=>{const f=document.querySelector('.workspace');f.dispatchEvent(new PointerEvent('pointerdown',{pointerId:33,isPrimary:true,clientY:300,bubbles:true}));for(let i=1;i<=100;i++)f.dispatchEvent(new PointerEvent('pointermove',{pointerId:33,isPrimary:true,clientY:300-i*.2,bubbles:true}));f.dispatchEvent(new PointerEvent('pointerup',{pointerId:33,isPrimary:true,clientY:280,bubbles:true}));});await settle(p);assert.ok((await state(p))>8,'Subpixel motion has no dead zone');

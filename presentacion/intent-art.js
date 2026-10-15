@@ -30,7 +30,7 @@ case 'terms':return [0,1,2,3,4].map(i=>line('M100 '+(95+i*70)+'H540','intent-mut
 case 'design':return house(230,0,.9,2)+[0,1,2].map(i=>box(70,227+i*64,500,52)+caption(i,320,262+i*64)).join('');
 case 'build':return house(210,15,1.1,2)+[0,1,2].map(i=>text(320,300+i*48,words[i],'small')+line('M130 '+(310+i*48)+'H510','intent-muted')).join('');
 case 'sale':return house(210,0,1.05,2)+[0,1,2].map(i=>box(80,220+i*66,480,54)+caption(i,320,256+i*66)).join('');
-case 'cash':return [0,1,2].map(i=>box(115,30+i*140,410,95,i===2?'intent-emphasis':'')+text(155,88+i*140,String(i+1),'number')+caption(i,342,85+i*140,23)+(i<2?line('M320 '+(130+i*140)+'V160M314 '+(153+i*140)+'L320 '+(160+i*140)+'L326 '+(153+i*140),'intent-accent'):'')).join('');
+case 'cash':return [0,1,2].map(i=>box(115,30+i*140,410,95,i===2?'intent-emphasis':'')+text(155,88+i*140,String(i+1),'number')+caption(i,342,85+i*140,23)+(i<2?line('M320 '+(130+i*140)+'V'+(160+i*140)+'M314 '+(153+i*140)+'L320 '+(160+i*140)+'L326 '+(153+i*140),'intent-accent'):'')).join('');
 case 'closing':return house(210,0,1.05,2)+[0,1,2].map(i=>caption(i,320,270+i*52)).join('');
 default:return '';
 }}
