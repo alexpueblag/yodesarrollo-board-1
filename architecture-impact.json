@@ -1,7 +1,7 @@
 {
-  "model_revision": "2026-10-15.investor-single.1",
-  "proposal_id": "CHG-INVESTOR-SINGLE-SURFACE",
-  "summary": "One iPhone interaction surface with diagram annotations and the existing PPP review-pin system; no moving footer or separate narrative scroll.",
+  "model_revision": "2026-10-15.investor-intent.1",
+  "proposal_id": "CHG-INVESTOR-INTENT-STORY",
+  "summary": "Recorrido variable de siete preguntas del inversionista, mismo inmueble ilustrativo, composición por escena sin flechas decorativas obligatorias. Conservar gesto iPhone, chinches y detalle original. Nueva configuración editorial aditiva en Sheets, con compatibilidad para versiones previas. Capital como entrada principal; inmueble al evaluador como entrada secundaria.",
   "components": [
     "SYS-INVERSION",
     "SYS-CONTROL",
@@ -9,10 +9,10 @@
     "SHEET-PLAN-POTENCIAL"
   ],
   "tests": [
-    "Read-only reference UI source inspection; no model/case data or outbound writes.",
-    "WebKit/Chromium: one gesture across drawing and notes; no bottom navigation or independent scroll; complete reader; immediate closing actions; reduced motion and keyboard.",
-    "Existing pin composer: real screenshot/crop, ArrayBuffer persistence after reload, cancel, review history, synthetic share/microphone; zero business writes.",
-    "Exact anonymous public frontend and evaluator after publication."
+    "Pruebas sintéticas de esquema, estados variables, reversa, error y compatibilidad.",
+    "WebKit y Chromium: iPhone pequeño y horizontal, controles, detalle y chinches; capturas de estados clave e intermedios.",
+    "Publicación anónima del código exacto y contenido editorial; enlace evaluador sin credenciales.",
+    "Atlas generado y contratos existentes."
   ],
-  "rollback": "Revert frontend and public editorial surface fields only; preserve original narrative, case data, permissions, Portero, prior versions and saved reviews."
+  "rollback": "Revertir frontend y sólo nuevo campo editorial; conservar originales, revisiones, configuración histórica, datos, permisos y credenciales."
 }

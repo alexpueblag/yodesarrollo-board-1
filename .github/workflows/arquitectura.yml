@@ -45,7 +45,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: yodesarrollomx/yod-portal
-          ref: 7aee6fab94806252e2b615ce229af2a7052802a5
+          ref: f35582b799f56cc2d62efa8a7fea57f6c87c8c8b
           path: .yod-atlas
           persist-credentials: false
           sparse-checkout-cone-mode: false
@@ -78,6 +78,10 @@ jobs:
           node --check presentacion/vendor/yod-chinche.js
           node --check presentacion/vendor/html2canvas.min.js
           node --check presentacion/atlas-mobile.js
+          node --check presentacion/intent.js
+          node --check presentacion/intent-core.js
+          node --check presentacion/intent-art.js
+          node --check presentacion/intent-mobile.js
           node --check presentacion/atlas.js
           node --check presentacion/atlas-core.js
           node --check presentacion/atlas-art.js
@@ -91,7 +95,8 @@ jobs:
           npm install --no-save --ignore-scripts --no-audit --no-fund playwright@1.58.2
           npx playwright install --with-deps chromium webkit
           node tests/brokers-pins-browser.cjs
-          node tests/brokers-mobile-browser.cjs
+          node tests/brokers-intent-browser.cjs
+          node tests/intent-visual-browser.cjs
           node tests/brokers-atlas-browser.cjs
           node tests/brokers-slider-browser.cjs
           node tests/brokers-simple-browser.cjs
@@ -113,6 +118,7 @@ jobs:
             simple-*.jpg
             slider-*.jpg
             atlas-*.jpg
+            intent-*.jpg
             mobile-*.jpg
             pin-*.jpg
             pin-*.png
