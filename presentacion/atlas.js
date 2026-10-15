@@ -29,5 +29,5 @@ document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>$(b.dataset.c
 $('progress').addEventListener('keydown',e=>{let v;if((e.key==='ArrowRight'||e.key===(mobile?.active?'ArrowDown':'ArrowUp')))v=C.next(p,1);else if((e.key==='ArrowLeft'||e.key===(mobile?.active?'ArrowUp':'ArrowDown')))v=C.next(p,-1);else if(e.key==='Home')v=0;else if(e.key==='End')v=26;else if(e.key==='PageDown')v=C.clamp((Math.floor(p/3)+1)*3);else if(e.key==='PageUp')v=C.clamp((Math.ceil(p/3)-1)*3);else return;e.preventDefault();seek(v,true);});
 reduce.addEventListener('change',()=>seek(Math.floor(p)));document.addEventListener('visibilitychange',()=>{if(document.hidden&&!mobile?.active)seek(Math.round(p));});
 mobile=window.YodMobileJourney.create({render,getProgress:()=>p,cancel:()=>cancelAnimationFrame(frame)});
-window.YodSlider={mount,api:{seek,mobile:()=>mobile.inspect(),state:()=>({...C.state(p),version:cfg?.version})}};load();
+window.YodSlider={mount,api:{seek,config:()=>cfg,pause:()=>mobile.pause(true),resume:()=>mobile.pause(false),mobile:()=>mobile.inspect(),state:()=>({...C.state(p),version:cfg?.version})}};load();
 })();

@@ -74,6 +74,9 @@ jobs:
           node --check presentacion/slider-core.js
           node --check presentacion/slider-art.js
           node --check presentacion/slider.js
+          node --check presentacion/atlas-pins.js
+          node --check presentacion/vendor/yod-chinche.js
+          node --check presentacion/vendor/html2canvas.min.js
           node --check presentacion/atlas-mobile.js
           node --check presentacion/atlas.js
           node --check presentacion/atlas-core.js
@@ -87,6 +90,7 @@ jobs:
         run: |
           npm install --no-save --ignore-scripts --no-audit --no-fund playwright@1.58.2
           npx playwright install --with-deps chromium webkit
+          node tests/brokers-pins-browser.cjs
           node tests/brokers-mobile-browser.cjs
           node tests/brokers-atlas-browser.cjs
           node tests/brokers-slider-browser.cjs
@@ -110,6 +114,8 @@ jobs:
             slider-*.jpg
             atlas-*.jpg
             mobile-*.jpg
+            pin-*.jpg
+            pin-*.png
           retention-days: 7
       - name: Resolver comparación
         id: refs
