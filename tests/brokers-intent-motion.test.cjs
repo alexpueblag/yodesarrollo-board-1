@@ -15,3 +15,7 @@ test('comparison, capital, construction and sale remain in their intended order'
  assert.ok(M.frame(11.5).build>.9);assert.ok(M.frame(12.3).sale>.9);
  assert.equal(M.frame(14).dossier,1);assert.equal(M.frame(14).close,1);
 });
+
+test('property remains in the canvas while comparison hands off to the account',()=>{
+ for(let p=5.5;p<8.3;p+=.002){const f=M.frame(p),half=235*f.scale;assert.ok(f.heroX-half>=0,'Left edge at '+p);assert.ok(f.heroX+half<=640,'Right edge at '+p);}
+});

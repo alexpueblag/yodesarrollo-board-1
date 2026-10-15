@@ -15,6 +15,7 @@ const fs=require('node:fs'),http=require('node:http'),path=require('node:path'),
    const before=await sample(boundary-.0001),after=await sample(boundary+.0001);assert.equal(before.length,after.length,'Geometry topology persists');assert.ok(Math.max(...before.map((v,i)=>Math.abs(v-after[i])))<.25,'No property jump at '+boundary);
   }
   await p.evaluate(()=>YodSlider.api.seek(4.37));const original=await p.locator('[data-object="property-p1"]').innerHTML();await p.evaluate(()=>YodSlider.api.seek(12.6));await p.evaluate(()=>YodSlider.api.seek(4.37));assert.equal(await p.locator('[data-object="property-p1"]').innerHTML(),original,'Exact reverse geometry');await p.waitForTimeout(220);assert.equal(await p.locator('[data-object="property-p1"]').innerHTML(),original,'No autonomous timeline');
+  for(let v=5.5;v<=8.25;v+=.05){await p.evaluate(n=>YodSlider.api.seek(n),v);const edge=await p.locator('[data-object="property-p1"]').evaluate(e=>{const b=e.getBBox();return{x:b.x,right:b.x+b.width};});assert.ok(edge.x>=-1&&edge.right<=641,'Property within canvas during handoff '+v+' '+JSON.stringify(edge));}
   assert.equal(writes,0);assert.deepEqual(errors,[]);
   if(name==='webkit'){
    const shots=[];
