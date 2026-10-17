@@ -55,3 +55,5 @@ html[data-offer="true"] #art .offer-label[text-anchor="start"]{text-anchor:start
 
 @media(orientation:portrait){html[data-offer="true"] .surface-stage{justify-content:flex-start;padding-top:20px}}
 @media(max-height:650px){html[data-offer="true"] .surface-stage{padding-top:0}}
+
+html[data-offer="true"]{--muted:#596552}

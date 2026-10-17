@@ -101,7 +101,7 @@ function mount(svg,overlay,map){
   a.delivery.sale.forEach((v,i)=>{label(refs.sale,320,193+i*69,v,i===2?'offer-emphasis':'offer-row');if(i<2)rule(refs.sale,320,206+i*69,320,225+i*69,'offer-link');});
   rule(refs.sale,110,357,530,357,'offer-divider');
   a.delivery.allocation.forEach((v,i)=>label(refs.sale,110+i*210,392,v,'offer-small offer-muted','middle',15));
-  refs.terms=group('project-terms');a.closing.questions.forEach((v,i)=>{rule(refs.terms,335,109+i*108,592,109+i*108,'offer-divider');label(refs.terms,338,149+i*108,v,'offer-small','start',20);});
+  refs.terms=group('project-terms');a.closing.questions.forEach((v,i)=>{rule(refs.terms,335,97+i*120,592,97+i*120,'offer-divider');label(refs.terms,338,137+i*120,v,'offer-small','start',20);});
   refs.close=group('invitation');label(refs.close,320,352,a.closing.title,'offer-emphasis');
   a.closing.choice.forEach((v,i)=>label(refs.close,175+i*290,413,v,'offer-small offer-accent'));
   rule(refs.close,320,365,320,382,'offer-link');rule(refs.close,175,382,465,382,'offer-link');
