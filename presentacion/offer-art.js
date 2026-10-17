@@ -3,8 +3,9 @@ const legacyMount=root.YodSliderArt.mount;
 const clamp=(n,a=0,b=1)=>Math.max(a,Math.min(b,Number(n)||0)),mix=(a,b,t)=>a+(b-a)*t;
 const smooth=t=>{t=clamp(t);return t*t*(3-2*t);},ramp=(p,a,b)=>smooth((p-a)/(b-a));
 const envelope=(p,a,b,c,d)=>ramp(p,a,b)*(1-ramp(p,c,d));
+const at=(p,n)=>envelope(p,n-.22,n-.06,n+.08,n+.22);
 const keys=[[175,236,.67,1,0,1],[320,225,.15,0,0,0],[320,225,.20,0,0,0],[320,226,1.03,.55,0,1],[173,217,.68,0,1,1],[320,245,1.07,1,1,1],[173,163,.64,1,1,1],[539,77,.23,1,1,.45],[320,123,.42,1,1,1],[320,223,.58,1,1,1],[320,122,.43,1,1,1],[320,245,1.04,1,1,1],[320,94,.34,1,1,1],[162,217,.62,1,1,1],[320,192,.90,1,1,1]];
-function pose(p){const i=Math.min(13,Math.floor(p)),t=smooth(p-i);return keys[i].map((v,k)=>mix(v,keys[i+1][k],t));}
+function pose(p){const i=Math.min(13,Math.floor(p)),t=ramp(p-i,.24,.76);return keys[i].map((v,k)=>mix(v,keys[i+1][k],t));}
 function mount(svg,overlay,map){
  let legacy=null,own=false,cfg=null,a=null,g=null,refs={},last=0;
  const NS='http://www.w3.org/2000/svg';
@@ -100,7 +101,7 @@ function mount(svg,overlay,map){
   a.delivery.sale.forEach((v,i)=>{label(refs.sale,320,193+i*69,v,i===2?'offer-emphasis':'offer-row');if(i<2)rule(refs.sale,320,206+i*69,320,225+i*69,'offer-link');});
   rule(refs.sale,110,357,530,357,'offer-divider');
   a.delivery.allocation.forEach((v,i)=>label(refs.sale,110+i*210,392,v,'offer-small offer-muted','middle',15));
-  refs.terms=group('project-terms');a.closing.rows.forEach((v,i)=>{rule(refs.terms,335,145+i*85,592,145+i*85,'offer-divider');label(refs.terms,338,185+i*85,v,'offer-small','start',18);});
+  refs.terms=group('project-terms');a.closing.questions.forEach((v,i)=>{rule(refs.terms,335,109+i*108,592,109+i*108,'offer-divider');label(refs.terms,338,149+i*108,v,'offer-small','start',20);});
   refs.close=group('invitation');label(refs.close,320,352,a.closing.title,'offer-emphasis');
   a.closing.choice.forEach((v,i)=>label(refs.close,175+i*290,413,v,'offer-small offer-accent'));
   rule(refs.close,320,365,320,382,'offer-link');rule(refs.close,175,382,465,382,'offer-link');
@@ -108,26 +109,26 @@ function mount(svg,overlay,map){
  function draw(p,reduced){
   if(!own){legacy?.draw(p,reduced);return;}p=clamp(p,0,14);last=p;
   svg.dataset.frame=p.toFixed(3);svg.dataset.revision='offer-4';svg.dataset.map=map?'real':'unavailable';
-  const k=pose(p),plan=envelope(p,3.45,4,4.25,4.95),build=envelope(p,10.5,10.85,11.1,11.8);
+  const k=pose(p),plan=envelope(p,3.24,3.76,4.24,4.76),build=envelope(p,10.24,10.76,11.24,11.76);
   paintHouse(refs.hero,...k.slice(0,5),mix(55,82,k[4]),plan,1-.8*build);opacity(refs.hero.wrap,k[5]);
-  opacity(refs.opening,1-ramp(p,.1,.9));paintHouse(refs.openAlt,470,236,.67,1,1,82,0);
+  opacity(refs.opening,1-ramp(p,.08,.22));paintHouse(refs.openAlt,470,236,.67,1,1,82,0);
   opacity(refs.map,envelope(p,.25,.95,2.35,3.0));
   if(map){const z=mix(.56,.95,ramp(p,1,2.75));set(refs.camera,'transform','translate('+(320-map.focus[0]*z)+' '+(205-map.focus[1]*z*.80)+') scale('+z+' '+z*.80+')');}
   opacity(refs.zones,ramp(p,1.2,2));opacity(refs.criteria,envelope(p,.8,1.5,2.4,3));
-  opacity(refs.property,envelope(p,2.7,3,3.1,3.35));
-  opacity(refs.planLabels,0);opacity(refs.market,envelope(p,3.5,4,4.35,4.8));
+  opacity(refs.property,at(p,3));
+  opacity(refs.planLabels,0);opacity(refs.market,at(p,4));
   line(refs.planAccess,[[180,359],[180,339],[390,339],[390,300]]);
   line(refs.planPatio,[[460,359],[460,333],[418,333],[418,245]]);
-  opacity(refs.product,envelope(p,4.6,5,5.25,5.7));
-  opacity(refs.comparison,envelope(p,5.45,6,6.2,6.7));paintHouse(refs.alt,474,163,.64,1,.6,82,0);
-  opacity(refs.account,envelope(p,6.55,7,7.25,7.8));
-  opacity(refs.tenure,envelope(p,7.55,8,8.25,8.75));
-  opacity(refs.roles,envelope(p,8.55,9,9.2,9.75));
-  opacity(refs.conditions,envelope(p,9.55,10,10.25,10.8));
-  opacity(refs.construction,envelope(p,10.55,11,11.25,11.8));
+  opacity(refs.product,at(p,5));
+  opacity(refs.comparison,at(p,6));paintHouse(refs.alt,474,163,.64,1,.6,82,0);
+  opacity(refs.account,at(p,7));
+  opacity(refs.tenure,at(p,8));
+  opacity(refs.roles,at(p,9));
+  opacity(refs.conditions,at(p,10));
+  opacity(refs.construction,at(p,11));
   const bx=mix(80,560,ramp(p,10.55,11.7));line(refs.buildProgress,[[80,382],[bx,382]]);
-  opacity(refs.sale,envelope(p,11.55,12,12.25,12.8));
-  opacity(refs.terms,envelope(p,12.55,13,13.25,13.8));opacity(refs.close,ramp(p,13.55,14));
+  opacity(refs.sale,at(p,12));
+  opacity(refs.terms,at(p,13));opacity(refs.close,ramp(p,13.78,13.94));
  }
  return{configure(c){cfg=c;own=c.surface?.revision==='offer-4';if(!own){if(!legacy)legacy=legacyMount(svg,overlay,map);legacy.configure(c);return;}a=c.surface.art;if(!a)throw Error('The offer artwork requires editorial art configuration.');refs={};build();},
  labels(v,d,s,j){if(!own){legacy?.labels(v,d,s,j);return;}set(g,'data-visual',cfg.scenes[s].steps[j].visual);},draw,
