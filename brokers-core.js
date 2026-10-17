@@ -45,12 +45,52 @@
   }
   function overdue(o, today) { return !!o.next_date && o.next_date < today && !['Formalizado', 'Descartado', 'En pausa'].includes(o.stage); }
   function nextStep(value) {
-    const text = String(value || ''), match = text.match(/^\[(YOD|Masterbroker)\]\s*/);
+    const text = String(value || ''), match = text.match(/^\[(YOD|Masterbroker|PG|Persona:[A-Za-z0-9_.:@%-]{1,600})\]\s*/);
+    if (match && match[1].startsWith('Persona:')) {
+      try { return {owner:'person:'+decodeURIComponent(match[1].slice(8)),text:text.slice(match[0].length)}; } catch (_) { return {owner:'',text}; }
+    }
     return { owner: match ? match[1] : '', text: match ? text.slice(match[0].length) : text };
   }
   function encodeStep(owner, value) {
     const text = nextStep(value).text.trim();
-    return text && ['YOD','Masterbroker'].includes(owner) ? `[${owner}] ${text}` : text;
+    if (text && /^person:[A-Za-z0-9_.:@-]{1,200}$/.test(owner)) return `[Persona:${encodeURIComponent(owner.slice(7))}] ${text}`;
+    return text && ['YOD','Masterbroker','PG'].includes(owner) ? `[${owner}] ${text}` : text;
+  }
+  function ownPortfolio(s) {
+    if (s.actor.role === 'broker') return s.brokers.find(b=>b.id===s.actor.id) || null;
+    const explicit = s.brokers.find(b=>b.id===(s.actor.broker_id || s.actor.id));
+    if (explicit) return explicit;
+    // Display ordering only, never identity, ownership, authentication or ACL.
+    const words = v => String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim().split(/\s+/);
+    const actor = words(s.actor.name);
+    if (actor.length < 2) return null;
+    const matches = s.brokers.filter(b=>{const name=words(b.name);return actor.length<=name.length && actor.every((w,i)=>w===name[i]);});
+    return matches.length===1 ? matches[0] : null;
+  }
+  function ownerLabel(s,value) {
+    const owner=nextStep(value).owner;
+    if (!owner) return 'Responsable por definir';
+    if (!owner.startsWith('person:')) return ({YOD:'YoDesarrollo · persona por definir',Masterbroker:'Masterbroker · persona por definir',PG:'PG'})[owner] || owner;
+    const id=owner.slice(7),p=s.brokers.find(b=>b.id===id);
+    return p ? p.name : id===s.actor.id ? s.actor.name : 'Responsable registrado';
+  }
+  function clientGroups(s,broker,query,stage,state) {
+    const groups=new Map(),q=String(query||'').trim().toLocaleLowerCase('es');
+    for (const o of visible(s,broker,'','')) {
+      const c=s.contacts.find(c=>c.id===o.contact_id),key=c?'contact:'+c.id:'unlinked:'+(o.terrain_id?'terrain:'+o.terrain_id:o.ppp_id?'ppp:'+o.ppp_id:'opportunity:'+o.id);
+      if(!groups.has(key))groups.set(key,{key,contact:c||null,records:[],cases:[],activities:[]});
+      groups.get(key).records.push(o);
+    }
+    for(const c of s.contacts.filter(c=>!broker||(c.broker_ids||[]).includes(broker))) {
+      if(!groups.has('contact:'+c.id)) groups.set('contact:'+c.id,{key:'contact:'+c.id,contact:c,records:[],cases:[],activities:[]});
+    }
+    return [...groups.values()].map(g=>{
+      const ids=new Set(g.records.map(o=>o.id));
+      g.activities=s.activities.filter(a=>ids.has(a.opportunity_id));
+      g.cases=caseGroups({...s,opportunities:g.records},broker,'','','');
+      g.open=g.records.filter(o=>!['Formalizado','Descartado'].includes(o.stage)).length;
+      return g;
+    }).filter(g=>(!stage||g.records.some(o=>o.stage===stage))&&(!state||(state==='open'?g.open>0:g.records.length>0&&g.open===0))&&(!q||[g.contact?.name,g.contact?.company,...g.records.flatMap(o=>[o.title,o.location,o.id,o.ppp_id])].join(' ').toLocaleLowerCase('es').includes(q)));
   }
   function agenda(rows, owner) {
     return rows.filter(o => !['Formalizado','Descartado','En pausa'].includes(o.stage) && (!owner || nextStep(o.next_action).owner === owner))
@@ -117,7 +157,7 @@
     }
     return { load: () => request('brokers_snapshot', {}), save: (kind, record, revision, requestId) => request('brokers_save', { kind, record, expected_revision: revision }, requestId), invalidate: () => { generation++; } };
   }
-  const api = { stages, participationStates, safeLink, validateSnapshot, visible, caseGroups, overdue, nextStep, encodeStep, agenda, previewSnapshot, workspaceSnapshot, dailyControl, createClient };
+  const api = { stages, participationStates, safeLink, validateSnapshot, visible, caseGroups, clientGroups, ownPortfolio, ownerLabel, overdue, nextStep, encodeStep, agenda, previewSnapshot, workspaceSnapshot, dailyControl, createClient };
   if (typeof module !== 'undefined') module.exports = api;
   root.BrokersCore = api;
 })(typeof window === 'undefined' ? globalThis : window);

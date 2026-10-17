@@ -1,20 +1,23 @@
 {
-  "model_revision": "2026-10-15.presentation-pins-ingest.1",
-  "proposal_id": "CHG-INVESTOR-INTENT-STORY",
-  "summary": "Replanteamiento comercial offer-4 tras rechazo de journey-3: propuesta literal de departamentos para venta, aportaciones y cuenta completa; diagramas ligados a su significado. Fuente journey_offer aditiva en el Sheet editorial vigente, con todos los borradores conservados. Misma interfaz, gesto, chinches y evaluador; sin cambios de arquitectura, backend, permisos ni condiciones financieras. Auditorías independientes de oferta y diseño preceden a experiencia; lectura estable al soltar, contraste, orientación y archivo histórico agrupado. Publicación verificada por CI separadamente de aceptación humana. También corrige el relevo de revisiones dentro del contrato vigente: admite padre embebido y mantiene conexión explícita reutilizable, sin transferir credenciales ni abrir una ventana por cada chinche.",
+  "model_revision": "2026-10-17.master-developer-crm.1",
+  "proposal_id": "CHG-MASTERBROKERS-MINI-CRM",
+  "summary": "Jerarquía visual plaza, responsable, cliente y asunto sobre el CRM existente; integra mini CRM pendiente, conserva actor y ACL, responsables nominales, estado PPP explícito y agenda append-only.",
   "components": [
     "SYS-INVERSION",
-    "SYS-CONTROL",
-    "GAS-PLAN-POTENCIAL",
-    "SHEET-PLAN-POTENCIAL"
+    "GAS-CRM",
+    "SHEET-CRM",
+    "SYS-POTENCIALES",
+    "GAS-PORTERO",
+    "SHEET-PORTERO",
+    "SYS-YOD-OS"
   ],
   "tests": [
-    "Sintaxis, contratos existentes, git diff --check y compatibilidad con fuentes sin journey_offer.",
-    "Prototipo en Chromium/WebKit: quince momentos, geometría persistente, avance/reversa, rangos, menús, chinches y CTA.",
-    "Capturas móviles de todos los momentos, legibilidad de costos, aportaciones y cierre; auditores independientes con criterios explícitos.",
-    "Publicación anónima y código exacto sólo tras puertas creativas; distinguir puntuación interna de aceptación de usuarios reales.",
-    "Asentamiento cancelable, gesto rápido y reversa, progreso visible, contraste calculado y rutas reales de menú/copia/compartir con alternativas controladas.",
-    "Relevo: Chromium/WebKit con dos orígenes, captura real y red simulada: auth-required honesto, conexión explícita, dos notas comparten ventana, acuse por ID/huella y recarga sin duplicado.16contratos de entrega pasan; cero POST de prueba aproducción."
+    "node --test tests/brokers*.test.cjs: codec compatible, fecha real distinta de captura, eventos programados/reemplazados, calendario y resumen PPP sin motor propio.",
+    "Chromium320/390/1440: varios expedientes desplegados, comparación alineada, calendario, editor y fuentes; cero overflow.",
+    "Permisos existentes, preview sin guardado, sesión invalidada, ACK/revisión/reintentos idempotentes; cero escrituras de prueba en producción.",
+    "Atlas regenerado, checks del portal y pin del consumidor; publicación registrada aparte de integración y de lectura privada.",
+    "Clientes múltiples, contactos homónimos, casos compartidos y sin contacto; identidad Dirección conservada y broker aislado.",
+    "Responsable nominal y estado PPP sobreviven roundtrip brokers.v1; programación/reprogramación/resultado; filtros decisión/hoy/vencidos/sin siguiente paso."
   ],
-  "rollback": "Revertir el PR frontend y conservar journey_offer, atlas_config, borradores y chinches. No revertir datos de negocio ni credenciales."
+  "rollback": "Revertir sólo frontend; conservar IDs, todas las actividades y sus notas legibles, fuentes, PPP, pendientes, permisos y datos operativos. No restaurar filas de negocio."
 }
