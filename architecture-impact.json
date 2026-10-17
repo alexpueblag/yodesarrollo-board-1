@@ -1,5 +1,5 @@
 {
-  "model_revision": "2026-10-17.master-developer-crm.1",
+  "model_revision": "2026-10-17.chinches-entregas.1",
   "proposal_id": "CHG-MASTERBROKERS-MINI-CRM",
   "summary": "Refinamiento visual del portal Master Developer, equipo desplegable, actividad y cobertura PPP; acceso visible al plan, estado actual y siguiente paso en el expediente. Conserva contrato brokers.v1 y autorización por identidad.",
   "components": [
