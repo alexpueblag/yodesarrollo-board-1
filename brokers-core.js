@@ -155,7 +155,18 @@
         throw e;
       } finally { clearTimeout(timer); }
     }
-    return { load: () => request('brokers_snapshot', {}), save: (kind, record, revision, requestId) => request('brokers_save', { kind, record, expected_revision: revision }, requestId), invalidate: () => { generation++; } };
+    async function save(kind, record, revision, requestId) {
+      const collection = {contact:'contacts',opportunity:'opportunities',activity:'activities',participation:'participations'}[kind];
+      const reflects = data => (data[collection] || []).some(row => Object.entries(record).every(([key,value]) =>
+        Array.isArray(value) ? value.every(id => (row[key] || []).includes(id)) : String(row[key] ?? '').trim() === String(value ?? '').trim()));
+      let data = await request('brokers_save', { kind, record, expected_revision: revision }, requestId);
+      // Some adapters acknowledge the write with their pre-commit snapshot.
+      // Verify through a fresh authorized read; never construct an optimistic record.
+      if (!reflects(data)) data = await request('brokers_snapshot', {});
+      if (!reflects(data)) throw new Error('El servidor confirmó el guardado, pero la lectura aún no refleja el cambio. Actualiza la cartera para verificarlo; no crees otro registro.');
+      return data;
+    }
+    return { load: () => request('brokers_snapshot', {}), save, invalidate: () => { generation++; } };
   }
   const api = { stages, participationStates, safeLink, validateSnapshot, visible, caseGroups, clientGroups, ownPortfolio, ownerLabel, overdue, nextStep, encodeStep, agenda, previewSnapshot, workspaceSnapshot, dailyControl, createClient };
   if (typeof module !== 'undefined') module.exports = api;

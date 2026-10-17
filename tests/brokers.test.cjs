@@ -31,6 +31,19 @@ test('sin sesión o endpoint no hace red',async()=>{let calls=0;const fetch=()=>
 test('guardado exige ACK y conserva idempotencia y revisión',async()=>{let body;const client=C.createClient({token:()=> 't',url:'https://example.test',fetch:async(u,o)=>{body=JSON.parse(o.body);return {ok:true,json:async()=>({ok:true,request_id:body.request_id,data:snapshot()})};}});await client.save('opportunity',{id:'o1'},1,'request-1');assert.equal(body.request_id,'request-1');assert.equal(body.data.expected_revision,1);assert.equal(body.action,'brokers_save');});
 test('ACK equivocado y conflicto nunca confirman',async()=>{for(const json of [{ok:true,request_id:'otro',data:snapshot()},{ok:false,error:'conflict'}]){const c=C.createClient({token:()=> 't',url:'x',fetch:async()=>({ok:true,json:async()=>json})});await assert.rejects(c.save('contact',{},1,'r'));}});
 test('respuesta tardía de sesión anterior se descarta',async()=>{let token='t1';const c=C.createClient({token:()=>token,url:'x',fetch:async()=>{token='t2';return{ok:true,json:async()=>({ok:true,data:snapshot()})};}});await assert.rejects(c.load(),/sesión cambió/);});
+test('ACK con snapshot anterior relee sin repetir la escritura',async()=>{
+ const calls=[],fresh=snapshot();fresh.contacts[0].name='Nombre actualizado';fresh.revision=2;
+ const client=C.createClient({token:()=> 't',url:'x',fetch:async(u,o)=>{const p=JSON.parse(o.body);calls.push(p);return {ok:true,json:async()=>({ok:true,request_id:p.request_id,data:p.action==='brokers_save'?snapshot():fresh})};}});
+ const result=await client.save('contact',{id:'c1',name:'Nombre actualizado'},1,'stable-request');assert.equal(result.contacts[0].name,'Nombre actualizado');assert.deepEqual(calls.map(p=>p.action),['brokers_save','brokers_snapshot']);assert.equal(calls[0].request_id,'stable-request');
+});
+test('ACK sin lectura coincidente no muestra guardado verificado ni repite escritura',async()=>{
+ let writes=0,reads=0;const client=C.createClient({token:()=> 't',url:'x',fetch:async(u,o)=>{const p=JSON.parse(o.body);p.action==='brokers_save'?writes++:reads++;return {ok:true,json:async()=>({ok:true,request_id:p.request_id,data:snapshot()})};}});
+ await assert.rejects(client.save('contact',{name:'Contacto nuevo'},1,'stable-request'),/lectura aún no refleja/);assert.equal(writes,1);assert.equal(reads,1);
+});
+test('relectura tras ACK descarta el cambio de sesión',async()=>{
+ let token='t',calls=0;const client=C.createClient({token:()=>token,url:'x',fetch:async(u,o)=>{const p=JSON.parse(o.body);if(++calls===2)token='other';return {ok:true,json:async()=>({ok:true,request_id:p.request_id,data:snapshot()})};}});
+ await assert.rejects(client.save('contact',{id:'c1',name:'Nuevo'},1,'stable-request'),/sesión cambió/);assert.equal(calls,2);
+});
 test('control diario diferencia fechas, faltantes y responsables sin asignaciones inferidas',()=>{
  const rows=[{id:'v',stage:'Recibido',next_date:'2026-10-08',next_action:'[Masterbroker] Llamar'},{id:'h',stage:'En revisión',next_date:'2026-10-09',next_action:'[YOD] Entregar'},{id:'p',stage:'En revisión',next_date:'2026-10-12',next_action:'Revisar con YOD'},{id:'s',stage:'Recibido',next_action:'[Masterbroker] Visita'},{id:'c',stage:'Formalizado',next_date:'2026-10-01'}];
  const d=C.dailyControl(rows,'2026-10-09');
