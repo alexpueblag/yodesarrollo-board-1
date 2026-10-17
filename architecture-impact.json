@@ -1,7 +1,7 @@
 {
   "model_revision": "2026-10-15.presentation-pins-ingest.1",
   "proposal_id": "CHG-INVESTOR-INTENT-STORY",
-  "summary": "Storyboard autorizado journey-3: un inmueble SVG persistente desde Hermosillo hasta la invitación a participar. Interpolación reversible de cámara, planta, volumen, comparación, aportaciones, ejecución y salida. Conserva interfaz, gesto, chinches y lector. journeyFilm aditivo en el Sheet vigente; las fuentes y ambos borradores siguen accesibles. Sin cambio de contratos, arquitectura, permisos, precios, evaluador ni transporte de Sala.",
+  "summary": "Replanteamiento comercial offer-4 tras rechazo de journey-3: propuesta literal de departamentos para venta, aportaciones y cuenta completa; diagramas ligados a su significado. Fuente journey_offer aditiva en el Sheet editorial vigente, con todos los borradores conservados. Misma interfaz, gesto, chinches y evaluador; sin cambios de arquitectura, backend, permisos ni condiciones financieras. Prototipo sujeto a auditorías de oferta y diseño antes de auditor UX y publicación.",
   "components": [
     "SYS-INVERSION",
     "SYS-CONTROL",
@@ -9,10 +9,10 @@
     "SHEET-PLAN-POTENCIAL"
   ],
   "tests": [
-    "Node: continuidad en fronteras, reversibilidad y posiciones finitas con datos sintéticos; sintaxis y git diff --check.",
-    "WebKit y Chromium: identidad persistente de inmueble y planta durante el recorrido; fronteras sin saltos geométricos y sin animación autónoma.",
-    "Regresión móvil existente: quince momentos en cinco tamaños, gesto, reversa, menú, lector, chinches y CTA.",
-    "Comprobación separada del frontend público exacto, revisión editorial y acceso anónimo; sin pruebas de escritura de negocio."
+    "Sintaxis, contratos existentes, git diff --check y compatibilidad con fuentes sin journey_offer.",
+    "Prototipo en Chromium/WebKit: quince momentos, geometría persistente, avance/reversa, rangos, menús, chinches y CTA.",
+    "Capturas móviles de todos los momentos, legibilidad de costos, aportaciones y cierre; auditores independientes con criterios explícitos.",
+    "Publicación anónima y código exacto sólo tras puertas creativas; distinguir puntuación interna de aceptación de usuarios reales."
   ],
-  "rollback": "Revertir el PR del frontend; journeyNext y journey originales permanecen intactos en la misma fuente. No borrar journeyFilm, chinches, recibos ni credenciales; no modificar el evaluador o Sala."
+  "rollback": "Revertir el PR frontend y conservar journey_offer, atlas_config, borradores y chinches. No revertir datos de negocio ni credenciales."
 }
