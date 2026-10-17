@@ -84,3 +84,9 @@ La entrada canónica muestra al Master Developer, cartera propia, equipo despleg
 Validación local: 141 pruebas de contratos, 96 comprobaciones de jerarquía/guardado/alcance y 72 de mini CRM en 320/390/1440; incluye contraste de métricas y equipo desplegable. Cero escrituras sintéticas en producción. El registro de importaciones reales y la verificación publicada se conservan en el buzón privado.
 
 La lectura real del 17-oct detectó ACK con snapshot anterior después de guardar un contacto. El cliente verifica los campos enviados y, sólo si no coinciden, realiza una lectura autorizada nueva. No repite escrituras ni construye datos optimistas; si persiste la diferencia, mantiene el intento idempotente y solicita verificar. Tres regresiones cubren relectura, discrepancia persistente y cambio de sesión.
+
+## Espacio de carteras ·17-oct-2026
+
+Se sustituye la portada de métricas y pestañas redundantes por un único espacio. Dirección abre Mi equipo; Mi cartera y cada broker cambian el alcance conservando la identidad autenticada. Un broker individual sigue recibiendo sólo su cartera del backend. La lista agrupa por cliente explícito y mantiene cada asunto separado. El detalle conserva contexto en escritorio, y usa regreso a cartera en móvil.
+
+Próximo compromiso, persona y fecha aparecen antes de la historia. Cliente/terreno, PPP, acuerdos y proyecto se abren desde el asunto, sólo con referencias existentes; ausencia no equivale a integración. Calendario, filtros, contactos sin oportunidad y herramientas comerciales se revelan al usarlos. Comparación de PPP, edición, reuniones y fuentes anteriores siguen disponibles. No cambios de datos, permisos, contratos ni backend.
