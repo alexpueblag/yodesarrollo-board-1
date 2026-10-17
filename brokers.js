@@ -8,7 +8,7 @@
   let manageRequested = new URLSearchParams(window.location.search).get('mode') === 'manage';
   let preview = false, managing = false, caseState = '', detailTab = 'history', attention = '', liveSnapshot = null;
   const expanded = new Set(), pppData = new Map();
-  let calendarMonth = '', calendarDay = '', calendarOpen = false, crmGeneration = 0;
+  let calendarMonth = '', calendarDay = '', calendarOpen = false, prospectsOpen = false, crmGeneration = 0;
   const token = () => { try { return localStorage.getItem('pyod_clave_v1') || ''; } catch (_) { return ''; } };
   const evaluator = window.BrokerEvaluator.create(config,token,window.fetch.bind(window));
   const pppClient = CRM.createPPPClient({url:()=>config.pppUrl || config.evaluatorUrl,token,fetch:window.fetch.bind(window)});
@@ -85,6 +85,7 @@
     if($('stage-filter'))$('stage-filter').onchange=e=>{stage=e.target.value;selected='';render();};
     if($('state-filter'))$('state-filter').onchange=e=>{caseState=e.target.value;selected='';render();};
     if($('record-select'))$('record-select').onchange=e=>{selected=e.target.value;render();};
+    document.querySelector('.prospect-list')?.addEventListener('toggle',e=>{prospectsOpen=e.target.open;});
     hydratePPP();
   }
   function table(headers, rows, label) {
@@ -142,7 +143,7 @@
       const cases=[...g.cases].sort((a,b)=>casePriority(a.records[0])-casePriority(b.records[0]));
       return `<section class="client-row ${g.contact?'':'unlinked-client'}" ${g.contact?'data-client="'+esc(g.contact.id)+'"':''}><header class="client-heading"><div><span class="client-avatar" aria-hidden="true">${g.contact?esc(initials(g.contact.name)):'?'}</span><div><h3>${esc(g.contact?.name||'Cliente por identificar')}</h3><p>${esc(g.contact?names(g.contact.broker_ids):names(g.records[0]?.broker_ids))}${g.cases.length>1?' · '+g.cases.length+' asuntos':''}</p></div></div>${g.contact&&canEdit()?`<details class="client-menu"><summary aria-label="Opciones de ${esc(g.contact.name)}">•••</summary><div><button data-edit-contact="${esc(g.contact.id)}">Editar cliente</button><button data-client-new="${esc(g.contact.id)}">+ Asunto para este cliente</button></div></details>`:''}</header><div class="client-cases">${cases.map((c,j)=>caseRow(c,i+'-'+j)).join('')}</div></section>`;
     }).join('');
-    return `<div class="client-list">${content||`<section class="workspace-empty"><span aria-hidden="true">↗</span><h3>${query||attention||stage||caseState?'No hay coincidencias':'Tu siguiente oportunidad empieza aquí'}</h3><p>${query||attention||stage||caseState?'Cambia la búsqueda o los filtros para ver otros asuntos.':'Agrega un cliente y registra qué busca. Su terreno, plan y seguimiento quedarán juntos.'}</p>${canEdit()&&!query?'<button data-new="opportunity">+ Registrar oportunidad</button>':''}</section>`}${prospects.length?`<details class="prospect-list"><summary>Contactos sin oportunidad <span>${prospects.length}</span></summary>${prospects.map(g=>`<article class="prospect-row" data-client="${esc(g.contact.id)}"><div><strong>${esc(g.contact.name)}</strong><span class="secondary">${esc([g.contact.company,g.contact.phone,g.contact.email].filter(Boolean).join(' · ')||g.contact.type||'Contacto')}</span></div>${canEdit()?`<button data-client-new="${esc(g.contact.id)}">+ Asunto</button>`:''}</article>`).join('')}</details>`:''}</div>`;
+    return `<div class="client-list">${content||`<section class="workspace-empty"><span aria-hidden="true">↗</span><h3>${query||attention||stage||caseState?'No hay coincidencias':'Tu siguiente oportunidad empieza aquí'}</h3><p>${query||attention||stage||caseState?'Cambia la búsqueda o los filtros para ver otros asuntos.':'Agrega un cliente y registra qué busca. Su terreno, plan y seguimiento quedarán juntos.'}</p>${canEdit()&&!query?'<button data-new="opportunity">+ Registrar oportunidad</button>':''}</section>`}${prospects.length?`<details class="prospect-list" ${prospectsOpen?'open':''}><summary>Contactos sin oportunidad <span>${prospects.length}</span></summary>${prospects.map(g=>`<article class="prospect-row" data-client="${esc(g.contact.id)}"><div><strong>${esc(g.contact.name)}</strong><span class="secondary">${esc([g.contact.company,g.contact.phone,g.contact.email].filter(Boolean).join(' · ')||g.contact.type||'Contacto')}</span></div>${canEdit()?`<button data-client-new="${esc(g.contact.id)}">+ Asunto</button>`:''}</article>`).join('')}</details>`:''}</div>`;
   }
   function contactsView() {
     const contacts=snapshot.contacts.filter(c=>(!broker||(c.broker_ids||[]).includes(broker))&&[c.name,c.company,c.email,c.phone].join(' ').toLocaleLowerCase('es').includes(query.toLocaleLowerCase('es')));
@@ -339,7 +340,7 @@
     const body = JSON.stringify(record);
     if (edit.submitted && edit.submitted !== body) { $('form-error').textContent = 'Primero actualiza la cartera para comprobar el intento anterior. No se enviará una segunda versión sin verificar.'; return; }
     edit.submitted = body; busy = true; $('save-record').disabled = true; $('form-error').textContent = 'Guardando…';
-    try { const result = await client.save(edit.kind,record,edit.revision,edit.requestId); applySnapshot(result); pppClient.invalidate(); pppData.clear(); loadedToken = token(); $('editor').close(); const savedKind=edit.kind; edit = null; if(savedKind==='opportunity'){tab='opportunities';selected='';query='';stage='';} if(savedKind==='contact'){tab='opportunities';query='';} accessNotice('Guardado.'); render(); }
+    try { const result = await client.save(edit.kind,record,edit.revision,edit.requestId); applySnapshot(result); pppClient.invalidate(); pppData.clear(); loadedToken = token(); $('editor').close(); const savedKind=edit.kind, createdContact=edit.kind==='contact'&&!edit.id; edit = null; if(savedKind==='opportunity'){tab='opportunities';selected='';query='';stage='';} if(savedKind==='contact'){tab='opportunities';query='';if(createdContact){selected='';attention='';stage='';caseState='';prospectsOpen=true;}} accessNotice('Guardado.'); render(); }
     catch (err) { $('form-error').textContent = err.message; if (token() !== loadedToken) { clear(); $('notice').textContent = 'La sesión cambió. Vuelve a entrar.'; } }
     finally { busy = false; $('save-record').disabled = false; }
   };
