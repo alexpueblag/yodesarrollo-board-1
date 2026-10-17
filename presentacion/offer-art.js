@@ -3,7 +3,7 @@ const legacyMount=root.YodSliderArt.mount;
 const clamp=(n,a=0,b=1)=>Math.max(a,Math.min(b,Number(n)||0)),mix=(a,b,t)=>a+(b-a)*t;
 const smooth=t=>{t=clamp(t);return t*t*(3-2*t);},ramp=(p,a,b)=>smooth((p-a)/(b-a));
 const envelope=(p,a,b,c,d)=>ramp(p,a,b)*(1-ramp(p,c,d));
-const keys=[[175,236,.67,1,0,1],[320,225,.15,0,0,0],[320,225,.20,0,0,0],[320,226,1.03,.55,0,1],[320,205,1.02,0,1,1],[320,245,1.07,1,1,1],[173,235,.64,1,1,1],[539,77,.23,1,1,.45],[320,123,.42,1,1,1],[320,223,.58,1,1,1],[320,122,.43,1,1,1],[320,245,1.04,1,1,1],[320,94,.34,1,1,1],[162,217,.62,1,1,1],[320,192,.90,1,1,1]];
+const keys=[[175,236,.67,1,0,1],[320,225,.15,0,0,0],[320,225,.20,0,0,0],[320,226,1.03,.55,0,1],[173,217,.68,0,1,1],[320,245,1.07,1,1,1],[173,163,.64,1,1,1],[539,77,.23,1,1,.45],[320,123,.42,1,1,1],[320,223,.58,1,1,1],[320,122,.43,1,1,1],[320,245,1.04,1,1,1],[320,94,.34,1,1,1],[162,217,.62,1,1,1],[320,192,.90,1,1,1]];
 function pose(p){const i=Math.min(13,Math.floor(p)),t=smooth(p-i);return keys[i].map((v,k)=>mix(v,keys[i+1][k],t));}
 function mount(svg,overlay,map){
  let legacy=null,own=false,cfg=null,a=null,g=null,refs={},last=0;
@@ -73,11 +73,10 @@ function mount(svg,overlay,map){
   refs.property=group('property-caption');label(refs.property,320,407,a.property.existing,'offer-emphasis');
   refs.planLabels=group('plan-decisions');label(refs.planLabels,180,385,a.property.access,'offer-small');label(refs.planLabels,460,385,a.property.patio,'offer-small');
   refs.planAccess=path('offer-leader',refs.planLabels);refs.planPatio=path('offer-leader',refs.planLabels);
-  refs.market=group('buyer-decisions');[a.market.buyer,a.market.size,a.market.price].forEach((v,i)=>label(refs.market,110+i*210,432,v,'offer-small offer-muted'));
+  refs.market=group('buyer-decisions');label(refs.market,320,67,a.market.title,'offer-emphasis');a.market.questions.forEach((v,i)=>{label(refs.market,357,157+i*84,v,'offer-small','start',18);rule(refs.market,297,146+i*84,340,146+i*84,'offer-link');});
   refs.product=group('proposed-product');label(refs.product,320,407,a.property.proposal,'offer-emphasis');
   refs.comparison=group('same-scale-comparison');refs.alt=house(refs.comparison,'comparison-project');
-  label(refs.comparison,173,355,a.comparison.left,'offer-small');label(refs.comparison,474,355,a.comparison.right,'offer-small');
-  a.comparison.criteria.forEach((v,i)=>label(refs.comparison,110+i*210,417,v,'offer-small offer-muted'));
+  label(refs.comparison,173,264,a.comparison.left,'offer-emphasis');label(refs.comparison,474,264,a.comparison.right,'offer-emphasis');a.comparison.leftTraits.forEach((v,i)=>label(refs.comparison,173,318+i*43,v,'offer-small'));a.comparison.rightTraits.forEach((v,i)=>label(refs.comparison,474,318+i*43,v,'offer-small'));rule(refs.comparison,320,250,320,375,'offer-divider');label(refs.comparison,320,433,a.comparison.question,'offer-small offer-accent');
   refs.account=group('complete-account');
   a.account.rows.forEach((v,i)=>{if(i===3)rule(refs.account,60,307,580,307,'offer-result-rule');label(refs.account,76,115+i*80,v,i===3?'offer-account-result':'offer-account','start');});
   refs.tenure=group('entry-options');
@@ -93,7 +92,7 @@ function mount(svg,overlay,map){
   label(refs.roles,320,350,a.participation.direction,'offer-emphasis');label(refs.roles,320,389,a.participation.directionAction,'offer-small');
   rule(refs.roles,320,285,320,317,'offer-link');
   refs.conditions=group('conditions');
-  a.delivery.checks.forEach((v,i)=>{rule(refs.conditions,112,214+i*63,137,214+i*63,'offer-condition-tick');label(refs.conditions,160,224+i*63,v,'offer-row','start');});
+  a.delivery.questions.forEach((v,i)=>{rule(refs.conditions,80,198+i*58,105,198+i*58,'offer-condition-tick');label(refs.conditions,127,208+i*58,v,'offer-row','start');});rule(refs.conditions,320,337,320,356,'offer-link');rule(refs.conditions,163,356,478,356,'offer-link');rule(refs.conditions,163,356,163,377,'offer-link');rule(refs.conditions,478,356,478,377,'offer-link');a.delivery.decisions.forEach((v,i)=>label(refs.conditions,163+i*315,416,v,'offer-small offer-accent','middle',20));
   refs.construction=group('construction');
   a.delivery.steps.forEach((v,i)=>label(refs.construction,110+i*210,413,v,'offer-small','middle',15));
   refs.buildProgress=path('offer-progress',refs.construction);
@@ -116,11 +115,11 @@ function mount(svg,overlay,map){
   if(map){const z=mix(.56,.95,ramp(p,1,2.75));set(refs.camera,'transform','translate('+(320-map.focus[0]*z)+' '+(205-map.focus[1]*z*.80)+') scale('+z+' '+z*.80+')');}
   opacity(refs.zones,ramp(p,1.2,2));opacity(refs.criteria,envelope(p,.8,1.5,2.4,3));
   opacity(refs.property,envelope(p,2.7,3,3.1,3.35));
-  opacity(refs.planLabels,envelope(p,3.35,3.9,4.3,4.8));opacity(refs.market,envelope(p,3.5,4,4.35,4.8));
+  opacity(refs.planLabels,0);opacity(refs.market,envelope(p,3.5,4,4.35,4.8));
   line(refs.planAccess,[[180,359],[180,339],[390,339],[390,300]]);
   line(refs.planPatio,[[460,359],[460,333],[418,333],[418,245]]);
   opacity(refs.product,envelope(p,4.6,5,5.25,5.7));
-  opacity(refs.comparison,envelope(p,5.45,6,6.2,6.7));paintHouse(refs.alt,474,235,.64,1,.6,82,0);
+  opacity(refs.comparison,envelope(p,5.45,6,6.2,6.7));paintHouse(refs.alt,474,163,.64,1,.6,82,0);
   opacity(refs.account,envelope(p,6.55,7,7.25,7.8));
   opacity(refs.tenure,envelope(p,7.55,8,8.25,8.75));
   opacity(refs.roles,envelope(p,8.55,9,9.2,9.75));
