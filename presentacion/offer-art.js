@@ -115,7 +115,7 @@ function mount(svg,overlay,map){
   opacity(refs.map,envelope(p,.25,.95,2.35,3.0));
   if(map){const z=mix(.56,.95,ramp(p,1,2.75));set(refs.camera,'transform','translate('+(320-map.focus[0]*z)+' '+(205-map.focus[1]*z*.80)+') scale('+z+' '+z*.80+')');}
   opacity(refs.zones,ramp(p,1.2,2));opacity(refs.criteria,envelope(p,.8,1.5,2.4,3));
-  opacity(refs.property,envelope(p,2.7,3,3.25,3.75));
+  opacity(refs.property,envelope(p,2.7,3,3.1,3.35));
   opacity(refs.planLabels,envelope(p,3.35,3.9,4.3,4.8));opacity(refs.market,envelope(p,3.5,4,4.35,4.8));
   line(refs.planAccess,[[180,359],[180,339],[390,339],[390,300]]);
   line(refs.planPatio,[[460,359],[460,333],[418,333],[418,245]]);
