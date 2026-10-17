@@ -1,7 +1,7 @@
 {
   "model_revision": "2026-10-15.presentation-pins-ingest.1",
   "proposal_id": "CHG-INVESTOR-INTENT-STORY",
-  "summary": "Replanteamiento comercial offer-4 tras rechazo de journey-3: propuesta literal de departamentos para venta, aportaciones y cuenta completa; diagramas ligados a su significado. Fuente journey_offer aditiva en el Sheet editorial vigente, con todos los borradores conservados. Misma interfaz, gesto, chinches y evaluador; sin cambios de arquitectura, backend, permisos ni condiciones financieras. Prototipo sujeto a auditorías de oferta y diseño antes de auditor UX y publicación.",
+  "summary": "Replanteamiento comercial offer-4 tras rechazo de journey-3: propuesta literal de departamentos para venta, aportaciones y cuenta completa; diagramas ligados a su significado. Fuente journey_offer aditiva en el Sheet editorial vigente, con todos los borradores conservados. Misma interfaz, gesto, chinches y evaluador; sin cambios de arquitectura, backend, permisos ni condiciones financieras. Auditorías independientes de oferta y diseño preceden a experiencia; lectura estable al soltar, contraste, orientación y archivo histórico agrupado. Publicación verificada por CI separadamente de aceptación humana.",
   "components": [
     "SYS-INVERSION",
     "SYS-CONTROL",
@@ -12,7 +12,8 @@
     "Sintaxis, contratos existentes, git diff --check y compatibilidad con fuentes sin journey_offer.",
     "Prototipo en Chromium/WebKit: quince momentos, geometría persistente, avance/reversa, rangos, menús, chinches y CTA.",
     "Capturas móviles de todos los momentos, legibilidad de costos, aportaciones y cierre; auditores independientes con criterios explícitos.",
-    "Publicación anónima y código exacto sólo tras puertas creativas; distinguir puntuación interna de aceptación de usuarios reales."
+    "Publicación anónima y código exacto sólo tras puertas creativas; distinguir puntuación interna de aceptación de usuarios reales.",
+    "Asentamiento cancelable, gesto rápido y reversa, progreso visible, contraste calculado y rutas reales de menú/copia/compartir con alternativas controladas."
   ],
   "rollback": "Revertir el PR frontend y conservar journey_offer, atlas_config, borradores y chinches. No revertir datos de negocio ni credenciales."
 }
