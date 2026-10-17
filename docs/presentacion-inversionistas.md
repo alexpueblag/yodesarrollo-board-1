@@ -1,3 +1,21 @@
+# Replanteamiento comercial · offer-4
+
+Journey-3 fue rechazado por Dirección después de presentarlo: la audiencia no comprendió el negocio. La evidencia técnica anterior no acredita aceptación comercial.
+
+Se conserva la interfaz aceptada, gesto iPhone, marca, chinches, originales y evaluador. Se rehace la representación para nombrar oferta, costos, aportaciones, ejecución y salida. Los textos proceden de journey_offer, clave adicional en el Sheet vigente; atlas_config se conserva íntegro. No se alteran permisos, backend, precios ni condiciones de inversión.
+
+La aprobación del guion es distinta de la aprobación visual y funcional. Auditoría interna de oferta: R1 9.1, R2 9.6 tras corregir propósito económico, costos completos, destino del capital y acción previa a aportar. Son criterios inspirados en comunicación comercial; no revisión ni aval de Alex Hormozi o Chris Do. Las notas de diseño y experiencia se registrarán después de observar capturas y ejecución. El usuario exige umbral9.5, sin reemplazar aceptación humana.
+
+Nuevo arte separado en offer-art.js/css, con delegación al renderer anterior cuando la fuente no contiene offer-4. La narrativa completa, fuentes y borradores siguen en el lector. El nuevo copy no reside en Git. El mapa conserva fuente y atribución; inmueble y transformaciones son ilustrativos.
+
+Validación: tests/offer-review-browser.cjs produce quince capturas y prueba gesto, reversa, pausa, fuente, diálogos y CTA en WebKit/Chromium. Los problemas de layout se revisan junto con imágenes. La publicación requiere las puertas creativas y regresión técnica; registro de despliegue se añade después.
+
+Rollback del frontend mediante PR; conservar fuentes editoriales, chinches y registros de negocio.
+
+---
+
+## Referencia anterior conservada
+
 # Presentación pública · storyboard continuo
 
 Revisión journey-3. Dirección autoriza ejecutar el storyboard en la URL existente y conservar la interfaz móvil aprobada. La narrativa anterior se conserva como borrador.
