@@ -16,7 +16,7 @@ window.YodMobileJourney={create({render,getProgress,cancel}){
  function settleReading(){
   if(cfg?.surface?.revision!=='offer-4'||!mobile||locked||manualLock)return;
   clearTimeout(settleTimer);settleTimer=0;cancelAnimationFrame(raf);raf=0;
-  const from=getProgress(),to=clamp(Math.round(from)),started=performance.now();target=to;releasedAt=0;
+  const from=getProgress(),to=clamp(Math.round(target)),started=performance.now();target=to;releasedAt=0;
   if(reduce.matches||Math.abs(to-from)<.001){render(to);settling=false;return;}
   settling=true;function settleFrame(now){if(!settling||drag||locked||manualLock)return;const t=clamp((now-started)/140,0,1);render(from+(to-from)*smooth(t));if(t<1)raf=requestAnimationFrame(settleFrame);else{raf=0;settling=false;render(to);}}
   raf=requestAnimationFrame(settleFrame);

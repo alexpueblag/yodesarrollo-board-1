@@ -41,6 +41,12 @@ function layout(){
    if(cdp)await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y}]});else{await p.mouse.move(x,y);await p.mouse.down();}
    for(let i=1;i<=16;i++){const yy=y-i*8;if(cdp)await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x,y:yy}]});else await p.mouse.move(x,yy);await p.waitForTimeout(40);}
    if(cdp)await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});else await p.mouse.up();await p.waitForTimeout(180);assert.ok(await p.evaluate(()=>YodSlider.api.state().p>8),'Single drag advances');const held=await p.evaluate(()=>YodSlider.api.state().p);assert.equal(held,Math.round(held),'Gesture release settles to readable anchor');await p.waitForTimeout(250);assert.ok(Math.abs(await p.evaluate(()=>YodSlider.api.state().p)-held)<.001,'Stops after release');
+   for(const direction of[1,-1]){
+    await seek(p,8);if(cdp)await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y}]});else{await p.mouse.move(x,y);await p.mouse.down();}
+    for(let i=1;i<=4;i++){const yy=y-direction*i*30;if(cdp)await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x,y:yy}]});else await p.mouse.move(x,yy);await p.waitForTimeout(20);}
+    if(cdp)await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});else await p.mouse.up();await p.waitForTimeout(300);const end=await p.evaluate(()=>YodSlider.api.state().p);assert.equal(end,Math.round(end));assert.ok(direction>0?end>8:end<8,'Short fast gesture and reverse reach reading point');r.fastGesture=r.fastGesture||[];r.fastGesture.push({direction,end});
+   }
+   for(const direction of[1,-1]){await seek(p,8);for(let i=0;i<10;i++){await p.locator('.workspace').dispatchEvent('wheel',{deltaY:direction*8,bubbles:true,cancelable:true});await p.waitForTimeout(20);}await p.waitForTimeout(320);const end=await p.evaluate(()=>YodSlider.api.state().p);assert.equal(end,Math.round(end));assert.ok(direction>0?end>8:end<8,'Wheel burst and reverse settle legibly');}
    for(const delta of[40,-40]){await seek(p,8);await p.locator('.workspace').dispatchEvent('wheel',{deltaY:delta,bubbles:true,cancelable:true});await p.waitForTimeout(180);const v=await p.evaluate(()=>YodSlider.api.state().p);assert.ok(delta>0?v>8:v<8);}
    await seek(p,8);await p.evaluate(()=>YodSlider.api.pause());await p.locator('.workspace').dispatchEvent('wheel',{deltaY:50,bubbles:true,cancelable:true});await p.waitForTimeout(180);assert.equal(await p.evaluate(()=>YodSlider.api.state().p),8);await p.evaluate(()=>YodSlider.api.resume());
    // Interruptions and assistive operation preserve user control.
@@ -68,7 +74,7 @@ function layout(){
    await p.locator('[data-close="contact"]').click();await p.waitForFunction(()=>!YodSlider.api.mobile().locked);assert.equal(await p.evaluate(()=>YodSlider.api.state().p),14,'Closing contact keeps place');
    const url=new URL(await p.locator('#actions a[data-evaluator]').getAttribute('href'));assert.equal(url.searchParams.get('app'),'evaluador');assert.ok(![...url.searchParams.keys()].some(k=>/^(k|key|token|credential|auth|password)$/i.test(k)));assert.deepEqual(r.errors,[]);assert.equal(r.blockedWrites,0);
    r.checks={beats:15,persistentHero:true,exactReverse:true,clearTransitionLane:true,noAutoplay:true,singleGesture:true,readableRelease:true,settlementInterruptions:true,secondaryContrast:true,menuReaderRestart:true,clipboardShareFallback:true,pause:true,closingMessage:true,recipientGuidance:true,evaluatorLink:true,pinVisible:true,noHorizontalOverflow:true};r.layoutWarnings=r.states.filter(d=>d.outside.length||d.overlaps.length);
-   console.log(JSON.stringify({offerPrototype:true,engine:name,revision:'offer-4',states:r.states.length,layoutWarnings:r.layoutWarnings,checks:r.checks,contrast:r.contrast,technicalPass:true,creativeApproval:false}));
+   console.log(JSON.stringify({offerPrototype:true,engine:name,revision:'offer-4',states:r.states.length,layoutWarnings:r.layoutWarnings,checks:r.checks,contrast:r.contrast,fastGesture:r.fastGesture,technicalPass:true,creativeApproval:false}));
   }catch(e){r.failure=e.message;throw e;}finally{save();await browser.close();}
  }}finally{await new Promise(r=>server.close(r));}
  audit.technicalPass=true;save();clearTimeout(deadline);
