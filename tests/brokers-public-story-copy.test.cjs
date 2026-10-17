@@ -31,3 +31,17 @@ test('source and final redirect must stay within the public Google HTTPS provide
 
 test('a transient 404 at the Google content redirect can recover within the same three-GET budget',async()=>{let calls=0;const p=probe(async()=>{if(++calls===1)return{ok:false,status:404,url:'https://script.googleusercontent.com/macros/echo?synthetic=1',headers:new Headers({'content-type':'text/html'}),body:{cancel:async()=>{}}};return new Response('{}',{status:200});});assert.deepEqual(await p.read(URL_PUBLIC),{});assert.equal(calls,2);assert.deepEqual(p.waits,[1000]);});
 test('a 404 at the deployment endpoint remains terminal',async()=>{let calls=0;const p=probe(async()=>{calls++;return{ok:false,status:404,url:URL_PUBLIC,headers:new Headers(),body:{cancel:async()=>{}}};});await assert.rejects(p.read(URL_PUBLIC),{name:'PublicSourceHttpError'});assert.equal(calls,1);});
+
+test('job-local snapshot shares one validated live read between separate consumers and stays private',async t=>{
+ const fs=require('node:fs/promises'),os=require('node:os'),path=require('node:path'),cacheDir=await fs.mkdtemp(path.join(os.tmpdir(),'yod-source-'));t.after(()=>fs.rm(cacheDir,{recursive:true,force:true}));
+ let calls=0;const logs=[],payload={textos:{message:'synthetic-copy'}},config={cacheDir,now:()=>100,log:x=>logs.push(x),fetchImpl:async()=>{calls++;return new Response(JSON.stringify(payload),{status:200});}};
+ assert.deepEqual(await createReader(config)(URL_PUBLIC),payload);assert.deepEqual(await createReader(config)(URL_PUBLIC),payload);assert.equal(calls,1);assert.equal(logs[1].publicSourceSnapshot,true);
+ const files=await fs.readdir(cacheDir);assert.equal(files.length,1);assert.equal((await fs.stat(path.join(cacheDir,files[0]))).mode&0o777,0o600);assert.equal(JSON.stringify(logs).includes('synthetic-copy'),false);
+ await createReader(config)(URL_PUBLIC+'&version=other');assert.equal(calls,2,'different URLs never share a snapshot');
+});
+test('expired or corrupt snapshots require a successful live read and never hide a failed source',async t=>{
+ const fs=require('node:fs/promises'),os=require('node:os'),path=require('node:path'),cacheDir=await fs.mkdtemp(path.join(os.tmpdir(),'yod-source-'));t.after(()=>fs.rm(cacheDir,{recursive:true,force:true}));
+ const config={cacheDir,now:()=>100,log:()=>{},wait:async()=>{},fetchImpl:async()=>new Response('{"textos":{}}',{status:200})};await createReader(config)(URL_PUBLIC);
+ let calls=0;await assert.rejects(createReader({...config,now:()=>900101,fetchImpl:async()=>{calls++;return new Response('',{status:503});}})(URL_PUBLIC),{name:'PublicSourceHttpError'});assert.equal(calls,3);
+ const file=path.join(cacheDir,(await fs.readdir(cacheDir))[0]);await fs.writeFile(file,'invalid JSON');await assert.rejects(createReader({...config,fetchImpl:async()=>new Response('invalid',{status:200})})(URL_PUBLIC),{name:'PublicSourceJsonError'});
+});

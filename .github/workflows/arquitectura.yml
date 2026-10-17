@@ -95,11 +95,17 @@ jobs:
           node --check presentacion/simple-diagrams.js
           git diff --check HEAD^ HEAD
       - name: Navegador con servicios sintéticos
-        env:
-          VERIFY_PUBLISHED_STORY: ${{ github.event_name == 'push' && '1' || startsWith(github.head_ref, 'codex/verify-published-story') && '1' || '0' }}
         run: |
           npm install --no-save --ignore-scripts --no-audit --no-fund playwright@1.58.2
           npx playwright install --with-deps chromium webkit
+          node tests/brokers-crm-browser.cjs
+          node tests/brokers-workspace-browser.cjs
+          node tests/brokers-evaluator-browser.cjs
+      - name: Presentación con fuente pública validada
+        env:
+          VERIFY_PUBLISHED_STORY: ${{ github.event_name == 'push' && '1' || startsWith(github.head_ref, 'codex/verify-published-story') && '1' || '0' }}
+          YOD_PUBLIC_SOURCE_SNAPSHOT_DIR: ${{ runner.temp }}/yod-public-source-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
           node tests/brokers-pin-delivery-browser.cjs
           node tests/brokers-pins-browser.cjs
           node tests/brokers-intent-browser.cjs
@@ -110,9 +116,6 @@ jobs:
           node tests/brokers-slider-browser.cjs
           node tests/brokers-simple-browser.cjs
           node tests/brokers-principal-browser.cjs
-          node tests/brokers-crm-browser.cjs
-          node tests/brokers-workspace-browser.cjs
-          node tests/brokers-evaluator-browser.cjs
           node tests/brokers-story-browser.cjs
           node tests/brokers-hunt-browser.cjs
           node tests/brokers-monoline-browser.cjs
