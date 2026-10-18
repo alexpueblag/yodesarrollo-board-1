@@ -21,7 +21,7 @@ const {chromium}=require('playwright'),http=require('node:http'),fs=require('nod
  assert.equal(await p.locator('[name=title]').inputValue(),evaluation.title);assert.equal(await p.locator('[name=location]').inputValue(),evaluation.location);assert.ok((await p.locator('[name=notes]').inputValue()).includes(id));
  await p.locator('[name=next_owner]').selectOption('Masterbroker');await p.locator('[name=next_action]').fill('Revisar preevaluación');await p.locator('[name=next_date]').fill('2030-01-01');await p.locator('#save-record').click();await p.locator('#editor').waitFor({state:'hidden'});
  assert.equal(saved.data.record.broker_ids[0],'B-A');assert.ok(saved.request_id);assert.ok(!new URL(p.url()).searchParams.has('preevaluacion'));
- await p.locator('[data-open="O-A"]').click();await p.locator('.case-tools>summary').click();await p.locator('[data-preevaluate="current"]').waitFor();
+ await p.locator('.detail .case-journey').waitFor();await p.locator('[data-preevaluate="current"]').waitFor();
  await p.evaluate(()=>{window.open=()=>({opener:window,document:{body:{}},location:{replace:url=>{window.__launched=url;}},close(){}});});
  await p.locator('[data-preevaluate="current"]').click();await p.waitForFunction(()=>!!window.__launched);assert.equal(launch.case_id,id);assert.equal(launch.broker_id,'B-A');assert.equal(launch.opportunity_id,'O-A');assert.ok(!(await p.evaluate(()=>window.__launched)).includes('synthetic-session'));
  assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));

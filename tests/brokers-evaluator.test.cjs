@@ -5,3 +5,18 @@ test('existing terrain keeps canonical IDs, assignments, documents and followup'
 test('other broker records and oversized notes fail closed',()=>{assert.throws(()=>E.recordFromEvaluation(sample,{broker_ids:['B-B']}),/otra cartera/);assert.throws(()=>E.recordFromEvaluation(sample,{broker_ids:['B-A'],notes:'x'.repeat(4000)}),/espacio/);assert.equal(E.caseId('text EV-'+ 'a'.repeat(20)),'');});
 test('launch transfers session in POST and validates the one-use destination',async()=>{let seen;const url='https://script.google.com/macros/s/test/exec',expected=url+'?app=evaluador&handoff='+'a'.repeat(64);const c=E.create({evaluatorUrl:url},()=> 'synthetic-token',async(u,o)=>{seen={u,o};return {ok:true,json:async()=>({ok:true,url:expected})}});assert.equal(await c.launch({broker_id:'B-A'}),expected);assert.equal(JSON.parse(seen.o.body).k,'synthetic-token');assert.equal(new URL(seen.u).search,'');assert.ok(!expected.includes('synthetic-token'));const bad=E.create({evaluatorUrl:url},()=> 'x',async()=>({ok:true,json:async()=>({ok:true,url:'https://other.test/'})}));await assert.rejects(()=>bad.launch({broker_id:'B-A'}),/inválido/);});
 test('identity change while reading a return discards the response',async()=>{let key='first';const c=E.create({evaluatorUrl:'https://script.google.com/macros/s/test/exec'},()=>key,async()=>{key='other';return {ok:true,json:async()=>({ok:true,evaluation:sample})}});await assert.rejects(()=>c.summary(sample.id),/sesión cambió/);});
+
+test('new reference remains current without damaging case metadata or historical references',()=>{
+ const CRM=require('../brokers-crm.js');
+ const old={id:'O-A',broker_ids:['B-A'],notes:CRM.encodeCase('Texto humano\n\n[PREEVALUACION:EV-'+ 'b'.repeat(20)+'] Revisión anterior.','Listo',true)};
+ const r=E.recordFromEvaluation(sample,old);
+ assert.equal(E.caseId(r.notes),sample.id);assert.ok(r.notes.includes('EV-'+ 'b'.repeat(20)));
+ assert.equal(CRM.caseInfo(r).ppp_status,'Listo');assert.equal(CRM.caseInfo(r).decision,true);
+ assert.ok(CRM.caseInfo(r).text.startsWith('Texto humano\n\n'));
+ const newer={...sample,revision:'siguiente'},next=E.recordFromEvaluation(newer,r);
+ assert.equal((next.notes.match(new RegExp(sample.id,'g'))||[]).length,1);
+ assert.ok(next.notes.includes('Revisión siguiente'));assert.equal(CRM.caseInfo(next).decision,true);
+ const revisit=E.recordFromEvaluation({...sample,id:'EV-'+ 'b'.repeat(20)},next);
+ assert.equal(E.caseId(revisit.notes),'EV-'+ 'b'.repeat(20));
+ assert.equal(CRM.caseInfo(revisit).ppp_status,'Listo');
+});

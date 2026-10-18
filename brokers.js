@@ -12,7 +12,7 @@
   const token = () => { try { return localStorage.getItem('pyod_clave_v1') || ''; } catch (_) { return ''; } };
   const evaluator = window.BrokerEvaluator.create(config,token,window.fetch.bind(window));
   const pppClient = CRM.createPPPClient({url:()=>config.pppUrl || config.evaluatorUrl,token,fetch:window.fetch.bind(window)});
-  let evaluationReturnHandled=false;
+  let evaluationReturnHandled=false, receivingEvaluation=false;
   const client = C.createClient({ url: config.url, token, fetch: window.fetch.bind(window) });
   let snapshot = null, tab = '', broker = '', query = '', stage = '', selected = '', busy = false, edit = null, loadedToken = '';
   const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
@@ -38,11 +38,14 @@
   const canAgree = () => canEdit() && snapshot.actor.role === 'direccion' && snapshot.capabilities.agree_participation === true;
   const names = ids => (ids || []).map(id => (snapshot.brokers.find(b => b.id === id) || {}).name || 'Masterbroker').join(' · ');
   const current = () => C.visible(snapshot, broker, query, stage);
-  function clear() { crmGeneration++; expanded.clear(); pppData.clear(); pppClient.invalidate(); calendarMonth='';calendarDay='';calendarOpen=false; $('identity').textContent = ''; snapshot = null; liveSnapshot = null; preview = false; managing = false; loadedToken = ''; selected = ''; $('workspace').replaceChildren(); $('workspace').hidden = true; if ($('editor').open) $('editor').close(); edit = null; }
+  function clear() { evaluationReturnHandled=false; crmGeneration++; expanded.clear(); pppData.clear(); pppClient.invalidate(); calendarMonth='';calendarDay='';calendarOpen=false; $('identity').textContent = ''; snapshot = null; liveSnapshot = null; preview = false; managing = false; loadedToken = ''; selected = ''; $('workspace').replaceChildren(); $('workspace').hidden = true; if ($('editor').open) $('editor').close(); edit = null; }
   async function load() {
     if (busy) return;
+    const prior={selected,tab,query,stage,caseState,attention,token:loadedToken};
     busy = true; clear(); $('notice').textContent = 'Validando tu acceso y leyendo la cartera…';
-    try { const live = await client.load(); applySnapshot(live); loadedToken = token(); accessNotice(); render(); await receiveEvaluation(); }
+    try { const live = await client.load(); applySnapshot(live); loadedToken = token();
+      if(prior.token===loadedToken){tab=prior.tab||tab;query=prior.query;stage=prior.stage;caseState=prior.caseState;attention=prior.attention;if(snapshot.opportunities.some(o=>o.id===prior.selected))selected=prior.selected;}
+      accessNotice(); render(); await receiveEvaluation(); }
     catch (e) { clear(); $('notice').textContent = e.message; const b = document.createElement('button'); b.textContent = 'Volver a intentar'; b.onclick = load; $('notice').append(' ', b); }
     finally { busy = false; }
   }
@@ -74,7 +77,7 @@
     const own=C.ownPortfolio(liveSnapshot),scopeName=managing?(requestedBroker===own?.id?'Mi cartera':profileName()):snapshot.actor.role==='direccion'?'Mi equipo':'Mi cartera';
     const isList=['opportunities','brokers'].includes(tab), allRows=C.visible(snapshot,broker,'','');
     if(tab==='brokers')tab='opportunities';
-    $('workspace').innerHTML = `${scopeNavigation()}<div class="work-heading"><div><p class="eyebrow">${esc(scopeName)}</p><h2>${tab==='contacts'?'Contactos':tab==='offer'?'Material comercial':tab==='participations'?'Acuerdos':'Clientes y oportunidades'}</h2></div><div class="workspace-actions">${tab!=='opportunities'?'<button data-tab="opportunities">← Seguimiento</button>':''}${canEdit()?'<button class="primary" data-new="contact">+ Cliente</button>':''}<details class="workspace-menu"><summary aria-label="Herramientas de cartera">•••</summary><div><button data-tab="contacts">Directorio de contactos</button><button data-tab="offer">Material comercial</button><button data-tab="participations">Acuerdos de cartera</button>${canEdit()?'<button data-new="opportunity">Nueva oportunidad</button>':''}${canEdit()&&!preview?'<button data-preevaluate="new">Preevaluar terreno</button>':''}<button data-action="refresh">Actualizar cartera</button></div></details></div></div>${isList||tab==='contacts'?`<div class="work-toolbar"><label class="search-field"><span aria-hidden="true">⌕</span><input id="search" type="search" aria-label="Buscar en esta sección" placeholder="Buscar cliente o asunto…" value="${esc(query)}"></label>${isList?`<button data-agenda="1" aria-pressed="${calendarOpen}">Agenda</button><details class="filter-menu"><summary>Filtrar${attention||stage||caseState?' · activo':''}</summary><div><label>Enfoque<select id="attention-filter"><option value="">Todos los asuntos</option>${options([{id:'decision',name:'Requieren decisión'},{id:'today',name:'Seguimiento hoy'},{id:'overdue',name:'Fecha de seguimiento pasada'},{id:'unplanned',name:'Sin siguiente paso completo'}],attention)}</select></label><label>Estado<select id="state-filter">${options([{id:'',name:'Todos'},{id:'open',name:'Abiertos'},{id:'closed',name:'Cerrados'}],caseState)}</select></label><label>Etapa<select id="stage-filter"><option value="">Todas las etapas</option>${options(C.stages,stage)}</select></label></div></details>`:''}</div>`:''}<div id="content" class="${isList?'work-surface'+(selected?' has-detail':''):''}"></div>`;
+    $('workspace').innerHTML = `${scopeNavigation()}<div class="work-heading"><div><p class="eyebrow">${esc(scopeName)}</p><h2>${tab==='contacts'?'Contactos':tab==='offer'?'Material comercial':tab==='participations'?'Acuerdos':'Clientes y oportunidades'}</h2></div><div class="workspace-actions">${tab!=='opportunities'?'<button data-tab="opportunities">← Seguimiento</button>':''}${canEdit()?'<button class="primary" data-new="contact">+ Cliente</button>':''}<details class="workspace-menu"><summary aria-label="Herramientas de cartera">•••</summary><div><button data-tab="contacts">Directorio de contactos</button><button data-tab="offer">Material comercial</button><button data-tab="participations">Acuerdos de cartera</button>${canEdit()?'<button data-new="opportunity">Nueva oportunidad</button>':''}<button data-action="refresh">Actualizar cartera</button></div></details></div></div>${isList||tab==='contacts'?`<div class="work-toolbar"><label class="search-field"><span aria-hidden="true">⌕</span><input id="search" type="search" aria-label="Buscar en esta sección" placeholder="Buscar cliente o asunto…" value="${esc(query)}"></label>${isList?`<button data-agenda="1" aria-pressed="${calendarOpen}">Agenda</button><details class="filter-menu"><summary>Filtrar${attention||stage||caseState?' · activo':''}</summary><div><label>Enfoque<select id="attention-filter"><option value="">Todos los asuntos</option>${options([{id:'decision',name:'Requieren decisión'},{id:'today',name:'Seguimiento hoy'},{id:'overdue',name:'Fecha de seguimiento pasada'},{id:'unplanned',name:'Sin siguiente paso completo'}],attention)}</select></label><label>Estado<select id="state-filter">${options([{id:'',name:'Todos'},{id:'open',name:'Abiertos'},{id:'closed',name:'Cerrados'}],caseState)}</select></label><label>Etapa<select id="stage-filter"><option value="">Todas las etapas</option>${options(C.stages,stage)}</select></label></div></details>`:''}</div>`:''}${isList&&!selected?journeyHome():''}<div id="content" class="${isList?'work-surface'+(selected?' has-detail':''):''}"></div>`;
     const content=$('content');
     if(isList)content.innerHTML=`<section class="work-list" aria-label="Cartera de clientes">${calendarOpen&&!selected?`<section class="agenda-panel"><div class="crm-layout">${calendar(snapshot.activities)}<div>${timeline(snapshot.activities,true)}</div></div></section>`:''}${portfolio()}</section>${selected?`<section class="work-detail" aria-label="Asunto seleccionado">${detail(snapshot.opportunities.find(o=>o.id===selected))}</section>`:''}`;
     if(tab==='contacts')content.innerHTML=contactsView();
@@ -134,6 +137,15 @@
     const o=g.records[0],a=lastFact(g),step=C.nextStep(o.next_action),open=expanded.has(g.key),info=CRM.caseInfo(o),ppp=CRM.pppReference(o);
     return `<article class="case-row ${selected===o.id?'is-current':''}" data-case="${esc(g.key)}"><button class="case-main" data-open="${esc(o.id)}" aria-label="Abrir ${esc(o.title)}" aria-current="${selected===o.id?'true':'false'}"><span class="case-title-line"><strong>${esc(o.title)}</strong><span class="status">${esc(o.stage)}</span></span><span class="case-task">${info.decision?'<span class="decision-marker">Decisión</span>':''}${esc(step.text||'Definir el primer compromiso con el cliente')}</span><span class="case-owner">${esc(C.ownerLabel(liveSnapshot,o.next_action))}<span aria-hidden="true"> · </span><time class="${C.overdue(o,today())?'late-date':''}">${esc(o.next_date?dateLabel(o.next_date):'Fecha por acordar')}</time></span></button><div class="case-row-footer"><span class="case-proof ${ppp?'linked':''}">${ppp?link(o.ppp_url,'PPP'):'PPP pendiente'}${info.ppp_status!=='Por confirmar'?' · '+esc(info.ppp_status):''}</span><button class="case-toggle" data-expand="${esc(o.id)}" aria-expanded="${open}" aria-controls="case-preview-${index}">${open?'Cerrar resumen':'Resumen'} <span aria-hidden="true">${open?'−':'+'}</span></button></div>${open?`<section class="case-preview" id="case-preview-${index}" aria-label="Resumen de ${esc(o.title)}">${pppMount(o)}<p><span class="mini-label">Último resultado</span> ${esc(a?.text||'Aún no hay un resultado registrado.')}</p><p><span class="mini-label">Propietario / referencia</span> ${esc(g.contacts.filter(c=>c.type==='Propietario').map(c=>c.name).join(' · ')||'Por vincular')}</p>${link(o.documents_url,'Documentos')}</section>`:''}</article>`;
   }
+  function journeyHome(){
+    const total=C.caseGroups(snapshot,broker,'','','').length;
+    const latest=C.visible(snapshot,broker,'','').slice().sort((a,b)=>String(b.updated_at||b.last_review||'').localeCompare(String(a.updated_at||a.last_review||'')))[0];
+    return `<section class="journey-home" aria-label="Tu recorrido de desarrollo"><div class="journey-heading"><div><p class="eyebrow">DE LA CONVERSACIÓN AL PROYECTO</p><h2>Una oportunidad.<br>Un lugar para llevarla.</h2><p>Presenta la idea, explora un inmueble y conserva su historia en tu cartera.</p></div><span class="journey-count"><strong>${total}</strong> ${total===1?'expediente':'expedientes'}</span></div><div class="journey-actions"><button class="journey-card" data-tab="offer"><span class="journey-number">01</span><span><strong>Presentar YoDesarrollo</strong><small>Una presentación común para conversar y compartir.</small></span><span aria-hidden="true">↗</span></button>${canEdit()&&!preview?`<button class="journey-card journey-primary" data-preevaluate="new"><span class="journey-number">02</span><span><strong>Analizar un inmueble</strong><small>Abre el mapa. Ubica, traza y revisa sus posibilidades.</small></span><span aria-hidden="true">→</span></button>`:''}<button class="journey-card" ${latest?'data-journey-resume="'+esc(latest.id)+'"':'data-journey-cases="1"'}><span class="journey-number">03</span><span><strong>Continuar un expediente</strong><small>${latest?esc(latest.title):'Los terrenos que incorpores aparecerán aquí.'}</small></span><span aria-hidden="true">↓</span></button></div></section>`;
+  }
+  function caseJourney(o){
+    const ev=window.BrokerEvaluator.caseId(o.notes),ppp=CRM.pppReference(o),step=C.nextStep(o.next_action);
+    return `<section class="case-journey" aria-label="Recorrido de este inmueble"><div class="journey-case-location"><span class="mini-label">ESTÁS TRABAJANDO EN</span><strong>${esc(o.title)}</strong><span>${esc(o.location||'Ubicación por precisar')}</span></div><ol class="journey-rail"><li><span class="journey-number">01</span><strong>Inmueble</strong><small>${ev?'Evaluación vinculada':'Explora su ubicación y medidas'}</small>${canEdit()&&!preview?`<button data-preevaluate="current">${ev?'Continuar evaluación':'Abrir mapa'} →</button>`:''}</li><li><span class="journey-number">02</span><strong>Plan de potencial</strong><small>${ppp?'Consulta la versión guardada':'Acuerda el análisis que necesita'}</small>${ppp?link(o.ppp_url,'Abrir plan'):canEdit()&&!preview?'<button data-request="true">Solicitar análisis →</button>':''}</li><li><span class="journey-number">03</span><strong>Conversación</strong><small>Presentación general y material del caso</small><button data-case-present="1">Preparar presentación →</button></li><li><span class="journey-number">04</span><strong>Siguiente paso</strong><small>${esc(step.text||'Acuerda qué sigue')}</small>${canEdit()&&!preview?'<button data-journey-followup="true">Registrar avance →</button>':''}</li></ol><p class="journey-footnote">Cada referencia muestra lo que ya está guardado. Una evaluación inicial no aprueba el desarrollo.</p></section>`;
+  }
   function portfolio(){
     const allRows=C.visible(snapshot,broker,'',''),d=controlRows(allRows),allowed=attention?new Set((d[attention]||[]).map(o=>o.id)):null;
     const list=C.clientGroups(snapshot,broker,query,stage,caseState).filter(g=>!allowed||g.records.some(o=>allowed.has(o.id)));
@@ -177,11 +189,12 @@
     }
   }
   function materialView() {
-    const all=C.caseGroups(snapshot,broker,'','','');
-    return `<div class="section-heading"><h2>Material</h2><a class="button" href="index.html">Carpeta comercial ↗</a></div>`+publicMaterialCard()+table(['Expediente','Material',''],all.map(g=>{
+    const selectedCase=snapshot.opportunities.find(o=>o.id===selected);
+    const all=C.caseGroups(snapshot,broker,'','','').filter(g=>!selectedCase||g.records.some(o=>o.id===selectedCase.id));
+    return `<div class="section-heading"><div><p class="eyebrow">PRESENTAR Y ACOMPAÑAR</p><h2>Una conversación con dirección.</h2></div>${selectedCase?'<button data-open="'+esc(selectedCase.id)+'">← Volver al expediente</button>':''}</div><section class="presenter-guide"><div><span class="journey-number">1</span><strong>Entiende qué busca</strong><p>Invertir, desarrollar su propiedad o explorar una colaboración.</p></div><div><span class="journey-number">2</span><strong>Conecta con un caso</strong><p>Usa su ubicación, plan y documentos. Distingue lo estudiado de lo que falta comprobar.</p></div><div><span class="journey-number">3</span><strong>Acuerda qué sigue</strong><p>Una revisión, un análisis o una reunión. Registra responsable y fecha en el expediente.</p></div></section>`+publicMaterialCard()+`<div class="section-heading"><h3>${selectedCase?'Material de '+esc(selectedCase.title):'Material de tus expedientes'}</h3></div>`+table(['Expediente','Material',''],all.map(g=>{
       const links=groupLinks(g);
       return links?`<tr><td><strong>${esc(g.records[0].title)}</strong></td><td class="material-links">${links}</td><td><button data-open="${esc(g.records[0].id)}">Ver tablero →</button></td></tr>`:'';
-    }).join(''),'Material por expediente');
+    }).join(''),'Material por expediente')+`<details class="form-advanced"><summary>Otros recursos comerciales</summary><p>${link(new URL('index.html',location.href).href,'Abrir carpeta comercial')}</p></details>`;
   }
   function agreementsView() {
     const ids=new Set(current().map(o=>o.id));
@@ -200,31 +213,66 @@
     const contact=snapshot.contacts.find(c=>c.id===o.contact_id), step=C.nextStep(o.next_action);
     const parts=snapshot.participations.filter(p=>p.opportunity_id===o.id);
     let body='';
-    if(detailTab==='history')body=`<section class="next-commitment" aria-label="Siguiente compromiso"><div class="commitment-label"><span class="eyebrow">SIGUIENTE COMPROMISO</span>${CRM.caseInfo(o).decision?'<span class="decision-marker">Requiere decisión</span>':''}</div><h3>${esc(step.text||'Definir el siguiente paso')}</h3><div class="record-status"><span class="owner-dot" aria-hidden="true">${esc(initials(C.ownerLabel(liveSnapshot,o.next_action)))}</span><span>${esc(C.ownerLabel(liveSnapshot,o.next_action))}</span><time>${esc(o.next_date?dateLabel(o.next_date):'Fecha por acordar')}</time>${canEdit()?`<button class="text-button" data-edit-opportunity="${esc(o.id)}">Ajustar</button>`:''}</div></section><div class="connection-path" aria-label="Conexiones del asunto"><button data-detail-tab="records"><span>01 · Cliente / terreno</span><strong>${contact?(o.terrain_id?'Referencias vinculadas':'Completar terreno'):'Completar cliente'}</strong></button><button data-detail-tab="material"><span>02 · Plan de potencial</span><strong>${CRM.pppReference(o)?'Consultar PPP':'Vincular plan'}</strong></button><button data-detail-tab="agreements"><span>03 · Acuerdos</span><strong>${parts.length?parts.length+' registrados':'Por definir'}</strong></button><span class="project-connection"><span>04 · Proyecto</span><strong>${C.safeLink(o.project_url)?link(o.project_url,'Abrir proyecto'):'Por vincular'}</strong></span></div><div class="history-heading"><h3>Conversaciones y avances</h3><button class="text-button" data-case-calendar="1" aria-pressed="${calendarOpen}">Ver calendario</button></div>${calendarOpen?calendar(g.activities):''}${timeline(g.activities,g.records.length>1)}`;
+    if(detailTab==='history')body=`<section class="next-commitment" aria-label="Siguiente compromiso"><div class="commitment-label"><span class="eyebrow">SIGUIENTE COMPROMISO</span>${CRM.caseInfo(o).decision?'<span class="decision-marker">Requiere decisión</span>':''}</div><h3>${esc(step.text||'Definir el siguiente paso')}</h3><div class="record-status"><span class="owner-dot" aria-hidden="true">${esc(initials(C.ownerLabel(liveSnapshot,o.next_action)))}</span><span>${esc(C.ownerLabel(liveSnapshot,o.next_action))}</span><time>${esc(o.next_date?dateLabel(o.next_date):'Fecha por acordar')}</time>${canEdit()?`<button class="text-button" data-edit-opportunity="${esc(o.id)}">Ajustar</button>`:''}</div></section><details class="journey-references"><summary>Referencias y acuerdos del expediente</summary><div class="connection-path" aria-label="Conexiones del asunto"><button data-detail-tab="records"><span>01 · Cliente / terreno</span><strong>${contact?(o.terrain_id?'Referencias vinculadas':'Completar terreno'):'Completar cliente'}</strong></button><button data-detail-tab="material"><span>02 · Plan de potencial</span><strong>${CRM.pppReference(o)?'Consultar PPP':'Vincular plan'}</strong></button><button data-detail-tab="agreements"><span>03 · Acuerdos</span><strong>${parts.length?parts.length+' registrados':'Por definir'}</strong></button><span class="project-connection"><span>04 · Proyecto</span><strong>${C.safeLink(o.project_url)?link(o.project_url,'Abrir proyecto'):'Por vincular'}</strong></span></div></details><div class="history-heading"><h3>Conversaciones y avances</h3><button class="text-button" data-case-calendar="1" aria-pressed="${calendarOpen}">Ver calendario</button></div>${calendarOpen?calendar(g.activities):''}${timeline(g.activities,g.records.length>1)}`;
     if(detailTab==='records')body=`<section class="record-info"><p class="eyebrow">CLIENTE Y RELACIÓN</p><h3>${esc(contact?.name||'Cliente por identificar')}</h3>${contact?`<p>${esc([contact.type,contact.company,contact.email,contact.phone].filter(Boolean).join(' · '))}</p>${contact.notes?`<p class="pre-wrap">${esc(contact.notes)}</p>`:''}${canEdit()?`<button data-edit-contact="${esc(contact.id)}">Editar cliente</button>`:''}`:'<p>Vincula el contacto para reunir sus asuntos sin mezclarlos.</p>'}<hr><p class="eyebrow">TERRENO Y ALCANCE</p><h3>${esc(o.title)}</h3><p>${esc([o.kind,o.location].filter(Boolean).join(' · '))}</p><p class="secondary">${o.terrain_id?'Referencia del terreno: '+esc(o.terrain_id):'Terreno sin referencia vinculada'}</p>${CRM.caseInfo(o).text?`<p class="pre-wrap">${esc(CRM.caseInfo(o).text)}</p>`:''}${o.source_status?`<p class="secondary">${esc(o.source_status)}</p>`:''}<div class="material-links">${groupLinks(g)}</div>${canEdit()?`<button data-edit-opportunity="${esc(o.id)}">Editar registro</button>`:''}${g.records.length>1?table(['Gestión','Estado',''],g.records.map(r=>`<tr><td>${esc(r.title)}</td><td>${esc(r.stage)}</td><td><button data-select-record="${esc(r.id)}" ${r.id===selected?'disabled':''}>${r.id===selected?'Seleccionado':'Seleccionar'}</button></td></tr>`).join(''),'Gestiones relacionadas'):''}</section>`;
     if(detailTab==='material')body=`<section class="connected-plan"><p class="eyebrow">PLAN DE POTENCIAL</p><h3>${CRM.pppReference(o)?'La base para decidir':'Todavía falta vincular el plan'}</h3><p>${CRM.pppReference(o)?'Consulta la versión guardada y sus supuestos.': 'Vincula el plan existente para revisar el potencial de este asunto.'}</p>${pppMount(o,true)}<div class="material-links">${groupLinks(g)}</div>${canEdit()?`<button data-edit-opportunity="${esc(o.id)}">Completar referencias</button>`:''}</section>`;
     if(detailTab==='agreements')body=`${parts.map(p=>`<section class="agreement-item"><div class="row"><strong>${esc(names([p.broker_id]))}</strong><span class="status">${esc(p.status)}</span></div>${p.terms?`<p class="pre-wrap">${esc(p.terms)}</p>`:''}${link(p.agreement_url,'Ver acuerdo')}${canAgree()?`<button data-edit-participation="${esc(p.id)}">Editar acuerdo</button>`:''}</section>`).join('')}${canAgree()?'<button data-new="participation">+ Acuerdo</button>':''}`;
-    return `<article class="detail"><div class="detail-topline"><button class="text-button" data-action="back">← Cartera</button><span>${esc(names(o.broker_ids))}</span></div><div class="detail-heading"><div><p class="eyebrow">${esc(contact?.name||'Cliente por identificar')}</p><h2 tabindex="-1" id="case-heading">${esc(o.title)}</h2><p class="detail-subtitle"><span class="status">${esc(o.stage)}</span> ${esc(o.location||o.kind)}</p></div></div><div class="detail-actions">${canEdit()?'<button class="primary" data-followup="true">Registrar avance</button><button data-schedule="true">Agendar reunión</button>':''}${canEdit()&&!preview?`<details class="create-menu case-tools"><summary>Más</summary><div><button data-edit-opportunity="${esc(o.id)}">Editar asunto</button><button data-preevaluate="current">${window.BrokerEvaluator.caseId(o.notes)?'Abrir preevaluación':'Preevaluar terreno'}</button>${o.terrain_id||o.ppp_id?'<button data-related="true">+ Gestión</button>':''}</div></details>`:''}</div>${g.records.length>1?`<label class="record-picker"><span>Registro activo</span><select id="record-select">${options(g.records.map(r=>({id:r.id,name:r.title+' · '+r.kind})),o.id)}</select></label>`:''}<nav class="detail-tabs" aria-label="Expediente">${[['history','Seguimiento'],['records','Expediente'],['material','PPP y documentos'],['agreements','Acuerdos']].map(([id,label])=>`<button data-detail-tab="${id}" aria-current="${detailTab===id?'page':'false'}">${label}</button>`).join('')}</nav><div class="detail-body">${body}</div></article>`;
+    return `<article class="detail"><div class="detail-topline"><button class="text-button" data-action="back">← Cartera</button><span>${esc(names(o.broker_ids))}</span></div><div class="detail-heading"><div><p class="eyebrow">${esc(contact?.name||'Cliente por identificar')}</p><h2 tabindex="-1" id="case-heading">${esc(o.title)}</h2><p class="detail-subtitle"><span class="status">${esc(o.stage)}</span> ${esc(o.location||o.kind)}</p></div></div><div class="detail-actions">${canEdit()?'<button class="primary" data-followup="true">Registrar avance</button><button data-schedule="true">Agendar reunión</button>':''}${canEdit()&&!preview?`<details class="create-menu case-tools"><summary>Más</summary><div><button data-edit-opportunity="${esc(o.id)}">Editar asunto</button>${o.terrain_id||o.ppp_id?'<button data-related="true">+ Gestión</button>':''}</div></details>`:''}</div>${g.records.length>1?`<label class="record-picker"><span>Registro activo</span><select id="record-select">${options(g.records.map(r=>({id:r.id,name:r.title+' · '+r.kind})),o.id)}</select></label>`:''}${caseJourney(o)}<nav class="detail-tabs" aria-label="Expediente">${[['history','Seguimiento'],['records','Expediente'],['material','PPP y documentos'],['agreements','Acuerdos']].map(([id,label])=>`<button data-detail-tab="${id}" aria-current="${detailTab===id?'page':'false'}">${label}</button>`).join('')}</nav><div class="detail-body">${body}</div></article>`;
 
   }
 
 
+  function clearReturnURL(){
+    const u=new URL(location.href);u.searchParams.delete('preevaluacion');u.searchParams.delete('opportunity');history.replaceState({},'',u.href);
+    evaluationReturnHandled=false;
+  }
+  function returnNotice(message){
+    $('notice').replaceChildren();
+    const p=document.createElement('span');p.textContent=message;$('notice').append(p);
+    if(new URLSearchParams(location.search).get('preevaluacion')&&!preview&&canEdit()){
+      const btn=document.createElement('button');btn.type='button';btn.dataset.resumeEvaluation='1';btn.textContent='Retomar terreno →';
+      btn.onclick=()=>{if(!busy&&!receivingEvaluation){evaluationReturnHandled=false;receiveEvaluation();}};$('notice').append(' ',btn);
+    }
+  }
   async function receiveEvaluation(){
     const params=new URLSearchParams(location.search),id=params.get('preevaluacion');
-    if(!id||evaluationReturnHandled||preview||!canEdit())return;
-    evaluationReturnHandled=true;
+    if(!id||evaluationReturnHandled||receivingEvaluation||preview||!canEdit())return;
+    const ownToken=loadedToken,ownBroker=requestedBroker;
+    receivingEvaluation=true;
     try{
       const ev=await evaluator.summary(id);
+      if(!snapshot||token()!==ownToken||requestedBroker!==ownBroker)return;
       if(!snapshot.brokers.some(b=>b.id===ev.broker_id))throw Error('La evaluación no corresponde a esta cartera.');
       const target=params.get('opportunity'),linked=snapshot.opportunities.filter(o=>window.BrokerEvaluator.caseId(o.notes)===ev.id);
       if(linked.length>1)throw Error('Hay más de un registro vinculado. Abre el expediente que deseas actualizar.');
       const existing=target?snapshot.opportunities.find(o=>o.id===target):linked[0];
       if(target&&!existing)throw Error('El expediente de regreso no está en tu cartera.');
+      if(linked[0]&&existing&&linked[0].id!==existing.id)throw Error('Esta evaluación ya está vinculada a otro expediente. Revisa su referencia antes de continuar.');
+      if(existing&&window.BrokerEvaluator.caseId(existing.notes)===ev.id){
+        if(!(existing.broker_ids||[]).includes(ev.broker_id))throw Error('La evaluación no corresponde a esta cartera.');
+        selected=existing.id;tab='opportunities';detailTab='history';clearReturnURL();accessNotice('Evaluación vinculada. Continúas en el mismo expediente.');render();return;
+      }
       editor('opportunity',window.BrokerEvaluator.recordFromEvaluation(ev,existing));
-      $('form-title').textContent=existing?'Vincular preevaluación al terreno':'Registrar terreno preevaluado';
-      $('form-error').textContent='La preevaluación ya está en Drive. Revisa el siguiente paso y guarda para incorporarla a tu cartera.';
-      const u=new URL(location.href);u.searchParams.delete('preevaluacion');u.searchParams.delete('opportunity');history.replaceState({},'',u.href);
-    }catch(e){$('notice').textContent=e.message;}
+      if(!edit)return;
+      edit.evaluationId=ev.id;evaluationReturnHandled=true;
+      $('form-title').textContent=existing?'Incorporar evaluación al expediente':'Guardar terreno en mi cartera';
+      $('form-error').textContent='La evaluación ya está en Drive. Confirma el siguiente paso para vincularla a tu cartera.';
+      $('save-record').textContent='Guardar en mi cartera';
+      const intro=$('fields').querySelector('.form-intro');if(intro)intro.remove();
+      const summary=document.createElement('section');summary.className='evaluation-receipt';
+      const tag=document.createElement('p');tag.className='eyebrow';tag.textContent='EVALUACIÓN GUARDADA EN DRIVE';
+      const title=document.createElement('h3');title.textContent=ev.title||'Tu inmueble';
+      const place=document.createElement('p');place.textContent=ev.location||'Ubicación por precisar';
+      const area=document.createElement('strong');area.textContent=typeof ev.site_area==='number'?ev.site_area.toLocaleString('es-MX')+' m² de terreno':'Revisa las medidas en el evaluador';
+      summary.append(tag,title,place,area);$('fields').prepend(summary);
+      const extra=document.createElement('details');extra.className='form-advanced';extra.innerHTML='<summary>Datos y clasificación del expediente</summary>';
+      for(const name of ['title','kind','location','stage','notes','ppp_status','decision','broker_ids']){
+        const input=$('fields').querySelector('[name="'+name+'"]');if(input)extra.append(input.closest('label'));
+      }
+      $('fields').append(extra);
+      $('save-record').focus();
+    }catch(e){evaluationReturnHandled=false;if(snapshot&&token()===ownToken&&requestedBroker===ownBroker)returnNotice(e.message);}
+    finally{receivingEvaluation=false;}
   }
   function chooseEvaluation(kind){
     if(!canEdit()||preview)return;
@@ -239,6 +287,7 @@
     $('launch-evaluation').onclick=()=>{const chosen=$('evaluation-broker').value;$('editor').close();$('save-record').hidden=false;launchEvaluation(chosen,o);};
   }
   async function launchEvaluation(brokerId,o){
+    if(busy||receivingEvaluation)return;
     const win=window.open('about:blank','_blank');
     if(!win){$('notice').textContent='Permite abrir la pestaña de preevaluación y vuelve a pulsar el botón.';return;}
     win.opener=null;win.document.body.textContent='Abriendo tu preevaluación…';
@@ -287,6 +336,10 @@
     const b = e.target.closest('button'); if (!b || busy) return;
     if(b.dataset.agenda){calendarOpen=!calendarOpen;calendarDay='';render();return;}
     if(b.dataset.caseCalendar){calendarOpen=!calendarOpen;calendarDay='';render();return;}
+    if(b.dataset.journeyCases){document.querySelector('.client-list')?.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});return;}
+    if(b.dataset.journeyResume){selected=b.dataset.journeyResume;tab='opportunities';detailTab='history';render();$('case-heading')?.focus({preventScroll:true});return;}
+    if(b.dataset.journeyFollowup){const o=snapshot.opportunities.find(x=>x.id===selected);editor('activity',{next_action:o.next_action,next_date:o.next_date});return;}
+    if(b.dataset.casePresent){tab='offer';render();return;}
     if(b.dataset.plaza){selectPortfolio('');return;}
     if(b.dataset.attention){attention=b.dataset.attention==='all'?'':b.dataset.attention;tab='opportunities';selected='';query='';stage='';caseState='';render();return;}
     if(b.dataset.clientNew){const c=snapshot.contacts.find(c=>c.id===b.dataset.clientNew);editor('opportunity',{contact_id:c.id,broker_ids:c.broker_ids});return;}
@@ -318,9 +371,9 @@
     if (b.dataset.editContact) editor('contact',snapshot.contacts.find(c => c.id === b.dataset.editContact));
     if (b.dataset.editOpportunity) editor('opportunity',snapshot.opportunities.find(o => o.id === b.dataset.editOpportunity));
   };
-  const close = () => { if (!busy) { $('editor').close(); edit = null; } };
+  const close = () => { if (!busy) { const resumable=edit?.evaluationId; $('editor').close(); edit = null; if(resumable){evaluationReturnHandled=false;returnNotice('Tu evaluación sigue guardada. Puedes terminar de incorporarla cuando quieras.');} } };
   $('close-editor').onclick = close; $('cancel-editor').onclick = close;
-  $('editor').addEventListener('cancel', e => { if (busy) e.preventDefault(); });
+  $('editor').addEventListener('cancel', e => { e.preventDefault(); close(); });
   $('record-form').onsubmit = async e => {
     e.preventDefault(); if (preview || busy || !edit || !snapshot) return;
     const fd = new FormData(e.target), record = Object.fromEntries(fd);
@@ -340,7 +393,19 @@
     const body = JSON.stringify(record);
     if (edit.submitted && edit.submitted !== body) { $('form-error').textContent = 'Primero actualiza la cartera para comprobar el intento anterior. No se enviará una segunda versión sin verificar.'; return; }
     edit.submitted = body; busy = true; $('save-record').disabled = true; $('form-error').textContent = 'Guardando…';
-    try { const result = await client.save(edit.kind,record,edit.revision,edit.requestId); applySnapshot(result); pppClient.invalidate(); pppData.clear(); loadedToken = token(); $('editor').close(); const savedKind=edit.kind, createdContact=edit.kind==='contact'&&!edit.id; edit = null; if(savedKind==='opportunity'){tab='opportunities';selected='';query='';stage='';} if(savedKind==='contact'){tab='opportunities';query='';if(createdContact){selected='';attention='';stage='';caseState='';prospectsOpen=true;}} accessNotice('Guardado.'); render(); }
+    try {
+      const savedKind=edit.kind,evalId=edit.evaluationId,createdContact=edit.kind==='contact'&&!edit.id;
+      const result=await client.save(edit.kind,record,edit.revision,edit.requestId);
+      applySnapshot(result);pppClient.invalidate();pppData.clear();loadedToken=token();$('editor').close();edit=null;
+      if(savedKind==='opportunity'){
+        tab='opportunities';query='';stage='';caseState='';attention='';detailTab='history';
+        const matches=snapshot.opportunities.filter(row=>Object.entries(record).every(([key,value])=>Array.isArray(value)?value.every(id=>(row[key]||[]).includes(id)):String(row[key]??'').trim()===String(value??'').trim()));
+        selected=record.id&&snapshot.opportunities.some(o=>o.id===record.id)?record.id:matches.length===1?matches[0].id:'';
+        if(evalId)clearReturnURL();
+      }
+      if(savedKind==='contact'){tab='opportunities';query='';if(createdContact){selected='';attention='';stage='';caseState='';prospectsOpen=true;}}
+      accessNotice(selected?'Guardado en tu cartera. Continúa en este expediente.':'Guardado en tu cartera.');render();
+    }
     catch (err) { $('form-error').textContent = err.message; if (token() !== loadedToken) { clear(); $('notice').textContent = 'La sesión cambió. Vuelve a entrar.'; } }
     finally { busy = false; $('save-record').disabled = false; }
   };
