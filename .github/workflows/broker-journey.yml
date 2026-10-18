@@ -1,0 +1,31 @@
+name: Broker journey review
+on:
+  pull_request:
+    paths:
+      - 'brokers*'
+      - 'tests/brokers-journey-browser.cjs'
+      - '.github/workflows/broker-journey.yml'
+permissions:
+  contents: read
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: |
+          npm install --no-save --ignore-scripts --no-audit --no-fund playwright@1.58.2
+          npx playwright install --with-deps chromium webkit
+          node --test tests/brokers*.test.cjs
+          node tests/brokers-journey-browser.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: broker-journey-review
+          path: journey-review-artifacts/
+          retention-days: 7

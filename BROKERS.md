@@ -99,3 +99,15 @@ La muestra interactiva abre sin cuenta en [master-brokers/](https://yodesarrollo
 Sus clientes, fechas, conversaciones y documentos son ficticios; la etiqueta de ejemplo permanece visible. No consulta ni escribe en el CRM y no incluye el adaptador de datos reales aún no habilitado. No carga Portero ni el shell de la aplicación interna. La aplicación productiva `brokers.html` y sus permisos conservan su comportamiento.
 
 Verificación: `node --test tests/brokers-public-preview.test.cjs` y `node tests/brokers-public-preview-browser.cjs`; después de publicar, comparar archivos de la ruta anónima con el commit integrado.
+
+## Recorrido guiado y regreso recuperable · propuesta 17-oct
+
+Dirección solicita que presentación, captura, evaluación y seguimiento se usen como un recorrido común de todos los Master Brokers dentro de YOD OS. Se reutilizan CHG-MASTERBROKERS-MINI-CRM y CHG-MASTERBROKER-PREEVALUATION del atlas aprobado, sin conexiones ni contratos nuevos.
+
+Entrada visual en cartera: Presentar, Analizar inmueble y Continuar expediente. La ficha muestra evaluación, PPP y seguimiento según evidencia guardada, sin inferir aprobación. Cada cartera conserva alcance del servidor y la presentación pública no recibe datos privados.
+
+Reparaciones previstas: retorno pendiente recuperable tras error o cancelación hasta confirmación del guardado; retorno ya vinculado abre el expediente sin duplicar; actualizar conserva selección sólo si sigue autorizada; guardado abre el registro confirmado; referencia de evaluación más reciente conserva notas y metadatos PPP. La importación agrupa datos disponibles y deja campos administrativos en detalles, sin inventar responsable, fecha, precios ni viabilidad.
+
+Comprobación: pruebas de contrato y navegador Chromium/WebKit con fuentes sintéticas; red fallida, cancelar/recargar/retomar, ACK, referencias múltiples, broker A/B, preview y móvil. Separar publicación del frontend, funcionamiento del evaluador y aceptación de usuario; ningún POST de prueba a negocio. Reversión sólo frontend preserva Drive, Sheets, actividades, permisos y referencias.
+
+Implementación del recorrido: entrada común de tres acciones; ficha con mapa/evaluación, PPP, material y seguimiento. El regreso conserva su URL hasta ACK; cancelar ofrece Retomar y una evaluación ya vinculada abre su expediente. Actualizar conserva la selección autorizada, la creación confirmada abre el registro exacto y conserva la experiencia de clientes recién registrados. Se preserva la unificación de cartera publicada en PR41 y el prototipo público de PR42. La referencia EV actual es la última línea de evaluación, conservando las anteriores y el sobre YOD-CASE-v1. El editor del retorno recoge contacto opcional y siguiente paso; datos recibidos y clasificación se despliegan sólo si se necesitan. Publicación y pruebas se registran al finalizar.

@@ -1,14 +1,21 @@
 {
   "model_revision": "2026-10-17.chinches-entregas.1",
-  "proposal_id": "CHG-MASTERBROKERS-PUBLIC-PREVIEW",
-  "summary": "Publicar el prototipo estático en master-brokers/ con entrada MD y datos ficticios. Sin inicio de sesión, conectores ni cambios al portal productivo.",
+  "proposal_id": "CHG-MASTERBROKERS-MINI-CRM",
+  "summary": "Recorrido común para todos los brokers, presentación y expediente conectados; regreso recuperable al evaluador mediante CHG-MASTERBROKER-PREEVALUATION. Misma autorización y contratos, sin nueva base ni publicación de casos privados.",
   "components": [
-    "SYS-INVERSION"
+    "SYS-INVERSION",
+    "GAS-CRM",
+    "SHEET-CRM",
+    "SYS-POTENCIALES",
+    "GAS-PORTERO",
+    "SHEET-PORTERO",
+    "SYS-YOD-OS"
   ],
   "tests": [
-    "node --test tests/brokers-public-preview.test.cjs",
-    "node tests/brokers-public-preview-browser.cjs: recorrido anónimo, filtros, historial, PPP y responsive; sólo solicitudes estáticas.",
-    "Descarga anónima de archivos publicados y comparación exacta de bytes."
+    "node --test tests/brokers*.test.cjs: conservar metadatos y referencias anteriores; EV vigente inequívoco.",
+    "Chromium/WebKit 320/390/430: retorno con error y reintento, cancelar/retomar, ACK y apertura de expediente, regreso duplicado y aislamiento de dos brokers.",
+    "Regresiones de cartera unificada, clientes, PPP y presentación; prototipo público intacto.",
+    "Cero escrituras de prueba en negocio; fuente de datos Drive/Sheets sin copiar registros en Git."
   ],
-  "rollback": "Retirar únicamente la muestra pública y su documentación; conservar contratos, datos y permisos productivos."
+  "rollback": "Revertir únicamente frontend por PR; mantener todos los IDs, notas, versiones, archivos Drive/Sheets, permisos y registro de clientes. No restaurar registros operativos."
 }
