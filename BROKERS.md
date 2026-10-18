@@ -90,3 +90,12 @@ La lectura real del 17-oct detectó ACK con snapshot anterior después de guarda
 Se sustituye la portada de métricas y pestañas redundantes por un único espacio. Dirección abre Mi equipo; Mi cartera y cada broker cambian el alcance conservando la identidad autenticada. Un broker individual sigue recibiendo sólo su cartera del backend. La lista agrupa por cliente explícito y mantiene cada asunto separado. El detalle conserva contexto en escritorio, y usa regreso a cartera en móvil.
 
 Próximo compromiso, persona y fecha aparecen antes de la historia. Cliente/terreno, PPP, acuerdos y proyecto se abren desde el asunto, sólo con referencias existentes; ausencia no equivale a integración. Calendario, filtros, contactos sin oportunidad y herramientas comerciales se revelan al usarlos. Comparación de PPP, edición, reuniones y fuentes anteriores siguen disponibles. No cambios de datos, permisos, contratos ni backend.
+
+
+## Prototipo público
+
+La muestra interactiva abre sin cuenta en [master-brokers/](https://yodesarrollomx.github.io/yodesarrollo-board/master-brokers/). Comienza en Master Developer y su equipo, y permite recorrer carteras, prospectos, trabajos, historial y fichas de PPP.
+
+Sus clientes, fechas, conversaciones y documentos son ficticios; la etiqueta de ejemplo permanece visible. No consulta ni escribe en el CRM y no incluye el adaptador de datos reales aún no habilitado. No carga Portero ni el shell de la aplicación interna. La aplicación productiva `brokers.html` y sus permisos conservan su comportamiento.
+
+Verificación: `node --test tests/brokers-public-preview.test.cjs` y `node tests/brokers-public-preview-browser.cjs`; después de publicar, comparar archivos de la ruta anónima con el commit integrado.

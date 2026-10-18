@@ -1,27 +1,14 @@
 {
   "model_revision": "2026-10-17.chinches-entregas.1",
-  "proposal_id": "CHG-MASTERBROKERS-MINI-CRM",
-  "summary": "Espacio único de carteras: alcance equipo/propio/broker, clientes con asuntos accionables y detalle contextual. Compromiso nominal, fuentes y conexiones a terreno, PPP guardado, acuerdos y proyecto. Sustituye portada/contadores redundantes sin alterar contrato, datos ni permisos.",
+  "proposal_id": "CHG-MASTERBROKERS-PUBLIC-PREVIEW",
+  "summary": "Publicar el prototipo estático en master-brokers/ con entrada MD y datos ficticios. Sin inicio de sesión, conectores ni cambios al portal productivo.",
   "components": [
-    "SYS-INVERSION",
-    "GAS-CRM",
-    "SHEET-CRM",
-    "SYS-POTENCIALES",
-    "GAS-PORTERO",
-    "SHEET-PORTERO",
-    "SYS-YOD-OS"
+    "SYS-INVERSION"
   ],
   "tests": [
-    "node --test tests/brokers*.test.cjs: codec compatible, fecha real distinta de captura, eventos programados/reemplazados, calendario y resumen PPP sin motor propio.",
-    "Chromium320/390/1440: varios expedientes desplegados, comparación alineada, calendario, editor y fuentes; cero overflow.",
-    "Permisos existentes, preview sin guardado, sesión invalidada, ACK/revisión/reintentos idempotentes; cero escrituras de prueba en producción.",
-    "Atlas regenerado, checks del portal y pin del consumidor; publicación registrada aparte de integración y de lectura privada.",
-    "Clientes múltiples, contactos homónimos, casos compartidos y sin contacto; identidad Dirección conservada y broker aislado.",
-    "Responsable nominal y estado PPP sobreviven roundtrip brokers.v1; programación/reprogramación/resultado; filtros decisión/hoy/vencidos/sin siguiente paso.",
-    "87 comprobaciones Chromium320/390/1440: conserva texto de prioridades legible dentro del shell claro con preferencia oscura del dispositivo.",
-    "Inicio personal, equipo desplegable, PPP visible y regreso a Mi portal; Chromium320/390/1440 y aislamiento de broker.",
-    "ACK con snapshot previo exige relectura autorizada coincidente sin repetir escritura; lectura incoherente y cambio de sesión no confirman.",
-    "Inicio único, selector de alcance, navegación contextual escritorio/móvil, fuentes, conexiones explícitas o pendientes, directorio/material accesibles, sin métricas decorativas."
+    "node --test tests/brokers-public-preview.test.cjs",
+    "node tests/brokers-public-preview-browser.cjs: recorrido anónimo, filtros, historial, PPP y responsive; sólo solicitudes estáticas.",
+    "Descarga anónima de archivos publicados y comparación exacta de bytes."
   ],
-  "rollback": "Revertir sólo frontend; conservar IDs, todas las actividades y sus notas legibles, fuentes, PPP, pendientes, permisos y datos operativos. No restaurar filas de negocio."
+  "rollback": "Retirar únicamente la muestra pública y su documentación; conservar contratos, datos y permisos productivos."
 }
