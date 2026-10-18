@@ -56,6 +56,11 @@
     if (text && /^person:[A-Za-z0-9_.:@-]{1,200}$/.test(owner)) return `[Persona:${encodeURIComponent(owner.slice(7))}] ${text}`;
     return text && ['YOD','Masterbroker','PG'].includes(owner) ? `[${owner}] ${text}` : text;
   }
+  // Presentation only: these confirmed business labels never grant access.
+  function portfolioRoleLabel(id) {
+    if (id === 'BR-ALEJANDRO-PUEBLA') return 'MD';
+    return ['BR-EDUARDO-LARA','BR-ALEJANDRO-FRANCO','BR-LUPITA'].includes(id) ? 'MB' : 'Integrante';
+  }
   function orderedPortfolios(s, preferredNames = []) {
     const normalize = value => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLocaleLowerCase('es');
     const preferred = preferredNames.map(normalize), own = ownPortfolio(s);
@@ -174,7 +179,7 @@
     }
     return { load: () => request('brokers_snapshot', {}), save, invalidate: () => { generation++; } };
   }
-  const api = { stages, participationStates, safeLink, validateSnapshot, visible, caseGroups, clientGroups, orderedPortfolios, ownPortfolio, ownerLabel, overdue, nextStep, encodeStep, agenda, previewSnapshot, workspaceSnapshot, dailyControl, createClient };
+  const api = { stages, participationStates, safeLink, validateSnapshot, visible, caseGroups, clientGroups, portfolioRoleLabel, orderedPortfolios, ownPortfolio, ownerLabel, overdue, nextStep, encodeStep, agenda, previewSnapshot, workspaceSnapshot, dailyControl, createClient };
   if (typeof module !== 'undefined') module.exports = api;
   root.BrokersCore = api;
 })(typeof window === 'undefined' ? globalThis : window);
