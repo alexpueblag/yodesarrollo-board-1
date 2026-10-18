@@ -84,3 +84,13 @@ La entrada canónica muestra al Master Developer, cartera propia, equipo despleg
 Validación local: 141 pruebas de contratos, 96 comprobaciones de jerarquía/guardado/alcance y 72 de mini CRM en 320/390/1440; incluye contraste de métricas y equipo desplegable. Cero escrituras sintéticas en producción. El registro de importaciones reales y la verificación publicada se conservan en el buzón privado.
 
 La lectura real del 17-oct detectó ACK con snapshot anterior después de guardar un contacto. El cliente verifica los campos enviados y, sólo si no coinciden, realiza una lectura autorizada nueva. No repite escrituras ni construye datos optimistas; si persiste la diferencia, mantiene el intento idempotente y solicita verificar. Tres regresiones cubren relectura, discrepancia persistente y cambio de sesión.
+
+## Recorrido guiado y regreso recuperable · propuesta 17-oct
+
+Dirección solicita que presentación, captura, evaluación y seguimiento se usen como un recorrido común de todos los Master Brokers dentro de YOD OS. Se reutilizan CHG-MASTERBROKERS-MINI-CRM y CHG-MASTERBROKER-PREEVALUATION del atlas aprobado, sin conexiones ni contratos nuevos.
+
+Entrada visual en cartera: Presentar, Analizar inmueble y Continuar expediente. La ficha muestra evaluación, PPP y seguimiento según evidencia guardada, sin inferir aprobación. Cada cartera conserva alcance del servidor y la presentación pública no recibe datos privados.
+
+Reparaciones previstas: retorno pendiente recuperable tras error o cancelación hasta confirmación del guardado; retorno ya vinculado abre el expediente sin duplicar; actualizar conserva selección sólo si sigue autorizada; guardado abre el registro confirmado; referencia de evaluación más reciente conserva notas y metadatos PPP. La importación agrupa datos disponibles y deja campos administrativos en detalles, sin inventar responsable, fecha, precios ni viabilidad.
+
+Comprobación: pruebas de contrato y navegador Chromium/WebKit con fuentes sintéticas; red fallida, cancelar/recargar/retomar, ACK, referencias múltiples, broker A/B, preview y móvil. Separar publicación del frontend, funcionamiento del evaluador y aceptación de usuario; ningún POST de prueba a negocio. Reversión sólo frontend preserva Drive, Sheets, actividades, permisos y referencias.
