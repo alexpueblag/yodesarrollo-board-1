@@ -67,3 +67,13 @@ test('agrupar no amplía alcance por coincidencia de terreno; PPP solo si falta 
  const s=snapshot();s.actor.role='direccion';s.opportunities=[{id:'o1',ppp_id:'p1',broker_ids:['b1']},{id:'o2',ppp_id:'p1',broker_ids:['b1']},{id:'o3',terrain_id:'t1',ppp_id:'p1',broker_ids:['b1']},{id:'o4',terrain_id:'t1',broker_ids:['b2']}];
  s.activities=[{id:'private',opportunity_id:'o4'}];const g=C.caseGroups(s,'b1','','','');assert.equal(g.length,2);assert.equal(g.flatMap(x=>x.records).length,3);assert.equal(g.flatMap(x=>x.activities).length,0);assert.equal(C.caseGroups(s,'none','','','').length,0);
 });
+
+test('rechazos confirmados de escritura permiten corregir; incertidumbre y lectura no',async()=>{
+ for(const code of ['contact_not_linked','forbidden','conflict','invalid_field','service_unavailable','idempotency_mismatch']){
+ const c=C.createClient({token:()=> 't',url:'x',fetch:async()=>({ok:true,json:async()=>({ok:false,error:code})})});
+ await assert.rejects(c.save('contact',{},1,'same-id'),e=>e.code===code&&e.definitive===!['service_unavailable','idempotency_mismatch'].includes(code));
+ await assert.rejects(c.load(),e=>e.definitive===false);
+ }
+ let calls=0;const c=C.createClient({token:()=> 't',url:'x',fetch:async(u,o)=>{const p=JSON.parse(o.body);return {ok:true,json:async()=>++calls===1?{ok:true,request_id:p.request_id,data:snapshot()}:{ok:false,error:'forbidden'}};}});
+ await assert.rejects(c.save('contact',{name:'Nuevo'},1,'same-id'),e=>e.code==='forbidden'&&e.definitive===false);
+});

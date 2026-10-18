@@ -371,12 +371,13 @@
     if (b.dataset.editContact) editor('contact',snapshot.contacts.find(c => c.id === b.dataset.editContact));
     if (b.dataset.editOpportunity) editor('opportunity',snapshot.opportunities.find(o => o.id === b.dataset.editOpportunity));
   };
-  const close = () => { if (!busy) { if(edit?.evaluationId&&edit.submitted){$('form-error').textContent='El guardado todavía necesita confirmación. Pulsa Guardar en mi cartera para verificar el mismo intento; no se creará otra solicitud.';return;} const resumable=edit?.evaluationId; $('editor').close(); edit = null; if(resumable){evaluationReturnHandled=false;returnNotice('Tu evaluación sigue guardada. Puedes terminar de incorporarla cuando quieras.');} } };
+  const close = () => { if (!busy) { if(edit?.evaluationId&&edit.submitted){$('form-error').textContent='El guardado todavía necesita confirmación. Pulsa Verificar envío para comprobar el mismo intento; no se creará otra solicitud.';return;} const resumable=edit?.evaluationId; $('editor').close(); edit = null; if(resumable){evaluationReturnHandled=false;returnNotice('Tu evaluación sigue guardada. Puedes terminar de incorporarla cuando quieras.');} } };
   $('close-editor').onclick = close; $('cancel-editor').onclick = close;
   $('editor').addEventListener('cancel', e => { e.preventDefault(); close(); });
   $('record-form').onsubmit = async e => {
     e.preventDefault(); if (preview || busy || !edit || !snapshot) return;
-    const fd = new FormData(e.target), record = Object.fromEntries(fd);
+    const retry=Boolean(edit.evaluationId&&edit.submitted),fd = new FormData(e.target), record = retry?JSON.parse(edit.submitted):Object.fromEntries(fd);
+    if(!retry){
     if (Object.prototype.hasOwnProperty.call(record,'outcome')) { if(record.outcome) record.note = record.outcome + ': ' + record.note; delete record.outcome; }
     if(edit.kind==='activity'){
       const m={...edit.crm,v:1,type:record.crm_type,status:record.crm_status,occurred_at:record.crm_date,participants:record.crm_participants,source:record.crm_source,source_url:record.crm_source_url,stage:snapshot.opportunities.find(o=>o.id===selected)?.stage||''};
@@ -390,9 +391,10 @@
     if (edit.canonicalBrokers) record.broker_ids = edit.canonicalBrokers;
     if (['activity','participation'].includes(edit.kind)) record.opportunity_id = selected;
     for (const key of ['ppp_url','documents_url','project_url','agreement_url']) if (record[key] && !C.safeLink(record[key])) { $('form-error').textContent = 'Usa un enlace HTTPS de Yod OS o Google Drive.'; return; }
+    }
     const body = JSON.stringify(record);
     if (edit.submitted && edit.submitted !== body) { $('form-error').textContent = 'Primero actualiza la cartera para comprobar el intento anterior. No se enviará una segunda versión sin verificar.'; return; }
-    edit.submitted = body; busy = true; $('save-record').disabled = true; $('form-error').textContent = 'Guardando…';
+    edit.submitted = body; if(edit.evaluationId)document.querySelectorAll('#fields input,#fields select,#fields textarea').forEach(el=>{if(el.dataset.pendingDisabled===undefined)el.dataset.pendingDisabled=el.disabled?'1':'0';el.disabled=true;}); busy = true; $('save-record').disabled = true; $('form-error').textContent = 'Guardando…';
     try {
       const savedKind=edit.kind,evalId=edit.evaluationId,createdContact=edit.kind==='contact'&&!edit.id;
       const result=await client.save(edit.kind,record,edit.revision,edit.requestId);
@@ -406,8 +408,8 @@
       if(savedKind==='contact'){tab='opportunities';query='';if(createdContact){selected='';attention='';stage='';caseState='';prospectsOpen=true;}}
       accessNotice(selected?'Guardado en tu cartera. Continúa en este expediente.':'Guardado en tu cartera.');render();
     }
-    catch (err) { if(edit&&err.message==='Otra persona actualizó el expediente. Recarga antes de guardar.')edit.submitted=null; $('form-error').textContent = err.message; if (token() !== loadedToken) { clear(); $('notice').textContent = 'La sesión cambió. Vuelve a entrar.'; } }
-    finally { busy = false; $('save-record').disabled = false; }
+    catch (err) { if(edit&&err.definitive){edit.submitted=null;document.querySelectorAll('#fields [data-pending-disabled]').forEach(el=>{el.disabled=el.dataset.pendingDisabled==='1';delete el.dataset.pendingDisabled;});} $('form-error').textContent = err.message; if (token() !== loadedToken) { clear(); $('notice').textContent = 'La sesión cambió. Vuelve a entrar.'; } }
+    finally { busy = false; $('save-record').disabled = false;if(edit?.evaluationId)$('save-record').textContent=edit.submitted?'Verificar envío':'Guardar en mi cartera'; }
   };
   window.addEventListener('storage', e => { if (e.key === 'pyod_clave_v1' || e.key === null) { client.invalidate(); clear(); $('notice').textContent = 'La sesión cambió. Actualiza para validar tu acceso.'; } });
   window.addEventListener('focus', () => { if (token() && token() !== loadedToken) { client.invalidate(); clear(); load(); } });
