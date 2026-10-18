@@ -154,3 +154,15 @@ body:has(#brokers){background:#f7f9f7;color:#213b34;color-scheme:light}
 /* Keep the current case title once; compact the route before the next commitment. */
 .journey-case-location{padding:12px 16px}.journey-case-location .mini-label{margin:0}
 @media(max-width:760px){.journey-rail li{display:grid;grid-template-columns:24px minmax(0,1fr);gap:7px;padding:14px 12px;align-content:start;align-items:start}.journey-rail .journey-number{width:24px;height:24px}.journey-rail strong{align-self:center;font-size:13px}.journey-rail small,.journey-rail button,.journey-rail a{grid-column:2}.journey-rail small{font-size:11px;line-height:1.4}.journey-rail button,.journey-rail a{margin:0;align-self:end}.journey-footnote{font-size:10px;padding:10px 12px}}
+
+/* Requested context, using only the already-authorized case and PPP. */
+#brokers .scope-role{font-size:10px;font-weight:700;color:inherit}
+#brokers .detail-heading{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.85fr);gap:20px;align-items:start}
+#brokers .key-question{padding:14px;border-radius:8px;background:var(--soft);min-width:0}
+#brokers .key-question h3{font-size:15px;line-height:1.4;margin:8px 0}
+#brokers .key-question p:not(.eyebrow){font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+#brokers .case-ppp{margin:22px 0 0;padding:14px;border:1px solid var(--line);border-radius:8px;min-width:0}
+#benefits{width:min(760px,calc(100% - 24px));max-height:calc(100dvh - 24px);overflow:auto;background:var(--surface);color:var(--ink)}
+#benefits header{display:flex;align-items:start;justify-content:space-between;gap:12px}#benefits h2{font-size:22px}#benefits header button{min-width:44px;min-height:44px}
+#benefits .table-scroll{margin-top:16px}#benefits td{white-space:normal;overflow-wrap:anywhere}#benefits .secondary{white-space:normal}
+@media(max-width:850px){#brokers .detail-heading{grid-template-columns:minmax(0,1fr);gap:12px}}

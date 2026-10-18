@@ -19,3 +19,7 @@ test('reprogramar conserva historia y solo reemplaza el plan del mismo asunto',(
  assert.deepEqual(CRM.calendarEvents([old,next]).map(e=>e.id),['next']);assert.equal(CRM.history([old,next]).length,2);assert.equal(CRM.calendarEvents([old,{...next,opportunity_id:'o2'}]).length,2);
  const done=activity('done','Realizado','2030-01-02','next','2026-10-17T03:00:00Z');assert.deepEqual(CRM.calendarEvents([old,next,done]).map(e=>e.id),['done']);
 });
+test('orden MD/MB sólo presenta carteras existentes; acentos, apellidos y desconocidos permanecen estables',()=>{
+ const s=fixture();s.actor.broker_id='d';s.brokers=[{id:'u',name:'Otra persona'},{id:'l',name:'Lupita Pauls'},{id:'a',name:'Alejandro Franco'},{id:'d',name:'Persona Directora'},{id:'e',name:'Éduardo Lara'},{id:'v',name:'Otra más'}];const before=JSON.stringify(s);
+ assert.deepEqual(C.orderedPortfolios(s,['Eduardo Lara','Alejandro Franco','Lupita']).map(b=>b.id),['d','e','a','l','u','v']);assert.equal(JSON.stringify(s),before);
+});
