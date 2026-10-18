@@ -1,7 +1,7 @@
 {
   "model_revision": "2026-10-17.chinches-entregas.1",
   "proposal_id": "CHG-MASTERBROKERS-MINI-CRM",
-  "summary": "Recorrido común para todos los brokers, presentación y expediente conectados; regreso recuperable al evaluador mediante CHG-MASTERBROKER-PREEVALUATION. Misma autorización y contratos, sin nueva base ni publicación de casos privados.",
+  "summary": "Recorrido común para todos los brokers, presentación y expediente conectados; regreso recuperable al evaluador mediante CHG-MASTERBROKER-PREEVALUATION. Misma autorización y contratos, sin nueva base ni publicación de casos privados. Completa etiquetas/orden MD/MB, beneficios documentados y pregunta derecha/PPP inferior (chinches298/299/301); propuesta previa docs/propuestas/mb-chinches-20261018.md. Sin arquitectura nueva.",
   "components": [
     "SYS-INVERSION",
     "GAS-CRM",
@@ -15,7 +15,8 @@
     "node --test tests/brokers*.test.cjs: conservar metadatos y referencias anteriores; EV vigente inequívoco.",
     "Chromium/WebKit 320/390/430: retorno con error y reintento, cancelar/retomar, ACK y apertura de expediente, regreso duplicado y aislamiento de dos brokers.",
     "Regresiones de cartera unificada, clientes, PPP y presentación; prototipo público intacto.",
-    "Cero escrituras de prueba en negocio; fuente de datos Drive/Sheets sin copiar registros en Git."
+    "Cero escrituras de prueba en negocio; fuente de datos Drive/Sheets sin copiar registros en Git.",
+    "Chinches: orden visual estable, beneficios sin datos cruzados, PPP único al pie y pregunta lateral/apilada en320/390/1440."
   ],
   "rollback": "Revertir únicamente frontend por PR; mantener todos los IDs, notas, versiones, archivos Drive/Sheets, permisos y registro de clientes. No restaurar registros operativos."
 }

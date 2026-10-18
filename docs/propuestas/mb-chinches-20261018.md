@@ -11,3 +11,7 @@ Registro previo a implementación. Extensión de CHG-MASTERBROKERS-MINI-CRM del 
 - Rollback: revertir sólo este frontend; conservar historial y todos los datos/recibos en Sheets y Drive.
 
 Estado: propuesta; no acredita implementación, despliegue ni cierre de chinches. Publicación coordinada por raíz después de confirmar dueño de PR43.
+
+## Verificación local
+
+Implementación preparada sobre PR43 fd70d603. Node:150/150. Navegador Chromium: workspace174 comprobaciones a320/390/1440, CRM72, evaluador/regreso aprobado; recorrido PR43 completo a320/390/430 conserva cancelación, reintento, ACK, rechazo, revocación y aislamiento. Datos sintéticos; cero escrituras de producción. Capturas escritorio/móvil revisadas. WebKit queda a CI. No acredita publicación ni cierre de issues.
