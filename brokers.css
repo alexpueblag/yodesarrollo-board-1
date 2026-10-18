@@ -148,3 +148,5 @@ body:has(#brokers){background:#f7f9f7;color:#213b34;color-scheme:light}
 @media(prefers-reduced-motion:reduce){.journey-card{transition:none}}
 
 .journey-references{margin:16px 0;border-block:1px solid var(--line);padding:12px 0}.journey-references>summary{cursor:pointer;min-height:44px;padding:12px 0;color:var(--muted);font-size:12px}
+
+.journey-symbol{font-size:24px;line-height:1.1;width:28px;flex-shrink:0;text-align:center;font-weight:400}

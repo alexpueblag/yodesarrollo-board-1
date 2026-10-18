@@ -12,7 +12,7 @@
   const token = () => { try { return localStorage.getItem('pyod_clave_v1') || ''; } catch (_) { return ''; } };
   const evaluator = window.BrokerEvaluator.create(config,token,window.fetch.bind(window));
   const pppClient = CRM.createPPPClient({url:()=>config.pppUrl || config.evaluatorUrl,token,fetch:window.fetch.bind(window)});
-  let evaluationReturnHandled=false, receivingEvaluation=false;
+  let evaluationReturnHandled=false, receivingEvaluation=false, evaluationEpoch=0;
   const client = C.createClient({ url: config.url, token, fetch: window.fetch.bind(window) });
   let snapshot = null, tab = '', broker = '', query = '', stage = '', selected = '', busy = false, edit = null, loadedToken = '';
   const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
@@ -38,7 +38,7 @@
   const canAgree = () => canEdit() && snapshot.actor.role === 'direccion' && snapshot.capabilities.agree_participation === true;
   const names = ids => (ids || []).map(id => (snapshot.brokers.find(b => b.id === id) || {}).name || 'Masterbroker').join(' · ');
   const current = () => C.visible(snapshot, broker, query, stage);
-  function clear() { evaluationReturnHandled=false; crmGeneration++; expanded.clear(); pppData.clear(); pppClient.invalidate(); calendarMonth='';calendarDay='';calendarOpen=false; $('identity').textContent = ''; snapshot = null; liveSnapshot = null; preview = false; managing = false; loadedToken = ''; selected = ''; $('workspace').replaceChildren(); $('workspace').hidden = true; if ($('editor').open) $('editor').close(); edit = null; }
+  function clear() { evaluationEpoch++;receivingEvaluation=false;evaluationReturnHandled=false; crmGeneration++; expanded.clear(); pppData.clear(); pppClient.invalidate(); calendarMonth='';calendarDay='';calendarOpen=false; $('identity').textContent = ''; snapshot = null; liveSnapshot = null; preview = false; managing = false; loadedToken = ''; selected = ''; $('workspace').replaceChildren(); $('workspace').hidden = true; if ($('editor').open) $('editor').close(); edit = null; }
   async function load() {
     if (busy) return;
     const prior={selected,tab,query,stage,caseState,attention,token:loadedToken};
@@ -140,11 +140,11 @@
   function journeyHome(){
     const total=C.caseGroups(snapshot,broker,'','','').length;
     const latest=C.visible(snapshot,broker,'','').slice().sort((a,b)=>String(b.updated_at||b.last_review||'').localeCompare(String(a.updated_at||a.last_review||'')))[0];
-    return `<section class="journey-home" aria-label="Tu recorrido de desarrollo"><div class="journey-heading"><div><p class="eyebrow">DE LA CONVERSACIÓN AL PROYECTO</p><h2>Una oportunidad.<br>Un lugar para llevarla.</h2><p>Presenta la idea, explora un inmueble y conserva su historia en tu cartera.</p></div><span class="journey-count"><strong>${total}</strong> ${total===1?'expediente':'expedientes'}</span></div><div class="journey-actions"><button class="journey-card" data-tab="offer"><span class="journey-number">01</span><span><strong>Presentar YoDesarrollo</strong><small>Una presentación común para conversar y compartir.</small></span><span aria-hidden="true">↗</span></button>${canEdit()&&!preview?`<button class="journey-card journey-primary" data-preevaluate="new"><span class="journey-number">02</span><span><strong>Analizar un inmueble</strong><small>Abre el mapa. Ubica, traza y revisa sus posibilidades.</small></span><span aria-hidden="true">→</span></button>`:''}<button class="journey-card" ${latest?'data-journey-resume="'+esc(latest.id)+'"':'data-journey-cases="1"'}><span class="journey-number">03</span><span><strong>Continuar un expediente</strong><small>${latest?esc(latest.title):'Los terrenos que incorpores aparecerán aquí.'}</small></span><span aria-hidden="true">↓</span></button></div></section>`;
+    return `<section class="journey-home" aria-label="Tu recorrido de desarrollo"><div class="journey-heading"><div><p class="eyebrow">DE LA CONVERSACIÓN AL PROYECTO</p><h2>Una oportunidad.<br>Un lugar para llevarla.</h2><p>Presenta la idea, explora un inmueble y conserva su historia en tu cartera.</p></div><span class="journey-count"><strong>${total}</strong> ${total===1?'expediente':'expedientes'}</span></div><div class="journey-actions"><button class="journey-card" data-tab="offer"><span class="journey-symbol" aria-hidden="true">↗</span><span><strong>Presentar YoDesarrollo</strong><small>Una presentación común para conversar y compartir.</small></span><span aria-hidden="true">↗</span></button>${canEdit()&&!preview?`<button class="journey-card journey-primary" data-preevaluate="new"><span class="journey-symbol" aria-hidden="true">⌖</span><span><strong>Analizar un inmueble</strong><small>Abre el mapa. Ubica, traza y revisa sus posibilidades.</small></span><span aria-hidden="true">→</span></button>`:''}<button class="journey-card" ${latest?'data-journey-resume="'+esc(latest.id)+'"':'data-journey-cases="1"'}><span class="journey-symbol" aria-hidden="true">↺</span><span><strong>Abrir un expediente</strong><small>${latest?esc(latest.title):'Los terrenos que incorpores aparecerán aquí.'}</small></span><span aria-hidden="true">↓</span></button></div></section>`;
   }
   function caseJourney(o){
     const ev=window.BrokerEvaluator.caseId(o.notes),ppp=CRM.pppReference(o),step=C.nextStep(o.next_action);
-    return `<section class="case-journey" aria-label="Recorrido de este inmueble"><div class="journey-case-location"><span class="mini-label">ESTÁS TRABAJANDO EN</span><strong>${esc(o.title)}</strong><span>${esc(o.location||'Ubicación por precisar')}</span></div><ol class="journey-rail"><li><span class="journey-number">01</span><strong>Inmueble</strong><small>${ev?'Evaluación vinculada':'Explora su ubicación y medidas'}</small>${canEdit()&&!preview?`<button data-preevaluate="current">${ev?'Continuar evaluación':'Abrir mapa'} →</button>`:''}</li><li><span class="journey-number">02</span><strong>Plan de potencial</strong><small>${ppp?'Consulta la versión guardada':'Acuerda el análisis que necesita'}</small>${ppp?link(o.ppp_url,'Abrir plan'):canEdit()&&!preview?'<button data-request="true">Solicitar análisis →</button>':''}</li><li><span class="journey-number">03</span><strong>Conversación</strong><small>Presentación general y material del caso</small><button data-case-present="1">Preparar presentación →</button></li><li><span class="journey-number">04</span><strong>Siguiente paso</strong><small>${esc(step.text||'Acuerda qué sigue')}</small>${canEdit()&&!preview?'<button data-journey-followup="true">Registrar avance →</button>':''}</li></ol><p class="journey-footnote">Cada referencia muestra lo que ya está guardado. Una evaluación inicial no aprueba el desarrollo.</p></section>`;
+    return `<section class="case-journey" aria-label="Recorrido de este inmueble"><div class="journey-case-location"><span class="mini-label">ESTÁS TRABAJANDO EN</span><strong>${esc(o.title)}</strong><span>${esc(o.location||'Ubicación por precisar')}</span></div><ol class="journey-rail"><li><span class="journey-number">01</span><strong>Inmueble</strong><small>${ev?'Evaluación vinculada':'Explora su ubicación y medidas'}</small>${canEdit()&&!preview?`<button data-preevaluate="current">${ev?'Continuar evaluación':'Abrir mapa'} →</button>`:''}</li><li><span class="journey-number">02</span><strong>Plan de potencial</strong><small>${ppp?'Consulta la versión guardada':'Acuerda el análisis que necesita'}</small>${ppp?link(o.ppp_url,'Abrir plan'):canEdit()&&!preview?'<button data-request="true">Solicitar análisis →</button>':''}</li><li><span class="journey-number">03</span><strong>Conversación</strong><small>Presentación general y material del caso</small><button data-case-present="1">Preparar presentación →</button></li><li><span class="journey-number">04</span><strong>Siguiente paso</strong><small>${esc(step.text||'Acuerda qué sigue')}</small>${canEdit()&&!preview?'<button data-journey-followup="true">Ver siguiente paso ↓</button>':''}</li></ol><p class="journey-footnote">Cada referencia muestra lo que ya está guardado. Una evaluación inicial no aprueba el desarrollo.</p></section>`;
   }
   function portfolio(){
     const allRows=C.visible(snapshot,broker,'',''),d=controlRows(allRows),allowed=attention?new Set((d[attention]||[]).map(o=>o.id)):null;
@@ -237,18 +237,18 @@
   async function receiveEvaluation(){
     const params=new URLSearchParams(location.search),id=params.get('preevaluacion');
     if(!id||evaluationReturnHandled||receivingEvaluation||preview||!canEdit())return;
-    const ownToken=loadedToken,ownBroker=requestedBroker;
+    const ownToken=loadedToken,ownBroker=requestedBroker,ownEpoch=++evaluationEpoch;
     receivingEvaluation=true;
     try{
       const ev=await evaluator.summary(id);
-      if(!snapshot||token()!==ownToken||requestedBroker!==ownBroker)return;
+      if(ownEpoch!==evaluationEpoch||!snapshot||token()!==ownToken||requestedBroker!==ownBroker)return;
       if(!snapshot.brokers.some(b=>b.id===ev.broker_id))throw Error('La evaluación no corresponde a esta cartera.');
-      const target=params.get('opportunity'),linked=snapshot.opportunities.filter(o=>window.BrokerEvaluator.caseId(o.notes)===ev.id);
+      const target=params.get('opportunity'),linked=snapshot.opportunities.filter(o=>window.BrokerEvaluator.hasCase(o.notes,ev.id));
       if(linked.length>1)throw Error('Hay más de un registro vinculado. Abre el expediente que deseas actualizar.');
       const existing=target?snapshot.opportunities.find(o=>o.id===target):linked[0];
       if(target&&!existing)throw Error('El expediente de regreso no está en tu cartera.');
       if(linked[0]&&existing&&linked[0].id!==existing.id)throw Error('Esta evaluación ya está vinculada a otro expediente. Revisa su referencia antes de continuar.');
-      if(existing&&window.BrokerEvaluator.caseId(existing.notes)===ev.id){
+      if(existing&&window.BrokerEvaluator.hasCase(existing.notes,ev.id)){
         if(!(existing.broker_ids||[]).includes(ev.broker_id))throw Error('La evaluación no corresponde a esta cartera.');
         selected=existing.id;tab='opportunities';detailTab='history';clearReturnURL();accessNotice('Evaluación vinculada. Continúas en el mismo expediente.');render();return;
       }
@@ -271,8 +271,8 @@
       }
       $('fields').append(extra);
       $('save-record').focus();
-    }catch(e){evaluationReturnHandled=false;if(snapshot&&token()===ownToken&&requestedBroker===ownBroker)returnNotice(e.message);}
-    finally{receivingEvaluation=false;}
+    }catch(e){evaluationReturnHandled=false;if(ownEpoch===evaluationEpoch&&snapshot&&token()===ownToken&&requestedBroker===ownBroker)returnNotice(e.message);}
+    finally{if(ownEpoch===evaluationEpoch)receivingEvaluation=false;}
   }
   function chooseEvaluation(kind){
     if(!canEdit()||preview)return;
@@ -333,12 +333,12 @@
     $('form-error').textContent = preview ? 'Estás explorando la vista del Masterbroker. No se guardan cambios desde esta vista previa.' : ''; $('save-record').disabled = preview; $('save-record').textContent = preview ? 'Guardado deshabilitado en vista previa' : 'Guardar'; $('editor').showModal();
   }
   $('workspace').onclick = e => {
-    const b = e.target.closest('button'); if (!b || busy) return;
+    const b = e.target.closest('button'); if (!b || busy || receivingEvaluation) return;
     if(b.dataset.agenda){calendarOpen=!calendarOpen;calendarDay='';render();return;}
     if(b.dataset.caseCalendar){calendarOpen=!calendarOpen;calendarDay='';render();return;}
     if(b.dataset.journeyCases){document.querySelector('.client-list')?.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});return;}
     if(b.dataset.journeyResume){selected=b.dataset.journeyResume;tab='opportunities';detailTab='history';render();$('case-heading')?.focus({preventScroll:true});return;}
-    if(b.dataset.journeyFollowup){const o=snapshot.opportunities.find(x=>x.id===selected);editor('activity',{next_action:o.next_action,next_date:o.next_date});return;}
+    if(b.dataset.journeyFollowup){detailTab='history';render();document.querySelector('.next-commitment')?.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'center'});return;}
     if(b.dataset.casePresent){tab='offer';render();return;}
     if(b.dataset.plaza){selectPortfolio('');return;}
     if(b.dataset.attention){attention=b.dataset.attention==='all'?'':b.dataset.attention;tab='opportunities';selected='';query='';stage='';caseState='';render();return;}
@@ -371,7 +371,7 @@
     if (b.dataset.editContact) editor('contact',snapshot.contacts.find(c => c.id === b.dataset.editContact));
     if (b.dataset.editOpportunity) editor('opportunity',snapshot.opportunities.find(o => o.id === b.dataset.editOpportunity));
   };
-  const close = () => { if (!busy) { const resumable=edit?.evaluationId; $('editor').close(); edit = null; if(resumable){evaluationReturnHandled=false;returnNotice('Tu evaluación sigue guardada. Puedes terminar de incorporarla cuando quieras.');} } };
+  const close = () => { if (!busy) { if(edit?.evaluationId&&edit.submitted){$('form-error').textContent='El guardado todavía necesita confirmación. Pulsa Guardar en mi cartera para verificar el mismo intento; no se creará otra solicitud.';return;} const resumable=edit?.evaluationId; $('editor').close(); edit = null; if(resumable){evaluationReturnHandled=false;returnNotice('Tu evaluación sigue guardada. Puedes terminar de incorporarla cuando quieras.');} } };
   $('close-editor').onclick = close; $('cancel-editor').onclick = close;
   $('editor').addEventListener('cancel', e => { e.preventDefault(); close(); });
   $('record-form').onsubmit = async e => {
@@ -406,7 +406,7 @@
       if(savedKind==='contact'){tab='opportunities';query='';if(createdContact){selected='';attention='';stage='';caseState='';prospectsOpen=true;}}
       accessNotice(selected?'Guardado en tu cartera. Continúa en este expediente.':'Guardado en tu cartera.');render();
     }
-    catch (err) { $('form-error').textContent = err.message; if (token() !== loadedToken) { clear(); $('notice').textContent = 'La sesión cambió. Vuelve a entrar.'; } }
+    catch (err) { if(edit&&err.message==='Otra persona actualizó el expediente. Recarga antes de guardar.')edit.submitted=null; $('form-error').textContent = err.message; if (token() !== loadedToken) { clear(); $('notice').textContent = 'La sesión cambió. Vuelve a entrar.'; } }
     finally { busy = false; $('save-record').disabled = false; }
   };
   window.addEventListener('storage', e => { if (e.key === 'pyod_clave_v1' || e.key === null) { client.invalidate(); clear(); $('notice').textContent = 'La sesión cambió. Actualiza para validar tu acceso.'; } });

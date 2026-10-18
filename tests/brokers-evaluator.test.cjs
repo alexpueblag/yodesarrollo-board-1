@@ -20,3 +20,5 @@ test('new reference remains current without damaging case metadata or historical
  assert.equal(E.caseId(revisit.notes),'EV-'+ 'b'.repeat(20));
  assert.equal(CRM.caseInfo(revisit).ppp_status,'Listo');
 });
+
+test('historical evaluation references deduplicate returns without changing current reference',()=>{const notes='[PREEVALUACION:EV-'+ 'a'.repeat(20)+'] old\n[PREEVALUACION:EV-'+ 'b'.repeat(20)+'] current';assert.equal(E.hasCase(notes,'EV-'+ 'a'.repeat(20)),true);assert.equal(E.hasCase(notes,'EV-'+ 'c'.repeat(20)),false);assert.equal(E.caseId(notes),'EV-'+ 'b'.repeat(20));});

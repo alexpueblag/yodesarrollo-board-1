@@ -2,6 +2,7 @@
  'use strict';
  const marker=/\[PREEVALUACION:(EV-[a-f0-9]{20})\]/g;
  function caseId(notes){return [...String(notes||'').matchAll(marker)].at(-1)?.[1]||'';}
+ function hasCase(notes,id){return [...String(notes||'').matchAll(marker)].some(m=>m[1]===id);}
  function recordFromEvaluation(e,existing){
   if(!e||!/^EV-[a-f0-9]{20}$/.test(e.id)||!e.broker_id)throw Error('Preevaluación inválida.');
   if(existing&&!(existing.broker_ids||[]).includes(e.broker_id))throw Error('La preevaluación pertenece a otra cartera.');
@@ -36,5 +37,5 @@
    return u.href;
   },summary:async id=>(await request('broker_summary',{case_id:id})).evaluation};
  }
- const api={caseId,recordFromEvaluation,create};if(typeof module!=='undefined')module.exports=api;root.BrokerEvaluator=api;
+ const api={caseId,hasCase,recordFromEvaluation,create};if(typeof module!=='undefined')module.exports=api;root.BrokerEvaluator=api;
 })(typeof window==='undefined'?globalThis:window);
