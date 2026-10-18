@@ -15,3 +15,7 @@ Estado: propuesta; no acredita implementación, despliegue ni cierre de chinches
 ## Verificación local
 
 Implementación preparada sobre PR43 fd70d603. Node:150/150. Navegador Chromium: workspace174 comprobaciones a320/390/1440, CRM72, evaluador/regreso aprobado; recorrido PR43 completo a320/390/430 conserva cancelación, reintento, ACK, rechazo, revocación y aislamiento. Datos sintéticos; cero escrituras de producción. Capturas escritorio/móvil revisadas. WebKit queda a CI. No acredita publicación ni cierre de issues.
+
+## Corrección de rol de presentación · fila57
+
+Antes de implementar: la aclaración de Dirección del13-oct incorporó a Sayri como integrante sin rol comercial confirmado. Etiquetar todas las carteras ajenas como MB contradice esa instrucción. La etiqueta se resolverá exclusivamente por ID canónico: BR-ALEJANDRO-PUEBLA=MD; BR-EDUARDO-LARA, BR-ALEJANDRO-FRANCO y BR-LUPITA=MB; cualquier otro ID=Integrante. Ni nombre, ni posición propia, ni active conceden rol comercial. Mi cartera y la autorización conservan sus reglas existentes. Mismo modelo/contrato; sin cambios de backend o datos. Regresión de homónimos y roles desconocidos, más navegador del espacio de trabajo.

@@ -23,3 +23,9 @@ test('orden MD/MB sólo presenta carteras existentes; acentos, apellidos y desco
  const s=fixture();s.actor.broker_id='d';s.brokers=[{id:'u',name:'Otra persona'},{id:'l',name:'Lupita Pauls'},{id:'a',name:'Alejandro Franco'},{id:'d',name:'Persona Directora'},{id:'e',name:'Éduardo Lara'},{id:'v',name:'Otra más'}];const before=JSON.stringify(s);
  assert.deepEqual(C.orderedPortfolios(s,['Eduardo Lara','Alejandro Franco','Lupita']).map(b=>b.id),['d','e','a','l','u','v']);assert.equal(JSON.stringify(s),before);
 });
+
+test('etiqueta comercial sólo por ID confirmado; Sayri y homónimos quedan integrantes',()=>{
+ assert.equal(C.portfolioRoleLabel('BR-ALEJANDRO-PUEBLA'),'MD');
+ for(const id of ['BR-EDUARDO-LARA','BR-ALEJANDRO-FRANCO','BR-LUPITA'])assert.equal(C.portfolioRoleLabel(id),'MB');
+ for(const id of ['BR-SAYRI-FRAIJO','Alejandro Puebla Gayón','Eduardo Lara','direccion','nuevo','',null,undefined])assert.equal(C.portfolioRoleLabel(id),'Integrante');
+});

@@ -67,7 +67,7 @@
   function scopeNavigation() {
     if(liveSnapshot.actor.role!=='direccion'||preview)return '';
     const own=C.ownPortfolio(liveSnapshot),ordered=C.orderedPortfolios(liveSnapshot,['Eduardo Lara','Alejandro Franco','Lupita']);
-    return `<nav class="scope-switcher" aria-label="Carteras"><button data-plaza="1" aria-current="${!requestedBroker?'page':'false'}"><span class="scope-symbol" aria-hidden="true">◈</span> Mi equipo</button>${ordered.map(b=>`<button data-broker="${esc(b.id)}" aria-current="${requestedBroker===b.id?'page':'false'}" title="${esc(b.name)}"><span class="scope-avatar" aria-hidden="true">${esc(initials(b.name))}</span><span class="scope-role">${b.id===own?.id?'MD':'MB'}</span> ${esc(b.name)}${b.id===own?.id?' · Mi cartera':''}</button>`).join('')}</nav>`;
+    return `<nav class="scope-switcher" aria-label="Carteras"><button data-plaza="1" aria-current="${!requestedBroker?'page':'false'}"><span class="scope-symbol" aria-hidden="true">◈</span> Mi equipo</button>${ordered.map(b=>`<button data-broker="${esc(b.id)}" aria-current="${requestedBroker===b.id?'page':'false'}" title="${esc(b.name)}"><span class="scope-avatar" aria-hidden="true">${esc(initials(b.name))}</span><span class="scope-role">${C.portfolioRoleLabel(b.id)}</span> ${esc(b.name)}${b.id===own?.id?' · Mi cartera':''}</button>`).join('')}</nav>`;
   }
   function render() {
     if (!snapshot || token() !== loadedToken) { clear(); return; }
