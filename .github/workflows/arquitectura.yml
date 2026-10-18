@@ -104,6 +104,7 @@ jobs:
           node tests/brokers-crm-browser.cjs
           node tests/brokers-workspace-browser.cjs
           node tests/brokers-evaluator-browser.cjs
+          node tests/brokers-journey-browser.cjs
       - name: Presentación con fuente pública validada
         env:
           VERIFY_PUBLISHED_STORY: ${{ github.event_name == 'push' && '1' || startsWith(github.head_ref, 'codex/verify-published-story') && '1' || '0' }}
