@@ -1,13 +1,32 @@
 /* BEGIN CHINCHE SEQUENCE SHARED */
-/* Shared recorded annotations. No network or persistence until the host explicitly saves. */
+/* Shared recorded annotations. Private device drafts; network delivery belongs to the host. */
 (function(root,factory){const api=factory(root);if(typeof module==='object'&&module.exports)module.exports=api;else root.YodChincheSecuencia=api;})(globalThis,function(root){
 'use strict';
 const VERSION=1, MAX_MS=600000, MAX_BYTES=12000000;
 const clone=x=>JSON.parse(JSON.stringify(x));
 const el=(tag,text)=>{const n=root.document.createElement(tag);if(text)n.textContent=text;return n;};
-function timeline(clock=()=>performance.now()){
- const start=clock(),events=[];let last=0;
- return {events,time:()=>Math.max(last,Math.min(MAX_MS,Math.round(clock()-start))),add(type,data){const t=Math.max(last,Math.min(MAX_MS,Math.round(clock()-start)));last=t;const event={t,type,...clone(data)};events.push(event);return event;}};
+function timeline(clock=()=>performance.now(),elapsed=0,events=[]){
+ const start=clock();let last=elapsed;
+ return {events,time:()=>Math.max(last,Math.min(MAX_MS,elapsed+Math.round(clock()-start))),add(type,data){const t=Math.max(last,Math.min(MAX_MS,elapsed+Math.round(clock()-start)));last=t;const event={t,type,...clone(data)};events.push(event);return event;}};
+}
+// MIME parameters may contain spaces or quoted codec lists (including Safari).
+// Canonicalize the header only, never the encoded bytes or the container.
+function audioType(mime){
+ if(typeof mime!=='string'||mime.length>256)return null;
+ const m=/^\s*(audio\/(?:webm|mp4|ogg))\s*(?:;\s*codecs\s*=\s*(?:"([a-z0-9., -]+)"|([a-z0-9., -]+))\s*)?$/i.exec(mime);
+ return m?m[1].toLowerCase():null;
+}
+function audioParts(audio){
+ const type=audioType(audio?.mime),m=typeof audio?.data==='string'&&/^data:([^\r\n]+);base64,([A-Za-z0-9+/]+={0,2})$/i.exec(audio.data);
+ if(!type||!m||audioType(m[1])!==type)throw Error('Audio inválido');
+ return {type,header:m[1],payload:m[2]};
+}
+function normalizeAudio(audio){if(!audio)return null;const p=audioParts(audio);return {...audio,mime:p.type,data:'data:'+p.type+';base64,'+p.payload,originalMime:audio.originalMime||audio.mime,originalDataHeader:audio.originalDataHeader||p.header};}
+function draftStore(){
+ let opening;
+ function database(){if(!opening)opening=new Promise((ok,no)=>{if(!root.indexedDB){no(Error('Almacenamiento local no disponible'));return;}let expired=false;const timer=setTimeout(()=>{expired=true;opening=null;no(Error('El respaldo no respondió'));},5000),r=root.indexedDB.open('yodChincheBorradores',1);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains('drafts'))r.result.createObjectStore('drafts',{keyPath:'id'});};r.onsuccess=()=>{clearTimeout(timer);if(expired){r.result.close();return;}ok(r.result);};r.onerror=r.onblocked=()=>{clearTimeout(timer);opening=null;no(r.error||Error('No abrió el respaldo'));};});return opening;}
+ async function run(mode,action){const db=await database();return new Promise((ok,no)=>{let value;const tx=db.transaction('drafts',mode),timer=setTimeout(()=>{try{tx.abort();}catch(e){}no(Error('El respaldo no respondió'));},5000);const r=action(tx.objectStore('drafts'));r.onsuccess=()=>{value=r.result;};tx.oncomplete=()=>{clearTimeout(timer);ok(value);};tx.onerror=tx.onabort=()=>{clearTimeout(timer);no(tx.error||r.error||Error('No se guardó el respaldo'));};});}
+ return {put:d=>run('readwrite',s=>s.put(d)),get:id=>run('readonly',s=>s.get(id)),remove:id=>run('readwrite',s=>s.delete(id)),async list(scope){const all=await run('readonly',s=>s.getAll());return all.filter(d=>d.scope===scope).map(d=>({id:d.id,updated:d.updated,complete:d.complete})).sort((a,b)=>b.updated-a.updated);}};
 }
 function visibleStrokes(events,time){const strokes=[];for(const e of events){if(e.t>time)break;if(e.type==='stroke')strokes.push(e);if(e.type==='undo')strokes.pop();}return strokes;}
 function draw(ctx,events,time){
@@ -28,7 +47,7 @@ function validate(s){
   if(e.type==='stroke'){if(!['pen','marker','line','arrow','rect','ellipse'].includes(e.tool)||!/^#[a-f0-9]{6}$/i.test(e.color)||!Number.isFinite(e.width)||e.width<1||e.width>80||!Array.isArray(e.points)||!e.points.length)throw Error('Trazo inválido');let pt=e.t;for(const p of e.points){if(!Array.isArray(p)||p.length!==4||p.some(n=>!Number.isFinite(n))||p[0]<0||p[0]>s.width||p[1]<0||p[1]>s.height||p[2]<pt||p[2]>s.duration||p[3]<0||p[3]>1)throw Error('Punto inválido');pt=p[2];}points+=e.points.length;}}
  if(points>120000)throw Error('Demasiados puntos');
  let ft=-1;for(const f of s.frames){if(!Number.isFinite(f.t)||f.t<ft||f.t>s.duration||!/^data:image\/jpeg;base64,[A-Za-z0-9+/]+=*$/.test(f.image))throw Error('Captura inválida');ft=f.t;}
- if(s.audio&&(!Number.isFinite(s.audio.offset)||s.audio.offset<0||s.audio.offset>s.duration||!/^audio\/(webm|mp4|ogg)(;codecs=[a-zA-Z0-9., -]+)?$/.test(s.audio.mime)||!/^data:audio\/(webm|mp4|ogg)(;codecs=[a-zA-Z0-9., -]+)?;base64,[A-Za-z0-9+/]+=*$/.test(s.audio.data)))throw Error('Audio inválido');
+ if(s.audio){if(!Number.isFinite(s.audio.offset)||s.audio.offset<0||s.audio.offset>s.duration)throw Error('Audio inválido');audioParts(s.audio);}
  if(new TextEncoder().encode(JSON.stringify(s)).length>MAX_BYTES)throw Error('La grabación supera 12 MB; conserva el original');return s;
 }
 function dataURL(blob){return new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(r.result);r.onerror=()=>no(Error('No se pudo preparar el audio'));r.readAsDataURL(blob);});}
@@ -48,8 +67,8 @@ function microphoneBridge(onstart,onend,onerror){
   if(m.action==='started'&&!started){started=true;onstart();}
   if(m.action==='error')fail(m.message==='denied'?'No se concedió permiso al micrófono.':'No se pudo conservar el audio; grábalo de nuevo.');
   if(m.action==='complete'){
-   if(!started||typeof m.data!=='string'||m.data.length>7000000||!/^data:audio\/(webm|mp4|ogg)(;codecs=[a-zA-Z0-9., -]+)?;base64,[A-Za-z0-9+/]+=*$/.test(m.data)||!/^audio\/(webm|mp4|ogg)(;codecs=[a-zA-Z0-9., -]+)?$/.test(m.mime)){fail('La grabación no se pudo verificar.');return;}
-   done=true;cleanup();onend({mime:m.mime,data:m.data});popup.postMessage({type:m.type,action:'received',nonce},origin);resolve();
+   if(!started||typeof m.data!=='string'||m.data.length>7000000){fail('La grabación no se pudo verificar. Conserva el original en la ventana de voz.');return;}
+   done=true;cleanup();Promise.resolve(onend({mime:m.mime,data:m.data})).then(saved=>{if(saved!==false)popup.postMessage({type:m.type,action:'received',nonce},origin);}).finally(resolve);
   }
  }
  root.addEventListener('message',receive);const watch=setInterval(()=>{if(popup.closed)fail('Se cerró la ventana antes de conservar el audio.');else if(!ready&&Date.now()-openedAt>20000)fail('No cargó la ventana de voz. Vuelve a intentar.');},500);
@@ -60,15 +79,27 @@ function mount(host,base,opts={}){
  const tools=el('div');tools.className='chn-seq-tools';const select=el('select');select.setAttribute('aria-label','Herramienta');for(const [value,name] of [['pen','Lápiz'],['marker','Marcador'],['line','Línea'],['arrow','Flecha'],['rect','Rectángulo'],['ellipse','Óvalo']]){const o=el('option',name);o.value=value;select.append(o);}
  const color=el('input');color.type='color';color.value='#cc5b36';color.setAttribute('aria-label','Color');const width=el('input');width.type='range';width.min='1';width.max='14';width.value='3';width.setAttribute('aria-label','Grosor');const undo=el('button','Deshacer'),expand=el('button','Ampliar'),record=el('button','Grabar explicación'),stop=el('button','Detener'),preview=el('button','Reproducir');[undo,expand,record,stop,preview].forEach(b=>b.type='button');stop.hidden=true;
  const status=el('div','Dibuja y explica con tu voz.');status.className='chn-seq-status';status.setAttribute('role','status');tools.append(select,color,width,undo,expand,record,stop,preview);box.append(canvas,tools,status);host.append(box);
- const ctx=canvas.getContext('2d'),line=timeline();let active=null,recorder=null,stream=null,blob=null,offset=0,chunks=[],finish=null,disposed=false,pending=false,timer=null,busy=false,audioBytes=0,frames=[],frameBytes=0,lastFrame=-5000,player=null,previewing=false,ended=false,external=null,externalAudio=null,externalError=null;
- const baseData=base.toDataURL('image/jpeg',.75);const paint=(t=line.time())=>{ctx.clearRect(0,0,canvas.width,canvas.height);ctx.drawImage(base,0,0);draw(ctx,line.events,t);};paint();
+ const ctx=canvas.getContext('2d');let line=timeline(),active=null,recorder=null,stream=null,blob=null,offset=0,chunks=[],finish=null,disposed=false,pending=false,timer=null,busy=false,audioBytes=0,frames=[],frameBytes=0,lastFrame=-5000,player=null,previewing=false,ended=false,external=null,externalAudio=null,externalError=null;
+ let baseData=base.toDataURL('image/jpeg',.75),baseImage=base;const paint=(t=line.time())=>{ctx.clearRect(0,0,canvas.width,canvas.height);ctx.drawImage(baseImage,0,0);draw(ctx,line.events,t);};paint();
+ const store=opts.draftStore||draftStore(),scope=(root.location?.origin||'')+(root.location?.pathname||'')+(opts.draftScope||'');
+ let draftId='draft-'+(root.crypto.randomUUID?root.crypto.randomUUID():Date.now()+'-'+Math.random().toString(36).slice(2)),write=Promise.resolve(),draftTimer=null,saved=false,writing=false,dirty=false;
+ const backup=el('button','Descargar respaldo'),drafts=el('button','Recuperar borrador'),importButton=el('button','Importar respaldo'),importFile=el('input'),draftStatus=el('div','El respaldo se guarda en este aparato mientras trabajas.');backup.type=drafts.type=importButton.type='button';importFile.type='file';importFile.accept='.json,application/json';importFile.hidden=true;draftStatus.className='chn-seq-status';draftStatus.setAttribute('role','status');tools.append(backup,drafts,importButton,importFile);box.append(draftStatus);
+ const hasContent=()=>line.events.length>0||!!blob||!!recorder||!!external||!!externalAudio;
+ async function raw(){const partial=blob||(chunks.length?new Blob(chunks,{type:chunks.find(c=>c.type)?.type||recorder?.mimeType||''}):null);return {v:VERSION,width:canvas.width,height:canvas.height,duration:line.time(),base:baseData,events:clone(line.events),frames:clone(frames),audio:externalAudio||(partial?.size?{mime:partial.type,offset,data:await dataURL(partial)}:null),baseKind:opts.baseKind||'capture'};}
+ function checkpoint(){if(saved||!hasContent())return write;dirty=true;if(writing)return write;writing=true;write=(async()=>{let draft;do{dirty=false;const sequence=await raw();draft={v:1,id:draftId,scope,updated:Date.now(),complete:!pending&&(!recorder||recorder.state==='inactive')&&(!external||!!externalAudio),sequence,context:opts.draftContext?clone(opts.draftContext()):null};await store.put(draft);draftStatus.textContent=draft.complete?'Borrador conservado en este aparato.':'Respaldo local actualizado · grabación en curso.';}while(dirty&&!saved);return draft;})().catch(error=>{draftStatus.textContent='No se pudo guardar el respaldo local. Descarga el respaldo antes de cerrar.';throw error;}).finally(()=>{writing=false;});return write;}
+ function schedule(){if(!draftTimer)draftTimer=setTimeout(()=>{draftTimer=null;checkpoint().catch(()=>{});},1000);}
+ async function download(){await halt().catch(()=>{});const sequence=await raw(),packet={format:'yod-chinche-borrador-v1',version:1,created:new Date().toISOString(),scope,complete:!pending&&(!recorder||recorder.state==='inactive')&&(!external||!!externalAudio),sequence,context:opts.draftContext?clone(opts.draftContext()):null};const url=URL.createObjectURL(new Blob([JSON.stringify(packet)],{type:'application/json'})),a=el('a');a.href=url;a.download='chinche-respaldo-'+Date.now()+'.json';box.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);draftStatus.textContent='Respaldo preparado para descargar. Comprueba el archivo antes de cerrar.';return packet;}
+ backup.onclick=()=>download().catch(()=>{draftStatus.textContent='No se pudo preparar el archivo. Mantén esta ventana abierta.';});
+ async function restore(draft){if(!draft||draft.v!==1||draft.scope!==scope)throw Error('Este borrador no pertenece a esta pantalla');const s=draft.sequence;validate({...s,audio:null});if(s.audio&&(typeof s.audio.data!=='string'||s.audio.data.length>7000000))throw Error('Borrador de audio inválido');await halt().catch(()=>{});if(hasContent())await checkpoint();const image=new Image();image.src=s.base;await image.decode();draftId=draft.id;saved=false;line=timeline(undefined,s.duration,clone(s.events));baseData=s.base;baseImage=image;canvas.width=s.width;canvas.height=s.height;frames=clone(s.frames);frameBytes=frames.reduce((n,f)=>n+f.image.length,0);lastFrame=frames.at(-1)?.t??-5000;recorder=null;chunks=[];blob=null;external=null;externalError=null;externalAudio=s.audio;offset=s.audio?.offset||0;ended=!!s.audio;record.hidden=!!s.audio;record.disabled=false;stop.hidden=true;player?.remove();player=null;previewing=false;preview.textContent='Reproducir';paint();opts.restoreContext?.(draft.context);status.textContent=draft.complete?'Borrador recuperado. Revisa la explicación y clava cuando esté lista.':'Borrador recuperado de una grabación interrumpida. Conserva también el respaldo original.';}
+ drafts.onclick=async()=>{try{box.querySelector('[data-draft-list]')?.remove();const list=el('div');list.setAttribute('data-draft-list','');const records=await store.list(scope);if(!records.length)list.append(el('p','No hay borradores en esta pantalla.'));for(const d of records){const row=el('div'),b=el('button','Recuperar · '+new Date(d.updated).toLocaleString());b.type='button';b.onclick=async()=>{try{await restore(await store.get(d.id));list.remove();}catch(e){draftStatus.textContent=e.message;}};row.append(b);list.append(row);}box.append(list);}catch(e){draftStatus.textContent='No se pudieron leer los borradores. Mantén abierta tu explicación actual.';}};
+ importButton.onclick=()=>importFile.click();importFile.onchange=async()=>{try{const file=importFile.files[0];if(!file)return;if(file.size>24000000)throw Error('Respaldo demasiado grande');const packet=JSON.parse(await file.text());if(packet.format!=='yod-chinche-borrador-v1'||packet.scope!==scope)throw Error('El respaldo pertenece a otra pantalla');await restore({v:1,id:'draft-'+root.crypto.randomUUID(),scope,sequence:packet.sequence,complete:packet.complete,context:packet.context});await checkpoint();}catch(e){draftStatus.textContent='No se importó: '+e.message;}finally{importFile.value='';}};
  function frame(force=false){const t=line.time();if(!force&&t-lastFrame<5000)return;if(frames.length>=240||frameBytes>4000000)return;const c=el('canvas'),scale=Math.min(1,800/canvas.width);c.width=Math.round(canvas.width*scale);c.height=Math.round(canvas.height*scale);c.getContext('2d').drawImage(canvas,0,0,c.width,c.height);const image=c.toDataURL('image/jpeg',.55);frames.push({t,image});frameBytes+=image.length;lastFrame=t;}
  function point(e){const r=canvas.getBoundingClientRect();return [Math.max(0,Math.min(canvas.width,(e.clientX-r.left)*canvas.width/r.width)),Math.max(0,Math.min(canvas.height,(e.clientY-r.top)*canvas.height/r.height)),line.time(),e.pressure||.5];}
  canvas.addEventListener('pointerdown',e=>{if(disposed||previewing||e.button!==0||!e.isPrimary||active||line.time()>MAX_MS)return;e.preventDefault();active={id:e.pointerId,event:line.add('stroke',{tool:select.value,color:color.value,width:Number(width.value)*(select.value==='marker'?4:1),points:[point(e)]})};canvas.setPointerCapture(e.pointerId);paint();});
  canvas.addEventListener('pointermove',e=>{if(!active||active.id!==e.pointerId)return;e.preventDefault();const p=point(e),a=active.event.points;if(p[2]-a[a.length-1][2]>=12&&a.length<15000){a.push(p);paint();}});
- function end(e){if(active&&active.id===e.pointerId){active.event.points.push(point(e));active=null;paint();frame(true);}}
+ function end(e){if(active&&active.id===e.pointerId){active.event.points.push(point(e));active=null;paint();frame(true);schedule();}}
  canvas.addEventListener('pointerup',end);canvas.addEventListener('pointercancel',end);
- undo.onclick=()=>{if(active||previewing)return;line.add('undo',{});paint();frame(true);};expand.onclick=()=>{const on=box.classList.toggle('chn-seq-big');expand.textContent=on?'Reducir':'Ampliar';};
+ undo.onclick=()=>{if(active||previewing)return;line.add('undo',{});paint();frame(true);schedule();};expand.onclick=()=>{const on=box.classList.toggle('chn-seq-big');expand.textContent=on?'Reducir':'Ampliar';};
  function release(){clearInterval(timer);timer=null;if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;}
  async function halt(){if(externalError)throw externalError;if(external){await external.stop();if(externalError)throw externalError;}if(pending)throw Error('Espera la respuesta del micrófono');if(recorder&&recorder.state!=='inactive'){recorder.stop();await finish;}release();}
  record.onclick=async()=>{
@@ -76,22 +107,23 @@ function mount(host,base,opts={}){
   const policy=root.document.permissionsPolicy||root.document.featurePolicy;
   if(policy&&policy.allowsFeature&&!policy.allowsFeature('microphone')){
    try{externalError=null;record.disabled=true;status.textContent='Abre la ventana de voz, pulsa Grabar y vuelve aquí para dibujar.';
-    external=microphoneBridge(()=>{offset=line.time();line.add('audio-start',{});record.hidden=true;stop.hidden=false;status.textContent='Grabando voz y dibujo…';frame(true);timer=setInterval(()=>{frame();if(line.time()>=MAX_MS)halt().catch(()=>{});},1000);},audio=>{externalAudio={...audio,offset};line.add('audio-end',{});release();stop.hidden=true;record.hidden=true;status.textContent='Audio conservado · puedes reproducirlo con el dibujo.';frame(true);},error=>{externalError=error;external=null;release();stop.hidden=true;record.hidden=false;record.disabled=false;status.textContent=error.message;});
+    external=microphoneBridge(()=>{offset=line.time();line.add('audio-start',{});record.hidden=true;stop.hidden=false;status.textContent='Grabando voz y dibujo…';frame(true);timer=setInterval(()=>{frame();schedule();if(line.time()>=MAX_MS)halt().catch(()=>{});},5000);},audio=>{externalAudio={...audio,offset};line.add('audio-end',{});release();stop.hidden=true;record.hidden=true;status.textContent='Audio conservado · puedes reproducirlo con el dibujo.';frame(true);return checkpoint().then(()=>true,()=>false);},error=>{externalError=error;external=null;release();stop.hidden=true;record.hidden=false;record.disabled=false;status.textContent=error.message;checkpoint().catch(()=>{});});
    }catch(e){external=null;record.disabled=false;status.textContent=e.message;}return;
   }if(!root.navigator?.mediaDevices?.getUserMedia||!root.MediaRecorder){status.textContent='Este navegador no permite grabar aquí. El dibujo se conserva.';return;}
   pending=true;record.disabled=true;status.textContent='Esperando permiso del micrófono…';
   try{const opened=await root.navigator.mediaDevices.getUserMedia({audio:true});if(disposed){opened.getTracks().forEach(t=>t.stop());return;}stream=opened;
    const mime=['audio/webm;codecs=opus','audio/mp4','audio/ogg;codecs=opus'].find(t=>MediaRecorder.isTypeSupported(t));recorder=new MediaRecorder(stream,{...(mime?{mimeType:mime}:{}),audioBitsPerSecond:48000});
-   finish=new Promise(resolve=>{recorder.ondataavailable=e=>{if(e.data?.size){chunks.push(e.data);audioBytes+=e.data.size;if(audioBytes>5000000&&recorder.state!=='inactive')recorder.stop();}};recorder.onstop=()=>{if(ended)return;blob=new Blob(chunks,{type:recorder.mimeType||mime});line.add('audio-end',{});ended=true;release();stop.hidden=true;record.hidden=true;status.textContent='Audio detenido · puedes reproducirlo con el dibujo.';frame(true);resolve();};});
+   finish=new Promise(resolve=>{recorder.ondataavailable=e=>{if(e.data?.size){chunks.push(e.data);audioBytes+=e.data.size;schedule();if(audioBytes>5000000&&recorder.state!=='inactive')recorder.stop();}};recorder.onstop=()=>{if(ended)return;blob=new Blob(chunks,{type:chunks.find(c=>c.type)?.type||recorder.mimeType||mime});line.add('audio-end',{});ended=true;release();stop.hidden=true;record.hidden=true;status.textContent=blob.size?'Audio detenido · puedes reproducirlo con el dibujo.':'La grabación quedó vacía. El dibujo se conserva; puedes descargar su respaldo.';frame(true);resolve();checkpoint().catch(()=>{});};});
    recorder.onerror=()=>{status.textContent='La grabación se interrumpió; revisa el audio conservado.';if(recorder.state!=='inactive')recorder.stop();else recorder.onstop();};
    offset=line.time();line.add('audio-start',{});recorder.start(1000);record.hidden=true;stop.hidden=false;status.textContent='Grabando voz y dibujo…';frame(true);timer=setInterval(()=>{frame();const seconds=Math.floor((line.time()-offset)/1000);status.textContent='Grabando · '+Math.floor(seconds/60)+':'+String(seconds%60).padStart(2,'0');if(line.time()>=MAX_MS)halt().catch(()=>{});},1000);
   }catch(e){release();recorder=null;record.disabled=false;status.textContent='No se abrió el micrófono. Tu dibujo sigue disponible.';}finally{pending=false;}
  };
  stop.onclick=()=>halt().catch(e=>status.textContent=e.message);
- async function value(){await halt();active=null;paint();frame(true);return validate({v:VERSION,width:canvas.width,height:canvas.height,duration:Math.min(MAX_MS+10000,line.time()),base:baseData,events:clone(line.events),frames:clone(frames),audio:externalAudio||(blob&&blob.size?{mime:blob.type,offset,data:await dataURL(blob)}:null),baseKind:opts.baseKind||'capture'});}
+ async function value(){await halt();active=null;paint();frame(true);await checkpoint().catch(()=>{});const s=await raw();if(line.events.some(e=>e.type==='audio-start')&&!s.audio)throw Error('La grabación no contiene audio. Descarga el respaldo; tu dibujo sigue aquí.');s.audio=normalizeAudio(s.audio);return validate(s);}
  preview.onclick=async()=>{if(busy)return;if(player){player.querySelectorAll('audio').forEach(a=>a.pause());player.remove();player=null;previewing=false;preview.textContent='Reproducir';paint();return;}busy=true;try{const s=await value();player=el('div');box.append(player);await replay(player,s);previewing=true;preview.textContent='Volver a dibujar';}catch(e){status.textContent=e.message;}finally{busy=false;}};
- const visibility=()=>{if(root.document.hidden&&recorder?.state==='recording')halt().catch(()=>{});};root.document.addEventListener('visibilitychange',visibility);
- return {box,canvas,hasContent:()=>line.events.length>0||!!blob||!!recorder||!!external,get pending(){return pending;},value,dispose(){disposed=true;external?.dispose();release();if(recorder?.state==='recording')recorder.stop();root.document.removeEventListener('visibilitychange',visibility);player?.querySelectorAll('audio').forEach(a=>a.pause());player?.remove();},get events(){return line.events;}};
+ const visibility=()=>{if(root.document.hidden)halt().catch(()=>{}).finally(()=>checkpoint().catch(()=>{}));},unload=e=>{if(!saved&&hasContent()){e.preventDefault();e.returnValue='';}};root.document.addEventListener('visibilitychange',visibility);root.addEventListener('beforeunload',unload);
+ store.list(scope).then(records=>{if(records.length)drafts.textContent='Recuperar borrador ('+records.length+')';}).catch(()=>{draftStatus.textContent='Respaldo local no disponible. Descarga el respaldo antes de cerrar.';});
+ return {box,canvas,hasContent,get pending(){return pending;},value,checkpoint,download,restore,async preserve(){await halt().catch(()=>{});return checkpoint();},async markSaved(){saved=true;clearTimeout(draftTimer);await write.catch(()=>{});await store.remove(draftId);},dispose(){disposed=true;clearTimeout(draftTimer);halt().catch(()=>{}).finally(()=>{checkpoint().catch(()=>{});external?.dispose();release();});root.document.removeEventListener('visibilitychange',visibility);root.removeEventListener('beforeunload',unload);player?.querySelectorAll('audio').forEach(a=>a.pause());player?.remove();},get events(){return line.events;}};
 }
 async function replay(host,s){
  validate(s);style();const box=el('section');box.className='chn-seq';const canvas=el('canvas');canvas.width=s.width;canvas.height=s.height;const ctx=canvas.getContext('2d'),base=new Image();base.src=s.base;await base.decode();const audio=el('audio');audio.controls=false;audio.hidden=true;if(s.audio)audio.src=s.audio.data;const seek=el('input');seek.type='range';seek.min='0';seek.max=String(s.duration);seek.value='0';seek.style.maxWidth='none';seek.style.width='100%';seek.setAttribute('aria-label','Momento de la explicación');const play=el('button','Reproducir secuencia'),label=el('div','0:00');play.type='button';box.append(canvas,seek,play,label);if(s.audio)box.append(audio);host.append(box);let raf=0,playing=false,wall=0,start=0;
@@ -108,7 +140,7 @@ async function replay(host,s){
  audio.onended=()=>{if(playing){start=audioEnd;wall=performance.now();}};
  show(0);return box;
 }
-return {VERSION,MAX_BYTES,timeline,visibleStrokes,draw,validate,mount,replay};
+return {VERSION,MAX_BYTES,timeline,visibleStrokes,draw,validate,normalizeAudio,audioType,draftStore,mount,replay};
 });
 
 /* Private sequence delivery. Idempotency belongs to the authenticated backend. */
@@ -619,7 +651,7 @@ async function anotar(op){
     var bg=baseSeq.getContext('2d'); bg.fillStyle='#f7f5ed';bg.fillRect(0,0,960,540);bg.fillStyle='#263c30';bg.font='20px sans-serif';bg.fillText('Superficie privada · referencia técnica conservada',24,40); }
   v.querySelector('.chn-foto').remove();
   var seqHost=document.createElement('div');v.querySelector('.chn-chips').before(seqHost);
-  function mountRecorded(base,kind){if(!v.isConnected)return;seqHost.textContent='';v._secuencia=window.YodChincheSecuencia.mount(seqHost,base,{baseKind:kind});if(kind==='context-card'){var warning=document.createElement('p');warning.textContent='Referencia de contexto: la captura de pantalla no estuvo disponible.';seqHost.prepend(warning);}}
+  function mountRecorded(base,kind){if(!v.isConnected)return;seqHost.textContent='';v._secuencia=window.YodChincheSecuencia.mount(seqHost,base,{baseKind:kind,draftContext:function(){return {texto:ta.value,tipo:tipo};},restoreContext:function(c){if(c&&typeof c.texto==='string'){ta.value=c.texto;tipo=String(c.tipo||tipo);}}});if(kind==='context-card'){var warning=document.createElement('p');warning.textContent='Referencia de contexto: la captura de pantalla no estuvo disponible.';seqHost.prepend(warning);}}
   if(screenCapture){seqHost.textContent='Preparando captura de pantalla…';screenCapture.then(function(c){mountRecorded(c||baseSeq,c?'capture':'context-card');});}
   else mountRecorded(baseSeq,op.sinCaptura?'technical-context':esLienzo?'capture':'context-card');
   // Voice recording owns the microphone; legacy transcription is not recording.
@@ -634,7 +666,7 @@ async function anotar(op){
     };
   });
   function cancelar(){ cancelada = true; if (guardId) despachoGuards.delete(guardId); cerrar(v); }
-  v.querySelector("[data-x]").onclick = cancelar;
+  v.querySelector("[data-x]").onclick = async function(){try{if(v._secuencia&&v._secuencia.hasContent())await v._secuencia.preserve();cancelar();}catch(e){aviso("No cierres todavía: descarga el respaldo para conservar la explicación.");}};
   v.querySelector("[data-ok]").onclick = async function () {
     if (!vigente()) { cancelar(); aviso("La sesión del Despacho cambió; abre de nuevo la petición"); return; }
     var texto = ta.value.trim();
@@ -677,6 +709,7 @@ async function anotar(op){
         await conTopeError(guardar(ch, null, null), 6000, "la base del aparato no contestó");
       }
       if (!vigente()) { cancelar(); return; }
+      if(v._secuencia&&typeof v._secuencia.markSaved==='function')await v._secuencia.markSaved().catch(function(){});
       cerrar(v);
       aviso("Clavado · llevas " + leerN());
       /* 15-sep: la página que hospeda la Chinche puede querer enterarse al instante (la Sala de
@@ -692,7 +725,7 @@ async function anotar(op){
       }
     } catch (e) {
       if (!vigente()) { cancelar(); return; }
-      if (ch.secuencia || v._secuencia) {if(typeof CTX.alErrorGuardado==='function')CTX.alErrorGuardado(e);btn.disabled=false;btn.textContent='Clavar';aviso('No se completó el guardado: '+(e.message||e.name||'error')+'. La explicación sigue aquí.');return;}
+      if (ch.secuencia || v._secuencia) {if(typeof CTX.alErrorGuardado==='function')CTX.alErrorGuardado(e);btn.disabled=false;btn.textContent='Clavar';aviso('No se completó el guardado: '+(e.message||e.name||'error')+'. Usa Recuperar borrador o Descargar respaldo; la explicación sigue aquí.');return;}
       // Embedded hosts own their delivery. Never silently fall back to Sala or email.
       if (CTX.localOnly || typeof CTX.alClavar === "function") {
         btn.disabled = false; btn.textContent = "Clavar";

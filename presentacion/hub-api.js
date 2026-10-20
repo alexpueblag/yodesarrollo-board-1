@@ -11,7 +11,7 @@
  function db(){if(!dbPromise)dbPromise=new Promise((resolve,reject)=>{const req=indexedDB.open('yodPresentationHub',1);req.onupgradeneeded=()=>req.result.createObjectStore('state',{keyPath:'key'});req.onsuccess=()=>resolve(req.result);req.onerror=()=>{dbPromise=null;reject(error('storage_unavailable'));};});return dbPromise;}
  async function storage(mode,fn){const d=await db();return new Promise((resolve,reject)=>{const tx=d.transaction('state',mode),s=tx.objectStore('state');let request;try{request=fn(s);}catch(e){reject(e);return;}tx.oncomplete=()=>resolve(request?.result);tx.onerror=()=>reject(error('storage_unavailable'));tx.onabort=()=>reject(error('storage_unavailable'));});}
  const put=(key,value)=>storage('readwrite',s=>s.put({key,value})),get=key=>storage('readonly',s=>s.get(key)).then(x=>x?.value),remove=key=>storage('readwrite',s=>s.delete(key)),all=()=>storage('readonly',s=>s.getAll()).then(x=>x||[]);
- async function request(input,{publicRead=false,timeout=25000}={}){
+ async function request(input,{publicRead=false,timeout=60000}={}){
   const mine=generation,k=token(),ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),timeout);
   try{let url=cfg.endpoint,options={signal:ctrl.signal,cache:'no-store',credentials:'omit'};
    if(publicRead){const q=new URLSearchParams({recurso:'presentaciones_publico'});if(input.id)q.set('id',input.id);if(input.op==='public_session')q.set('estado','1');if(input.release)q.set('release',input.release);url+='?'+q;}
@@ -27,7 +27,7 @@
   const work=request({op:'catalog'}).then(j=>{if(mine!==generation)throw error('session_changed');actor=j.actor;ownToken=k;emit();return j;}).finally(()=>{if(privateFlight===work)privateFlight=null;});privateFlight=work;return work;
  }
  async function publicCatalog(){try{const res=await fetch(new URL('catalogo.json',new URL('.',document.currentScript?.src||cfg.catalogURL)),{cache:'no-cache'});if(!res.ok)throw Error();return D.normalizeCatalog(await res.json()).presentations;}catch{const res=await fetch(cfg.catalogURL,{cache:'no-cache'});if(!res.ok)throw error('network');return D.normalizeCatalog(await res.json()).presentations;}}
- async function publicRelease(id,release){const key='public-release:'+id+':'+(release||'latest');try{const j=await request({op:'public_release',id,release},{publicRead:true,timeout:8000});await put(key,j.data).catch(()=>{});return {...j.data,stale:false};}catch(e){const cached=await get(key).catch(()=>null);if(cached)return {...cached,stale:true};throw e;}}
+ async function publicRelease(id,release){const key='public-release:'+id+':'+(release||'latest');try{const j=await request({op:'public_release',id,release},{publicRead:true,timeout:25000});await put(key,j.data).catch(()=>{});return {...j.data,stale:false};}catch(e){const cached=await get(key).catch(()=>null);if(cached)return {...cached,stale:true};throw e;}}
  async function inspect(id){return request({op:'inspect',id});}
  async function mutate(op,id,data,{queue=op==='save_draft'||op==='link',requestId=uid()}={}){
   if(!actor?.owner||!ownToken||ownToken!==token())await catalog();if(!actor?.owner)throw error('forbidden');
