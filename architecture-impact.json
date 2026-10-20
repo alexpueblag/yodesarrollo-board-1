@@ -1,7 +1,7 @@
 {
-  "model_revision": "2026-10-20.chinches-secuencia.1",
-  "proposal_id": "CHG-CHINCHES-SECUENCIA-20261020",
-  "summary": "Voz y dibujo sincronizados en chinches; almacenamiento privado con acuse íntegro.",
+  "model_revision": "2026-10-20.presentaciones-md.1",
+  "proposal_id": "CHG-PRESENTACIONES-MD-20261020",
+  "summary": "Portal integrado en Master Developer con catálogo, revisión privada, publicación y conducción por el servidor Sala existente.",
   "components": [
     "SYS-INVERSION",
     "SYS-YOD-OS",
@@ -11,13 +11,12 @@
     "SHEET-SALA"
   ],
   "tests": [
-    "Control de coordenadas, superficies declaradas y límite compartido; mapas persistentes, navegación mapa/plano/volumen y modo presentación en 3 viewports.",
-    "node --test tests/brokers-pin-delivery.test.cjs: transporte privado existente.",
-    "node tests/abasto-storyboard-browser.cjs: 12 escenas, persistencia visual, 3 viewports, canje fresco, captura offline y recibo sin duplicar; todos los servicios simulados.",
-    "Regresión de Obregón SB06 conservada en su prueba existente.",
-    "Sintaxis de módulos nuevos, git diff --check y verificación de impacto contra atlas fijado.",
-    "Pages: comprobar archivos servidos tras despliegue. Google real de Dirección y dictado en iPhone físico se acreditan aparte."
+    "node --test tests/brokers*.test.cjs (board:164 PASS)",
+    "node tests/presentation-hub-browser.cjs (board:PASS3 tamaños y2 dispositivos)",
+    "Contratos GAS con dobles sin escrituras de negocio",
+    "python3 nube/verificar.py (Sala)",
+    "git diff --check"
   ],
-  "rollback": "Revertir frontend por PR conservando versiones, fuente, IDs, IndexedDB, sobres privados y permisos.",
-  "model_commit": "3df04b6e2c02e57a85c5d500ce2e866d4db38ffc"
+  "rollback": "Revertir frontend o implementación a su versión anterior; conservar archivos privados, publicaciones, recibos, chinches y permisos.",
+  "model_commit": "f0c8f898735e46acc8888423338c514b8ed1686d"
 }
