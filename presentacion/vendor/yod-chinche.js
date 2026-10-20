@@ -666,7 +666,7 @@ async function anotar(op){
       if(!v._secuencia)throw Error('Espera a que termine la captura');
       if(v._secuencia.hasContent()) ch.secuencia = await v._secuencia.value();
       await window.YodChincheEntrega.bind(ch);
-      var full = ch.secuencia || op.sinCaptura ? null : await aBlob(v._secuencia.canvas, 0.7), chica = full ? await aBlob(mini(v._secuencia.canvas), 0.6) : null;
+      var full = op.sinCaptura ? null : await aBlob(v._secuencia.canvas, 0.7), chica = full ? await aBlob(mini(v._secuencia.canvas), 0.6) : null;
       if (!vigente()) { cancelar(); return; }
       try {
         await conTopeError(guardar(ch, full, chica), 6000, "la base del aparato no contestó");
@@ -692,7 +692,7 @@ async function anotar(op){
       }
     } catch (e) {
       if (!vigente()) { cancelar(); return; }
-      if (ch.secuencia || v._secuencia) {btn.disabled=false;btn.textContent='Clavar';aviso('No se completó el guardado: '+(e.message||e.name||'error')+'. La explicación sigue aquí.');return;}
+      if (ch.secuencia || v._secuencia) {if(typeof CTX.alErrorGuardado==='function')CTX.alErrorGuardado(e);btn.disabled=false;btn.textContent='Clavar';aviso('No se completó el guardado: '+(e.message||e.name||'error')+'. La explicación sigue aquí.');return;}
       // Embedded hosts own their delivery. Never silently fall back to Sala or email.
       if (CTX.localOnly || typeof CTX.alClavar === "function") {
         btn.disabled = false; btn.textContent = "Clavar";
