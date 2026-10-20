@@ -19,5 +19,5 @@
     "Pages: comprobar archivos servidos tras despliegue. Google real de Dirección y dictado en iPhone físico se acreditan aparte."
   ],
   "rollback": "Revertir frontend por PR conservando versiones, fuente, IDs, IndexedDB, sobres privados y permisos.",
-  "model_commit": "b8f70c6828ac1ede9a931c012f882f2390680bce"
+  "model_commit": "3df04b6e2c02e57a85c5d500ce2e866d4db38ffc"
 }
