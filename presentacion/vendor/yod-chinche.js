@@ -119,7 +119,7 @@ return {CONTRACT,hash,client,packageData,bind};
 });
 
 /* END CHINCHE SEQUENCE SHARED */
-(function(){if(typeof document==='undefined'||window.html2canvas)return;var s=document.createElement('script');s.src='https://yodesarrollomx.github.io/yod-portal/vendor/html2canvas.min.js?v=1.4.1';s.async=true;document.head.appendChild(s);})();
+(function(){if(typeof window==='undefined')return;var pending;window.YodChincheCapture=function(){if(window.html2canvas)return Promise.resolve(window.html2canvas);if(pending)return pending;pending=new Promise(function(resolve,reject){var s=document.createElement('script'),timer=setTimeout(function(){reject(Error('Captura no disponible'));},8000);s.src='https://yodesarrollomx.github.io/yod-portal/vendor/html2canvas.min.js?v=1.4.1';s.async=true;s.onload=function(){clearTimeout(timer);window.html2canvas?resolve(window.html2canvas):reject(Error('Captura no disponible'));};s.onerror=function(){clearTimeout(timer);reject(Error('Captura no disponible'));};document.head.appendChild(s);});return pending;};})();
 
 /* ═══════════════════════════════════════════════════════════════════════════
    LA CHINCHE · capturador de pendientes de YOD OS
@@ -558,7 +558,7 @@ async function anotar(op){
     try { return !cancelada && typeof op.puedeGuardar === "function" && op.puedeGuardar() === true; } catch (e) { return false; }
   }
   if (esDespacho && (!vigente() || !codigoDespacho(op.objeto))) return null;
-  var screenCapture = !op.sinCaptura && !(CTX.canvas && op.x != null) && window.html2canvas ? window.html2canvas(document.body,{backgroundColor:'#f7f5ed',useCORS:true,allowTaint:false,logging:false,scale:Math.min(1,1920/innerWidth,1920/innerHeight),width:innerWidth,height:innerHeight,x:scrollX,y:scrollY,windowWidth:innerWidth,windowHeight:innerHeight,ignoreElements:function(n){return !!(n.closest&&n.closest('.chn-velo,.chn-seq,[data-private-capture]'));}}).catch(function(){return null;}):null;
+  var screenCapture = !op.sinCaptura && !(CTX.canvas && op.x != null) ? window.YodChincheCapture().then(function(capture){return capture(document.body,{backgroundColor:'#f7f5ed',useCORS:true,allowTaint:false,logging:false,scale:Math.min(1,1920/innerWidth,1920/innerHeight),width:innerWidth,height:innerHeight,x:scrollX,y:scrollY,windowWidth:innerWidth,windowHeight:innerHeight,ignoreElements:function(n){return !!(n.closest&&n.closest('.chn-velo,.chn-seq,[data-private-capture]'));}});}).catch(function(){return null;}):null;
   var d = new Date();
   var esLienzo = !op.sinCaptura && !!(CTX.canvas && op.x != null && op.y != null);
   var cap = esLienzo ? capturarLienzo(op.x, op.y) : null;
