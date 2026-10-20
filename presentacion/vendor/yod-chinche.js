@@ -33,12 +33,34 @@ function validate(s){
 }
 function dataURL(blob){return new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(r.result);r.onerror=()=>no(Error('No se pudo preparar el audio'));r.readAsDataURL(blob);});}
 function style(){if(root.document.getElementById('chn-seq-style'))return;const s=el('style');s.id='chn-seq-style';s.textContent=`.chn-seq{background:#f7f5ed;color:#283d32;border:1px solid #bbc4b8;border-radius:12px;padding:12px;margin:12px 0;font:14px system-ui}.chn-seq canvas{display:block;width:100%;height:auto;touch-action:none;background:#fff;border:1px solid #c9cfc4}.chn-seq-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 0}.chn-seq button,.chn-seq select{font:14px system-ui;min-height:44px;padding:8px 12px;border:1px solid #b5c1b5;border-radius:8px;background:#fff;color:#263c30}.chn-seq input[type=color]{height:44px;width:44px}.chn-seq input[type=range]{max-width:120px}.chn-seq-status{min-height:22px}.chn-seq audio{width:100%}.chn-seq-big{position:fixed;inset:8px;z-index:2147483647;overflow:auto;margin:0}.chn-seq-big canvas{max-height:70vh;width:auto;max-width:100%;margin:auto}.chn-seq [hidden]{display:none!important}`;root.document.head.append(s);}
+// Apps Script's outer frame may deny microphone. Audio stays in the browser:
+// a top-level recorder returns it only to its opener, with a per-session nonce.
+function microphoneBridge(onstart,onend,onerror){
+ const origin='https://yodesarrollomx.github.io',nonce=Array.from(root.crypto.getRandomValues(new Uint8Array(24))).map(x=>x.toString(16).padStart(2,'0')).join('');
+ const popup=root.open(origin+'/yod-portal/chinche/microfono.html','_blank','popup,width=430,height=360');
+ if(!popup)throw Error('Permite abrir la ventana de grabación y vuelve a intentar.');
+ let done=false,started=false,ready=false,resolve;const openedAt=Date.now();const finish=new Promise(r=>resolve=r);
+ function cleanup(){root.removeEventListener('message',receive);clearInterval(watch);}
+ function fail(message){if(done)return;done=true;cleanup();resolve();onerror(Error(message));}
+ function receive(e){if(e.source!==popup||e.origin!==origin||!e.data||e.data.type!=='yod:chinche:microphone')return;const m=e.data;
+  if(m.action==='ready'){ready=true;popup.postMessage({type:m.type,action:'init',nonce},origin);return;}
+  if(m.nonce!==nonce||done)return;
+  if(m.action==='started'&&!started){started=true;onstart();}
+  if(m.action==='error')fail(m.message==='denied'?'No se concedió permiso al micrófono.':'No se pudo conservar el audio; grábalo de nuevo.');
+  if(m.action==='complete'){
+   if(!started||typeof m.data!=='string'||m.data.length>7000000||!/^data:audio\/(webm|mp4|ogg)(;codecs=[a-zA-Z0-9., -]+)?;base64,[A-Za-z0-9+/]+=*$/.test(m.data)||!/^audio\/(webm|mp4|ogg)(;codecs=[a-zA-Z0-9., -]+)?$/.test(m.mime)){fail('La grabación no se pudo verificar.');return;}
+   done=true;cleanup();onend({mime:m.mime,data:m.data});popup.postMessage({type:m.type,action:'received',nonce},origin);resolve();
+  }
+ }
+ root.addEventListener('message',receive);const watch=setInterval(()=>{if(popup.closed)fail('Se cerró la ventana antes de conservar el audio.');else if(!ready&&Date.now()-openedAt>20000)fail('No cargó la ventana de voz. Vuelve a intentar.');},500);
+ return {finish,stop(){if(!done)popup.postMessage({type:'yod:chinche:microphone',action:'stop',nonce},origin);return finish;},dispose(){if(!done){done=true;cleanup();popup.close();resolve();}}};
+}
 function mount(host,base,opts={}){
  style();const box=el('section');box.className='chn-seq';box.setAttribute('aria-label','Dibujo y explicación grabada');const canvas=el('canvas');canvas.width=base.width;canvas.height=base.height;canvas.setAttribute('aria-label','Dibuja sobre la captura');
  const tools=el('div');tools.className='chn-seq-tools';const select=el('select');select.setAttribute('aria-label','Herramienta');for(const [value,name] of [['pen','Lápiz'],['marker','Marcador'],['line','Línea'],['arrow','Flecha'],['rect','Rectángulo'],['ellipse','Óvalo']]){const o=el('option',name);o.value=value;select.append(o);}
  const color=el('input');color.type='color';color.value='#cc5b36';color.setAttribute('aria-label','Color');const width=el('input');width.type='range';width.min='1';width.max='14';width.value='3';width.setAttribute('aria-label','Grosor');const undo=el('button','Deshacer'),expand=el('button','Ampliar'),record=el('button','Grabar explicación'),stop=el('button','Detener'),preview=el('button','Reproducir');[undo,expand,record,stop,preview].forEach(b=>b.type='button');stop.hidden=true;
  const status=el('div','Dibuja y explica con tu voz.');status.className='chn-seq-status';status.setAttribute('role','status');tools.append(select,color,width,undo,expand,record,stop,preview);box.append(canvas,tools,status);host.append(box);
- const ctx=canvas.getContext('2d'),line=timeline();let active=null,recorder=null,stream=null,blob=null,offset=0,chunks=[],finish=null,disposed=false,pending=false,timer=null,busy=false,audioBytes=0,frames=[],frameBytes=0,lastFrame=-5000,player=null,previewing=false,ended=false;
+ const ctx=canvas.getContext('2d'),line=timeline();let active=null,recorder=null,stream=null,blob=null,offset=0,chunks=[],finish=null,disposed=false,pending=false,timer=null,busy=false,audioBytes=0,frames=[],frameBytes=0,lastFrame=-5000,player=null,previewing=false,ended=false,external=null,externalAudio=null,externalError=null;
  const baseData=base.toDataURL('image/jpeg',.75);const paint=(t=line.time())=>{ctx.clearRect(0,0,canvas.width,canvas.height);ctx.drawImage(base,0,0);draw(ctx,line.events,t);};paint();
  function frame(force=false){const t=line.time();if(!force&&t-lastFrame<5000)return;if(frames.length>=240||frameBytes>4000000)return;const c=el('canvas'),scale=Math.min(1,800/canvas.width);c.width=Math.round(canvas.width*scale);c.height=Math.round(canvas.height*scale);c.getContext('2d').drawImage(canvas,0,0,c.width,c.height);const image=c.toDataURL('image/jpeg',.55);frames.push({t,image});frameBytes+=image.length;lastFrame=t;}
  function point(e){const r=canvas.getBoundingClientRect();return [Math.max(0,Math.min(canvas.width,(e.clientX-r.left)*canvas.width/r.width)),Math.max(0,Math.min(canvas.height,(e.clientY-r.top)*canvas.height/r.height)),line.time(),e.pressure||.5];}
@@ -48,25 +70,31 @@ function mount(host,base,opts={}){
  canvas.addEventListener('pointerup',end);canvas.addEventListener('pointercancel',end);
  undo.onclick=()=>{if(active||previewing)return;line.add('undo',{});paint();frame(true);};expand.onclick=()=>{const on=box.classList.toggle('chn-seq-big');expand.textContent=on?'Reducir':'Ampliar';};
  function release(){clearInterval(timer);timer=null;if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;}
- async function halt(){if(pending)throw Error('Espera la respuesta del micrófono');if(recorder&&recorder.state!=='inactive'){recorder.stop();await finish;}release();}
+ async function halt(){if(externalError)throw externalError;if(external){await external.stop();if(externalError)throw externalError;}if(pending)throw Error('Espera la respuesta del micrófono');if(recorder&&recorder.state!=='inactive'){recorder.stop();await finish;}release();}
  record.onclick=async()=>{
-  if(disposed||pending||recorder||blob||previewing)return;if(!root.navigator?.mediaDevices?.getUserMedia||!root.MediaRecorder){status.textContent='Este navegador no permite grabar aquí. El dibujo se conserva.';return;}
+  if(disposed||pending||recorder||blob||externalAudio||external||previewing)return;
+  const policy=root.document.permissionsPolicy||root.document.featurePolicy;
+  if(policy&&policy.allowsFeature&&!policy.allowsFeature('microphone')){
+   try{externalError=null;record.disabled=true;status.textContent='Abre la ventana de voz, pulsa Grabar y vuelve aquí para dibujar.';
+    external=microphoneBridge(()=>{offset=line.time();line.add('audio-start',{});record.hidden=true;stop.hidden=false;status.textContent='Grabando voz y dibujo…';frame(true);timer=setInterval(()=>{frame();if(line.time()>=MAX_MS)halt().catch(()=>{});},1000);},audio=>{externalAudio={...audio,offset};line.add('audio-end',{});release();stop.hidden=true;record.hidden=true;status.textContent='Audio conservado · puedes reproducirlo con el dibujo.';frame(true);},error=>{externalError=error;external=null;release();stop.hidden=true;record.hidden=false;record.disabled=false;status.textContent=error.message;});
+   }catch(e){external=null;record.disabled=false;status.textContent=e.message;}return;
+  }if(!root.navigator?.mediaDevices?.getUserMedia||!root.MediaRecorder){status.textContent='Este navegador no permite grabar aquí. El dibujo se conserva.';return;}
   pending=true;record.disabled=true;status.textContent='Esperando permiso del micrófono…';
   try{const opened=await root.navigator.mediaDevices.getUserMedia({audio:true});if(disposed){opened.getTracks().forEach(t=>t.stop());return;}stream=opened;
    const mime=['audio/webm;codecs=opus','audio/mp4','audio/ogg;codecs=opus'].find(t=>MediaRecorder.isTypeSupported(t));recorder=new MediaRecorder(stream,{...(mime?{mimeType:mime}:{}),audioBitsPerSecond:48000});
-   finish=new Promise(resolve=>{recorder.ondataavailable=e=>{if(e.data?.size){chunks.push(e.data);audioBytes+=e.data.size;if(audioBytes>5000000&&recorder.state!=='inactive')recorder.stop();}};recorder.onstop=()=>{blob=new Blob(chunks,{type:recorder.mimeType||mime});line.add('audio-end',{});ended=true;release();stop.hidden=true;record.hidden=true;status.textContent='Audio detenido · puedes reproducirlo con el dibujo.';frame(true);resolve();};});
-   recorder.onerror=()=>{status.textContent='La grabación se interrumpió; revisa el audio conservado.';if(recorder.state!=='inactive')recorder.stop();else release();};
+   finish=new Promise(resolve=>{recorder.ondataavailable=e=>{if(e.data?.size){chunks.push(e.data);audioBytes+=e.data.size;if(audioBytes>5000000&&recorder.state!=='inactive')recorder.stop();}};recorder.onstop=()=>{if(ended)return;blob=new Blob(chunks,{type:recorder.mimeType||mime});line.add('audio-end',{});ended=true;release();stop.hidden=true;record.hidden=true;status.textContent='Audio detenido · puedes reproducirlo con el dibujo.';frame(true);resolve();};});
+   recorder.onerror=()=>{status.textContent='La grabación se interrumpió; revisa el audio conservado.';if(recorder.state!=='inactive')recorder.stop();else recorder.onstop();};
    offset=line.time();line.add('audio-start',{});recorder.start(1000);record.hidden=true;stop.hidden=false;status.textContent='Grabando voz y dibujo…';frame(true);timer=setInterval(()=>{frame();const seconds=Math.floor((line.time()-offset)/1000);status.textContent='Grabando · '+Math.floor(seconds/60)+':'+String(seconds%60).padStart(2,'0');if(line.time()>=MAX_MS)halt().catch(()=>{});},1000);
   }catch(e){release();recorder=null;record.disabled=false;status.textContent='No se abrió el micrófono. Tu dibujo sigue disponible.';}finally{pending=false;}
  };
  stop.onclick=()=>halt().catch(e=>status.textContent=e.message);
- async function value(){await halt();active=null;paint();frame(true);return validate({v:VERSION,width:canvas.width,height:canvas.height,duration:Math.min(MAX_MS+10000,line.time()),base:baseData,events:clone(line.events),frames:clone(frames),audio:blob&&blob.size?{mime:blob.type,offset,data:await dataURL(blob)}:null,baseKind:opts.baseKind||'capture'});}
+ async function value(){await halt();active=null;paint();frame(true);return validate({v:VERSION,width:canvas.width,height:canvas.height,duration:Math.min(MAX_MS+10000,line.time()),base:baseData,events:clone(line.events),frames:clone(frames),audio:externalAudio||(blob&&blob.size?{mime:blob.type,offset,data:await dataURL(blob)}:null),baseKind:opts.baseKind||'capture'});}
  preview.onclick=async()=>{if(busy)return;if(player){player.querySelectorAll('audio').forEach(a=>a.pause());player.remove();player=null;previewing=false;preview.textContent='Reproducir';paint();return;}busy=true;try{const s=await value();player=el('div');box.append(player);await replay(player,s);previewing=true;preview.textContent='Volver a dibujar';}catch(e){status.textContent=e.message;}finally{busy=false;}};
  const visibility=()=>{if(root.document.hidden&&recorder?.state==='recording')halt().catch(()=>{});};root.document.addEventListener('visibilitychange',visibility);
- return {box,canvas,hasContent:()=>line.events.length>0||!!blob||!!recorder,get pending(){return pending;},value,dispose(){disposed=true;release();if(recorder?.state==='recording')recorder.stop();root.document.removeEventListener('visibilitychange',visibility);player?.querySelectorAll('audio').forEach(a=>a.pause());player?.remove();},get events(){return line.events;}};
+ return {box,canvas,hasContent:()=>line.events.length>0||!!blob||!!recorder||!!external,get pending(){return pending;},value,dispose(){disposed=true;external?.dispose();release();if(recorder?.state==='recording')recorder.stop();root.document.removeEventListener('visibilitychange',visibility);player?.querySelectorAll('audio').forEach(a=>a.pause());player?.remove();},get events(){return line.events;}};
 }
 async function replay(host,s){
- validate(s);style();const box=el('section');box.className='chn-seq';const canvas=el('canvas');canvas.width=s.width;canvas.height=s.height;const ctx=canvas.getContext('2d'),base=new Image();base.src=s.base;await base.decode();const audio=el('audio');audio.controls=true;if(s.audio)audio.src=s.audio.data;const seek=el('input');seek.type='range';seek.min='0';seek.max=String(s.duration);seek.value='0';seek.style.maxWidth='none';seek.style.width='100%';seek.setAttribute('aria-label','Momento de la explicación');const play=el('button','Reproducir secuencia'),label=el('div','0:00');play.type='button';box.append(canvas,seek,play,label);if(s.audio)box.append(audio);host.append(box);let raf=0,playing=false,wall=0,start=0;
+ validate(s);style();const box=el('section');box.className='chn-seq';const canvas=el('canvas');canvas.width=s.width;canvas.height=s.height;const ctx=canvas.getContext('2d'),base=new Image();base.src=s.base;await base.decode();const audio=el('audio');audio.controls=false;audio.hidden=true;if(s.audio)audio.src=s.audio.data;const seek=el('input');seek.type='range';seek.min='0';seek.max=String(s.duration);seek.value='0';seek.style.maxWidth='none';seek.style.width='100%';seek.setAttribute('aria-label','Momento de la explicación');const play=el('button','Reproducir secuencia'),label=el('div','0:00');play.type='button';box.append(canvas,seek,play,label);if(s.audio)box.append(audio);host.append(box);let raf=0,playing=false,wall=0,start=0;
  function show(t){t=Math.max(0,Math.min(s.duration,t));seek.value=String(t);ctx.clearRect(0,0,s.width,s.height);ctx.drawImage(base,0,0);draw(ctx,s.events,t);label.textContent=(t/1000).toFixed(1)+' s / '+(s.duration/1000).toFixed(1)+' s';}
  const audioEnd=s.audio?(s.events.find(e=>e.type==='audio-end')?.t??s.duration):0;
  function pause(){playing=false;cancelAnimationFrame(raf);audio.pause();play.textContent='Continuar';}
@@ -104,7 +132,7 @@ function client(io={}){
   const seen=await call('chinche_secuencia_recibo',{id:ch.id},k);
   if(!guard()||credential()!==k)return {state:'auth-required'};
   if(seen.contrato!==CONTRACT||seen.ok!==true)return {state:'waiting',reason:'backend'};
-  if(seen.hash){if(seen.hash!==sha256)return {state:'conflict'};return {state:'received',id:ch.id,hash:sha256};}
+  if(seen.hash){if(seen.id!==ch.id)return {state:'uncertain'};if(seen.hash!==sha256)return {state:'conflict'};return {state:'received',id:ch.id,hash:sha256};}
   // Safe to retry this action: backend lock, immutable ID/hash and ledger reconciliation.
   const ack=await call('chinche_secuencia_guardar',{id:ch.id,hash:sha256,data},k);
   if(!guard()||credential()!==k)return {state:'auth-required'};
@@ -638,7 +666,7 @@ async function anotar(op){
       if(!v._secuencia)throw Error('Espera a que termine la captura');
       if(v._secuencia.hasContent()) ch.secuencia = await v._secuencia.value();
       await window.YodChincheEntrega.bind(ch);
-      var full = await aBlob(v._secuencia.canvas, 0.7), chica = full ? await aBlob(mini(v._secuencia.canvas), 0.6) : null;
+      var full = ch.secuencia || op.sinCaptura ? null : await aBlob(v._secuencia.canvas, 0.7), chica = full ? await aBlob(mini(v._secuencia.canvas), 0.6) : null;
       if (!vigente()) { cancelar(); return; }
       try {
         await conTopeError(guardar(ch, full, chica), 6000, "la base del aparato no contestó");

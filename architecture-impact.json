@@ -18,5 +18,6 @@
     "Sintaxis de módulos nuevos, git diff --check y verificación de impacto contra atlas fijado.",
     "Pages: comprobar archivos servidos tras despliegue. Google real de Dirección y dictado en iPhone físico se acreditan aparte."
   ],
-  "rollback": "Revertir frontend por PR conservando versiones, fuente, IDs, IndexedDB, sobres privados y permisos."
+  "rollback": "Revertir frontend por PR conservando versiones, fuente, IDs, IndexedDB, sobres privados y permisos.",
+  "model_commit": "b8f70c6828ac1ede9a931c012f882f2390680bce"
 }
