@@ -1,7 +1,7 @@
 {
-  "model_revision": "2026-10-19.storyboard-github.1",
-  "proposal_id": "CHG-PRESENTATION-STORYBOARD-GITHUB-20261019",
-  "summary": "YOD-AB02: corrige regresión territorial de Distrito Abasto Sonora. Perímetro 5-5/5-6 desde planos, cartografía OSM estática atribuida, transformación Hairline con la misma geometría y modo presentación solicitado. Mismo consumidor y contrato de revisión privada; no modifica Portero, Sala, PPP, permisos ni backend.",
+  "model_revision": "2026-10-20.chinches-secuencia.1",
+  "proposal_id": "CHG-CHINCHES-SECUENCIA-20261020",
+  "summary": "Voz y dibujo sincronizados en chinches; almacenamiento privado con acuse íntegro.",
   "components": [
     "SYS-INVERSION",
     "SYS-YOD-OS",
@@ -18,5 +18,6 @@
     "Sintaxis de módulos nuevos, git diff --check y verificación de impacto contra atlas fijado.",
     "Pages: comprobar archivos servidos tras despliegue. Google real de Dirección y dictado en iPhone físico se acreditan aparte."
   ],
-  "rollback": "Revertir frontend por PR conservando versiones, fuente, IDs, IndexedDB, sobres privados y permisos."
+  "rollback": "Revertir frontend por PR conservando versiones, fuente, IDs, IndexedDB, sobres privados y permisos.",
+  "model_commit": "3df04b6e2c02e57a85c5d500ce2e866d4db38ffc"
 }
