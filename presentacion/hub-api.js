@@ -42,7 +42,8 @@
    if(row.value.state==='conflict')continue;const p=row.value.request,j=await request({op:'receipt',id:p.id,requestId:p.requestId});if(j.found){await remove(row.key);continue;}
    try{const ack=await request(p);if(ack.requestId===p.requestId)await remove(row.key);}catch(e){if(e.code==='conflict')await put(row.key,{...row.value,state:'conflict'});else break;}
   }}catch{}finally{flushing=false;}}
- root.YODPresentationAPI={VERSION:cfg.version,token,uid,catalog,publicCatalog,publicRelease,inspect,mutate,request,pending,flush,onIdentity(fn){listeners.add(fn);return()=>listeners.delete(fn);},actor:()=>actor,storage:{get,put,remove,all},message:code=>messages[code]||code};
+ let loginFlight=null;function loadScript(src){return new Promise((ok,no)=>{const s=document.createElement('script');s.src=src;s.setAttribute('data-singate','');s.onload=ok;s.onerror=()=>{s.remove();no(error('network'))};document.head.append(s);});}async function login(){if(root.YODPortero?.entrar)return root.YODPortero.entrar();if(!loginFlight)loginFlight=(async()=>{if(!root.YOD_PORTERO)await loadScript('https://yodesarrollomx.github.io/yod-portal/os/yod-acceso.js?v=1');await loadScript('https://yodesarrollomx.github.io/potenciales-yod/portero.js');if(!root.YODPortero?.entrar)throw error('network');return root.YODPortero.entrar();})().finally(()=>loginFlight=null);return loginFlight;}
+ root.YODPresentationAPI={VERSION:cfg.version,token,uid,login,catalog,publicCatalog,publicRelease,inspect,mutate,request,pending,flush,onIdentity(fn){listeners.add(fn);return()=>listeners.delete(fn);},actor:()=>actor,storage:{get,put,remove,all},message:code=>messages[code]||code};
  addEventListener('storage',e=>{if(e.key==='pyod_clave_v1'){clear();if(token())catalog().catch(()=>{});}});addEventListener('online',()=>flush());
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)flush();});
 })(window);

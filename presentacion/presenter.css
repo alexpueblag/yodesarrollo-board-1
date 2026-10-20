@@ -4,6 +4,8 @@
 
 body{padding-bottom:var(--yod-presenter-height,74px)!important}body:has(#app-shell) #app-shell{height:calc(100dvh - var(--yod-presenter-height,74px))!important}html.mobile-journey .journey-bottom{bottom:var(--yod-presenter-height,74px)}
 
-html{scroll-padding-bottom:calc(var(--yod-presenter-height,74px) + 18px)}body>main{padding-bottom:calc(var(--yod-presenter-height,74px) + 24px)}
+html{scroll-padding-bottom:calc(var(--yod-presenter-height,74px) + 18px)}
 
 #reviews{bottom:calc(var(--yod-presenter-height,74px) + 12px)!important}.dock{bottom:var(--yod-presenter-height,74px)!important}
+
+.yod-presenter.yp-public{top:8px;right:8px;bottom:auto;left:auto;padding:2px 4px;border:0;border-radius:8px;background:#f7f8f2cc}.yp-public .yp-library{display:none}.yp-public [data-yp-status]{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}.yp-public button{font-size:9px;min-height:27px;padding:3px 7px}.mobile-journey.intent-story body{height:100dvh}.mobile-journey.intent-story #journey{height:calc(100dvh - var(--yod-presenter-height,0px))}

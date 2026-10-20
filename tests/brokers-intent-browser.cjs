@@ -10,12 +10,12 @@ async function closingVisible(p){await seek(p,await p.evaluate(()=>YodSliderCore
 (async()=>{
 setTimeout(()=>{console.error('Single interaction browser deadline');process.exit(1);},240000).unref();
 const payload=await read(fs.readFileSync('presentacion/source.js','utf8').match(/url:'([^']+)'/)[1]);
-const server=http.createServer((req,res)=>{const n=new URL(req.url,'http://local').pathname.slice(1)||'index.html';if(!/^[a-z0-9-]+\.(html|css|js)$/.test(n)&&!/^vendor\/[a-zA-Z0-9._-]+\.js$/.test(n)&&!/^fonts\/[a-zA-Z0-9._-]+\.woff2$/.test(n)&&n!=='assets/logo_dark.png'){res.statusCode=404;return res.end();}try{res.setHeader('Content-Type',n.endsWith('.js')?'application/javascript':n.endsWith('.css')?'text/css':n.endsWith('.png')?'image/png':n.endsWith('.woff2')?'font/woff2':'text/html');res.end(fs.readFileSync(n.startsWith('assets/')?n:path.join('presentacion',n)));}catch(e){res.statusCode=404;res.end();}});
+const server=http.createServer((req,res)=>{const n=new URL(req.url,'http://local').pathname.slice(1)||'index.html';if(!/^[a-z0-9-]+\.(html|css|js|json)$/.test(n)&&!/^vendor\/[a-zA-Z0-9._-]+\.js$/.test(n)&&!/^fonts\/[a-zA-Z0-9._-]+\.woff2$/.test(n)&&n!=='assets/logo_dark.png'){res.statusCode=404;return res.end();}try{res.setHeader('Content-Type',n.endsWith('.json')?'application/json':n.endsWith('.js')?'application/javascript':n.endsWith('.css')?'text/css':n.endsWith('.png')?'image/png':n.endsWith('.woff2')?'font/woff2':'text/html');res.end(fs.readFileSync(n.startsWith('assets/')?n:path.join('presentacion',n)));}catch(e){res.statusCode=404;res.end();}});
 await new Promise(r=>server.listen(0,'127.0.0.1',r));
 let writes=0;
-for(const [name,engine]of [['webkit',webkit],['chromium',chromium]]){
- const browser=await engine.launch(),context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,deviceScaleFactor:1}),p=await context.newPage(),errors=[];p.on('pageerror',e=>errors.push(e.message));
- await context.route('https://**/*',r=>{if(r.request().method()!=='GET'){writes++;return r.abort();}return r.fulfill({contentType:'application/json',body:JSON.stringify(payload)});});
+for(const [name,engine]of (process.env.QA_BROWSER==='chromium'?[['chromium',chromium]]:[['webkit',webkit],['chromium',chromium]])){
+ const browser=await engine.launch({...(name==='chromium'&&process.env.CHROMIUM_EXECUTABLE_PATH?{executablePath:process.env.CHROMIUM_EXECUTABLE_PATH}: {})}),context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,deviceScaleFactor:1}),p=await context.newPage(),errors=[];p.on('pageerror',e=>errors.push(e.message));
+ await context.route('https://**/*',r=>{if(r.request().method()!=='GET'){let body;try{body=JSON.parse(r.request().postData())}catch{}if(body?.accion==='presentaciones'&&body.presentation?.op==='catalog')return r.fulfill({json:{ok:false,error:'unauthorized'}});writes++;return r.abort();}return r.fulfill({contentType:'application/json',body:JSON.stringify(payload)});});
  await p.addInitScript(()=>localStorage.setItem('pyod_clave_v1','synthetic-key'));
  await p.bringToFront();await p.goto('http://127.0.0.1:'+server.address().port+'/');await p.locator('#journey:not([hidden])').waitFor({timeout:65000});await p.evaluate(()=>document.fonts.ready);
  const cdp=name==='chromium'?await context.newCDPSession(p):null;
