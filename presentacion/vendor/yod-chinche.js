@@ -636,7 +636,7 @@ async function anotar(op){
     try { if (typeof CTX.alAntesClavar === "function") CTX.alAntesClavar(ch); } catch(e) {}
     try {
       if(!v._secuencia)throw Error('Espera a que termine la captura');
-      ch.secuencia = await v._secuencia.value();
+      if(v._secuencia.hasContent()) ch.secuencia = await v._secuencia.value();
       await window.YodChincheEntrega.bind(ch);
       var full = await aBlob(v._secuencia.canvas, 0.7), chica = full ? await aBlob(mini(v._secuencia.canvas), 0.6) : null;
       if (!vigente()) { cancelar(); return; }
