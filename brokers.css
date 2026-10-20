@@ -166,3 +166,6 @@ body:has(#brokers){background:#f7f9f7;color:#213b34;color-scheme:light}
 #benefits header{display:flex;align-items:start;justify-content:space-between;gap:12px}#benefits h2{font-size:22px}#benefits header button{min-width:44px;min-height:44px}
 #benefits .table-scroll{margin-top:16px}#benefits td{white-space:normal;overflow-wrap:anywhere}#benefits .secondary{white-space:normal}
 @media(max-width:850px){#brokers .detail-heading{grid-template-columns:minmax(0,1fr);gap:12px}}
+
+/* Keep the existing workspace and its dialogs within small viewports. */
+@media(max-width:650px){#brokers>header{flex-wrap:wrap}#brokers>.presentation-entry,#brokers>header .presentation-entry{font-size:11px;padding:8px 10px}#brokers .work-heading{flex-wrap:wrap;min-width:0}#brokers .workspace-actions{flex-wrap:wrap;max-width:100%;margin-left:auto}#brokers .workspace-actions>button{font-size:11px;padding:8px 10px}}
