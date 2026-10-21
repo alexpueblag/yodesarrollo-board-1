@@ -43,8 +43,8 @@
   if(d.dissolve){change(C.dissolve(currentLayout(),d.dissolve));opened='';render();return;}
   if(d.rename){const g=currentLayout().groups.find(g=>g.id===d.rename);modal('Renombrar grupo',`<label>Nombre<input value="${esc(g.name)}" maxlength="100" required></label><button type="button" data-confirm-name>Guardar nombre</button>`);dialog.querySelector('[data-confirm-name]').onclick=()=>{const name=dialog.querySelector('input').value.trim();if(name){const next=currentLayout();next.groups.find(x=>x.id===g.id).name=name;change(next);dialog.close();}};return;}
   if(d.undo!==undefined){if(undo.length&&editable&&!conflict){layout=undo.pop();render();store.set(layout);}return;}
-  if(d.zoom){zoom=Math.max(.35,Math.min(1.6,zoom+(d.zoom==='in'?.15:-.15)));render();return;}
-  if(d.fit!==undefined){const data=currentLayout(),width=Math.max(340,...data.items.filter(i=>!i.group).map(i=>i.x+320),...data.groups.map(g=>g.x+340));const height=Math.max(280,...data.items.filter(i=>!i.group).map(i=>i.y+280),...data.groups.map(g=>g.y+210));zoom=Math.max(.25,Math.min(1,(viewport.clientWidth-20)/width,(viewport.clientHeight-20)/height));render();viewport.scrollTo(0,0);return;}
+  if(d.zoom){zoom=Math.max(.02,Math.min(1.6,zoom+(d.zoom==='in'?.15:-.15)));render();return;}
+  if(d.fit!==undefined){const data=currentLayout(),width=Math.max(340,...data.items.filter(i=>!i.group).map(i=>i.x+320),...data.groups.map(g=>g.x+340));const height=Math.max(280,...data.items.filter(i=>!i.group).map(i=>i.y+280),...data.groups.map(g=>g.y+210));zoom=Math.max(.02,Math.min(1,(viewport.clientWidth-20)/width,(viewport.clientHeight-20)/height));render();viewport.scrollTo(0,0);return;}
   if(d.retry!==undefined)return store?.retry();
   if(d.resolve)return store?.resolve(d.resolve==='local');
   if(d.library!==undefined){const u=new URL('brokers.html',location.href);u.searchParams.set('tab','presentations');if(params.get('masterbroker'))u.searchParams.set('masterbroker',params.get('masterbroker'));if(caseId)u.searchParams.set('opportunity',caseId);location.assign(u.href);return;}
