@@ -1,16 +1,17 @@
 {
-  "model_revision": "2026-10-20.chinches-audio-ipad.1",
-  "proposal_id": "CHG-CHINCHES-AUDIO-IPAD-20261020",
-  "summary": "Reparar audio Safari y conservar originales/borradores sin alterar identidad, datos ni permisos",
+  "model_revision": "2026-10-20.masterdeveloper-pizarra.1",
+  "proposal_id": "CHG-MASTERDEVELOPER-PIZARRA-20261020",
+  "summary": "Nombre Master Developer para Dirección y Master Broker para otras cuentas autorizadas; entrada por brokers y recorrido canónico por proyecto. Pizarra separada con carátulas, posición, zoom, montones, carpetas, búsqueda y deshacer. Estado personal privado por actor verificado en GAS-SALA existente, revisión esperada y recibo idempotente. Conservar CRM, IDs, fuentes, permisos, versiones, chinches y URLs; no inferir avance comercial del tipo de oportunidad.",
   "components": [
     "SYS-INVERSION",
     "SYS-YOD-OS"
   ],
   "tests": [
-    "Pruebas del host y contratos aislados",
-    "Paquete1.1.0/hash observado y recuperación de medios antes de validar",
-    "git diff --check"
+    "Roles y separación de carteras con snapshots sintéticos.",
+    "Pizarra: mover, agrupar, sacar, recargar, deshacer, móvil y teclado.",
+    "Persistencia: identidad, CAS, ACK perdido, reintento idéntico y conflicto sin sobrescribir.",
+    "Regresiones existentes y comparación de archivos publicados; sesiones reales separadas de pruebas sintéticas."
   ],
-  "rollback": "Revertir código por PR conservando originales, borradores, IDs, recibos y permisos",
-  "model_commit": "7796d27f8f68eda5785e4f173accdbe4fbdc13fe"
+  "rollback": "Revertir PR de interfaz/servidor manteniendo archivos de organización, expedientes, recibos, permisos y originales.",
+  "model_commit": "505d6b6f540e3b0a704659c665e64be1e4e698a1"
 }
