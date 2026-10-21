@@ -169,3 +169,6 @@ body:has(#brokers){background:#f7f9f7;color:#213b34;color-scheme:light}
 
 /* Keep the existing workspace and its dialogs within small viewports. */
 @media(max-width:650px){#brokers>header{flex-wrap:wrap}#brokers>.presentation-entry,#brokers>header .presentation-entry{font-size:11px;padding:8px 10px}#brokers .work-heading{flex-wrap:wrap;min-width:0}#brokers .workspace-actions{flex-wrap:wrap;max-width:100%;margin-left:auto}#brokers .workspace-actions>button{font-size:11px;padding:8px 10px}}
+
+.md-team{width:100%;display:grid;gap:0;border:1px solid var(--line,#d8ded8);border-radius:14px;overflow:hidden;background:var(--surface,#fff)}
+.md-broker-row{display:flex;align-items:center;gap:16px;width:100%;padding:22px;text-align:left;border:0;border-bottom:1px solid #d8ded8;border-radius:0;background:transparent;color:inherit;min-height:88px}.md-broker-row:last-child{border-bottom:0}.md-broker-row>span:nth-child(2){flex:1}.md-broker-row strong,.md-broker-row small{display:block}.md-broker-row small{margin-top:7px;opacity:.7}.md-broker-row:hover,.md-broker-row:focus-visible{background:#f1f5ec}.case-progress{display:block;font-size:12px;opacity:.75;margin:6px 0}@media(max-width:600px){.md-broker-row{padding:16px 12px;gap:10px}}
